@@ -11,17 +11,17 @@ import {
 } from "@shared/schema";
 
 export interface IStorage {
-  getBond(id: number): Promise<BondDefinition | undefined>;
-  createBond(bond: InsertBond): Promise<BondDefinition>;
+  getBond(id: number): Promise<any>;
+  createBond(bond: InsertBond): Promise<any>;
   buildBond(bond: InsertBond): Promise<BondResult>;
   validateBond(bond: InsertBond): Promise<ValidationResult>;
-  getGoldenBond(id: string): Promise<InsertBond | undefined>;
+  getGoldenBond(id: string): Promise<any>;
   listGoldenBonds(): Promise<Record<string, any>>;
 }
 
 export class MemStorage implements IStorage {
-  private bonds: Map<number, BondDefinition>;
-  private cashFlows: Map<number, CashFlow[]>;
+  private bonds: Map<number, any>;
+  private cashFlows: Map<number, any[]>;
   private currentId: number;
 
   constructor() {
@@ -30,30 +30,17 @@ export class MemStorage implements IStorage {
     this.currentId = 1;
   }
 
-  async getBond(id: number): Promise<BondDefinition | undefined> {
+  async getBond(id: number): Promise<any> {
     return this.bonds.get(id);
   }
 
-  async createBond(insertBond: InsertBond): Promise<BondDefinition> {
+  async createBond(insertBond: InsertBond): Promise<any> {
     const id = this.currentId++;
     const bond = {
       ...insertBond,
       id,
-      cusip: insertBond.cusip || null,
-      firstCouponDate: insertBond.firstCouponDate || null,
-      faceValue: insertBond.faceValue.toString(),
-      couponRate: insertBond.couponRate.toString(),
-      dayCountConvention: insertBond.dayCountConvention || "30/360",
-      currency: insertBond.currency || "USD",
-      isAmortizing: insertBond.isAmortizing || null,
-      isCallable: insertBond.isCallable || null,
-      isPuttable: insertBond.isPuttable || null,
-      isFloating: insertBond.isFloating || null,
-      amortizationSchedule: insertBond.amortizationSchedule || null,
-      callSchedule: insertBond.callSchedule || null,
-      putSchedule: insertBond.putSchedule || null,
       createdAt: new Date(),
-    } as BondDefinition;
+    };
     this.bonds.set(id, bond);
     return bond;
   }
@@ -102,46 +89,6 @@ export class MemStorage implements IStorage {
 
       if (totalAmortization > 90) {
         warnings.amortizationSchedule = "High amortization percentage may leave small final payment";
-      }
-    }
-
-    // Call schedule validation
-    if (bond.callSchedule && bond.callSchedule.length > 0) {
-      for (const call of bond.callSchedule) {
-        const firstCallDate = new Date(call.firstCallDate);
-        const lastCallDate = new Date(call.lastCallDate);
-        
-        if (firstCallDate <= issueDate) {
-          errors.callSchedule = "Call dates must be after issue date";
-        }
-        
-        if (lastCallDate > maturityDate) {
-          errors.callSchedule = "Call dates must be before maturity date";
-        }
-        
-        if (firstCallDate >= lastCallDate) {
-          errors.callSchedule = "First call date must be before last call date";
-        }
-      }
-    }
-
-    // Put schedule validation
-    if (bond.putSchedule && bond.putSchedule.length > 0) {
-      for (const put of bond.putSchedule) {
-        const firstPutDate = new Date(put.firstPutDate);
-        const lastPutDate = new Date(put.lastPutDate);
-        
-        if (firstPutDate <= issueDate) {
-          errors.putSchedule = "Put dates must be after issue date";
-        }
-        
-        if (lastPutDate > maturityDate) {
-          errors.putSchedule = "Put dates must be before maturity date";
-        }
-        
-        if (firstPutDate >= lastPutDate) {
-          errors.putSchedule = "First put date must be before last put date";
-        }
       }
     }
 
@@ -303,11 +250,11 @@ export class MemStorage implements IStorage {
     return (maturity.getTime() - issue.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
   }
 
-  async getGoldenBond(id: string): Promise<InsertBond | undefined> {
+  async getGoldenBond(id: string): Promise<any> {
     const goldenBond = GOLDEN_BONDS[id as keyof typeof GOLDEN_BONDS];
     if (!goldenBond) return undefined;
     
-    return { ...goldenBond } as any;
+    return { ...goldenBond };
   }
 
   async listGoldenBonds(): Promise<Record<string, any>> {
