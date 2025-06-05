@@ -244,7 +244,7 @@ export default function BondBuilder() {
               </div>
               <div className="flex justify-between">
                 <span className="terminal-text-muted">VALIDATION:</span>
-                <span className="terminal-text-green">< 2ms</span>
+                <span className="terminal-text-green">&lt; 2ms</span>
               </div>
               <div className="flex justify-between">
                 <span className="terminal-text-muted">MEMORY_USAGE:</span>

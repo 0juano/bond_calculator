@@ -480,7 +480,7 @@ export default function BondForm({
           variant="outline"
           className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
         >
-          > VALIDATE_ONLY
+          {'>'} VALIDATE_ONLY
         </Button>
       </div>
 

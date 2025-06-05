@@ -36,11 +36,21 @@ export class MemStorage implements IStorage {
 
   async createBond(insertBond: InsertBond): Promise<BondDefinition> {
     const id = this.currentId++;
-    const bond: BondDefinition = {
+    const bond = {
       ...insertBond,
       id,
+      cusip: insertBond.cusip || null,
+      firstCouponDate: insertBond.firstCouponDate || null,
+      faceValue: insertBond.faceValue.toString(),
+      couponRate: insertBond.couponRate.toString(),
+      dayCountConvention: insertBond.dayCountConvention || "30/360",
+      currency: insertBond.currency || "USD",
+      isAmortizing: insertBond.isAmortizing || null,
+      isCallable: insertBond.isCallable || null,
+      isPuttable: insertBond.isPuttable || null,
+      isFloating: insertBond.isFloating || null,
       createdAt: new Date(),
-    };
+    } as BondDefinition;
     this.bonds.set(id, bond);
     return bond;
   }
@@ -157,7 +167,7 @@ export class MemStorage implements IStorage {
     const buildTime = Date.now() - startTime;
 
     return {
-      bond,
+      bond: bond as any,
       cashFlows,
       analytics,
       buildTime,
@@ -292,7 +302,9 @@ export class MemStorage implements IStorage {
 
   async getGoldenBond(id: string): Promise<InsertBond | undefined> {
     const goldenBond = GOLDEN_BONDS[id as keyof typeof GOLDEN_BONDS];
-    return goldenBond ? { ...goldenBond } : undefined;
+    if (!goldenBond) return undefined;
+    
+    return { ...goldenBond } as any;
   }
 
   async listGoldenBonds(): Promise<Record<string, any>> {
