@@ -7,6 +7,7 @@ export const bonds = pgTable("bonds", {
   id: serial("id").primaryKey(),
   issuer: text("issuer").notNull(),
   cusip: text("cusip"),
+  isin: text("isin"),
   faceValue: decimal("face_value", { precision: 15, scale: 2 }).notNull(),
   couponRate: decimal("coupon_rate", { precision: 8, scale: 5 }).notNull(),
   issueDate: text("issue_date").notNull(),
@@ -102,6 +103,7 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
   couponRate: z.number().min(0).max(50),
   paymentFrequency: z.number().int().min(1).max(12),
   settlementDays: z.number().int().min(0).max(30),
+  isin: z.string().regex(/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, "ISIN must be 12 characters (2 letters, 9 alphanumeric, 1 digit)").optional(),
   amortizationSchedule: z.array(z.object({
     date: z.string(),
     principalPercent: z.number().min(0).max(100),
@@ -133,6 +135,7 @@ export const GOLDEN_BONDS = {
   "vanilla-5y": {
     issuer: "US TREASURY",
     cusip: "912828XM7",
+    isin: "US9128283M71",
     faceValue: 1000000,
     couponRate: 5.0,
     issueDate: "2024-01-15",
@@ -150,6 +153,7 @@ export const GOLDEN_BONDS = {
   "amortizing-10y": {
     issuer: "CORPORATE BONDS INC",
     cusip: "123456789",
+    isin: "US1234567890",
     faceValue: 1000000,
     couponRate: 4.5,
     issueDate: "2024-01-15",
@@ -172,6 +176,7 @@ export const GOLDEN_BONDS = {
   "callable-7y": {
     issuer: "MUNICIPAL AUTHORITY",
     cusip: "987654321",
+    isin: "US9876543210",
     faceValue: 1000000,
     couponRate: 5.25,
     issueDate: "2024-01-15",
@@ -192,6 +197,7 @@ export const GOLDEN_BONDS = {
   "puttable-3y": {
     issuer: "BANK OF AMERICA",
     cusip: "456789123",
+    isin: "US4567891234",
     faceValue: 1000000,
     couponRate: 3.75,
     issueDate: "2024-01-15",
@@ -212,6 +218,7 @@ export const GOLDEN_BONDS = {
   "complex-combo": {
     issuer: "COMPLEX SECURITIES LLC",
     cusip: "789123456",
+    isin: "US7891234567",
     faceValue: 1000000,
     couponRate: 5.5,
     issueDate: "2024-01-15",

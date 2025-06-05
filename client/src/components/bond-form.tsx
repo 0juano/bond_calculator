@@ -141,6 +141,34 @@ export default function BondForm({
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs terminal-text-muted">CUSIP</Label>
+            <Input
+              value={bondData.cusip || ""}
+              onChange={(e) => handleInputChange("cusip", e.target.value)}
+              placeholder="912828XM7"
+              className="form-input"
+              maxLength={9}
+            />
+          </div>
+          <div>
+            <Label className="text-xs terminal-text-muted">ISIN</Label>
+            <Input
+              value={bondData.isin || ""}
+              onChange={(e) => handleInputChange("isin", e.target.value.toUpperCase())}
+              placeholder="US9128283M71"
+              className={`form-input ${validationErrors.isin ? "error-field" : ""}`}
+              maxLength={12}
+            />
+            {validationErrors.isin && (
+              <Badge variant="destructive" className="mt-1 text-xs">
+                {validationErrors.isin}
+              </Badge>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 gap-4">
           <div>
             <Label className="text-xs terminal-text-muted">FACE_VALUE</Label>

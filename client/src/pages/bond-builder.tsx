@@ -12,6 +12,7 @@ export default function BondBuilder() {
   const [bondData, setBondData] = useState<Partial<InsertBond>>({
     issuer: "",
     cusip: "",
+    isin: "",
     faceValue: 1000000,
     couponRate: 5.0,
     issueDate: "2024-01-15",
@@ -150,6 +151,7 @@ export default function BondBuilder() {
     setBondData({
       issuer: "",
       cusip: "",
+      isin: "",
       faceValue: 1000000,
       couponRate: 5.0,
       issueDate: "2024-01-15",
