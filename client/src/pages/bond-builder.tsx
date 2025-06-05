@@ -227,7 +227,7 @@ export default function BondBuilder() {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex min-h-[calc(100vh-80px)]">
         {/* Sidebar */}
         <aside className="w-80 bg-card border-r border-border p-4 overflow-y-auto terminal-scrollbar">
           <GoldenBonds onLoadBond={handleLoadGoldenBond} />
@@ -297,10 +297,10 @@ export default function BondBuilder() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col">
           <div className="flex-1 flex">
             {/* Bond Form */}
-            <div className="w-1/2 p-6 border-r border-border overflow-y-auto terminal-scrollbar">
+            <div className="w-1/2 p-6 border-r border-border overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
               <BondForm
                 bondData={bondData}
                 validationErrors={validationErrors}
@@ -311,7 +311,7 @@ export default function BondBuilder() {
             </div>
 
             {/* Preview Panel */}
-            <div className="w-1/2 p-6 overflow-y-auto terminal-scrollbar">
+            <div className="w-1/2 p-6 overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
               <div className="space-y-6">
                 <AnalyticsPanel 
                   analytics={buildResult?.analytics} 

@@ -48,6 +48,7 @@
   body {
     @apply font-mono antialiased bg-background text-foreground;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
+    overflow: auto;
   }
 
   /* Terminal-specific styles */
