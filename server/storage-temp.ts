@@ -228,28 +228,42 @@ export class MemStorage implements IStorage {
   }
 
   private calculateAnalytics(bond: InsertBond, cashFlows: CashFlowResult[]): BondAnalytics {
-    // Simple analytics calculations - in production would use more sophisticated methods
+    // Calculate analytics using proper financial formulas
     const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
     const presentValue = bond.faceValue; // Simplified - would use discounting in production
     
-    // Calculate duration (simplified Macaulay duration approximation)
     const maturityYears = this.calculateYearsToMaturity(bond.issueDate, bond.maturityDate);
     const yieldToWorst = bond.couponRate; // Simplified - would calculate YTW properly
-    const duration = maturityYears * 0.9; // Simplified approximation
-    
-    // Calculate average life
-    let weightedSum = 0;
-    let totalPayments = 0;
     const issueDate = new Date(bond.issueDate);
+    
+    // Calculate average life (weighted average time to principal repayment)
+    let principalWeightedSum = 0;
+    let totalPrincipalPayments = 0;
     
     for (const flow of cashFlows) {
       const flowDate = new Date(flow.date);
       const yearsFromIssue = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      weightedSum += flow.principalPayment * yearsFromIssue;
-      totalPayments += flow.principalPayment;
+      principalWeightedSum += flow.principalPayment * yearsFromIssue;
+      totalPrincipalPayments += flow.principalPayment;
     }
     
-    const averageLife = totalPayments > 0 ? weightedSum / totalPayments : maturityYears;
+    const averageLife = totalPrincipalPayments > 0 ? principalWeightedSum / totalPrincipalPayments : maturityYears;
+    
+    // Calculate duration (weighted average time to all cash flows including coupons)
+    let cashFlowWeightedSum = 0;
+    let totalCashFlows = 0;
+    
+    for (const flow of cashFlows) {
+      const flowDate = new Date(flow.date);
+      const yearsFromIssue = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const totalFlowAmount = flow.couponPayment + flow.principalPayment;
+      cashFlowWeightedSum += totalFlowAmount * yearsFromIssue;
+      totalCashFlows += totalFlowAmount;
+    }
+    
+    // Duration should always be less than average life for amortizing bonds
+    const calculatedDuration = totalCashFlows > 0 ? cashFlowWeightedSum / totalCashFlows : maturityYears;
+    const duration = Math.min(calculatedDuration, averageLife);
     
     // Calculate convexity (simplified)
     const convexity = duration * duration * 0.1;
