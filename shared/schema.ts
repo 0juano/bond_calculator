@@ -24,6 +24,7 @@ export const bonds = pgTable("bonds", {
   amortizationSchedule: jsonb("amortization_schedule").$type<AmortizationRow[]>(),
   callSchedule: jsonb("call_schedule").$type<CallRow[]>(),
   putSchedule: jsonb("put_schedule").$type<PutRow[]>(),
+  couponRateChanges: jsonb("coupon_rate_changes").$type<CouponRateChangeRow[]>(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -55,6 +56,11 @@ export interface PutRow {
   firstPutDate: string;
   lastPutDate: string;
   putPrice: number;
+}
+
+export interface CouponRateChangeRow {
+  effectiveDate: string;
+  newCouponRate: number;
 }
 
 // Cash flow calculation result
@@ -103,7 +109,7 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
   couponRate: z.number().min(0).max(50),
   paymentFrequency: z.number().int().min(1).max(12),
   settlementDays: z.number().int().min(0).max(30),
-  isin: z.string().regex(/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, "ISIN must be 12 characters (2 letters, 9 alphanumeric, 1 digit)").optional(),
+  isin: z.string().regex(/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, "ISIN must be 12 characters (2 letters, 9 alphanumeric, 1 digit)").optional().or(z.literal("")),
   amortizationSchedule: z.array(z.object({
     date: z.string(),
     principalPercent: z.number().min(0).max(100),
@@ -117,6 +123,10 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
     firstPutDate: z.string(),
     lastPutDate: z.string(),
     putPrice: z.number().positive(),
+  })).optional(),
+  couponRateChanges: z.array(z.object({
+    effectiveDate: z.string(),
+    newCouponRate: z.number().min(0).max(50),
   })).optional(),
 });
 

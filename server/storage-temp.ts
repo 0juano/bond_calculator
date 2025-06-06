@@ -147,17 +147,33 @@ export class MemStorage implements IStorage {
       }
     }
 
+    // Handle coupon rate changes
+    const couponRateMap = new Map<string, number>();
+    if (bond.couponRateChanges) {
+      for (const change of bond.couponRateChanges) {
+        couponRateMap.set(change.effectiveDate, change.newCouponRate);
+      }
+    }
+
+    // Track current coupon rate
+    let currentCouponRate = bond.couponRate;
+
     // Generate payments until maturity
     while (currentDate <= maturityDate) {
       const dateStr = currentDate.toISOString().split('T')[0];
       const isMaturity = currentDate.getTime() === maturityDate.getTime();
       
+      // Check for coupon rate change on this date
+      if (couponRateMap.has(dateStr)) {
+        currentCouponRate = couponRateMap.get(dateStr)!;
+      }
+
       // Check for amortization on this date
       const amortPercent = amortizationMap.get(dateStr) || 0;
       const amortAmount = (bond.faceValue * amortPercent) / 100;
       
-      // Calculate coupon based on current remaining notional
-      const currentCouponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+      // Calculate coupon based on current remaining notional and current coupon rate
+      const currentCouponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
       
       // Determine payment type and amounts
       let couponPayment = 0;
