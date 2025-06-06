@@ -235,7 +235,6 @@ export const GOLDEN_BONDS = {
     isAmortizing: true,
     isCallable: true,
     isPuttable: true,
-    isFloating: false,
     settlementDays: 3,
     amortizationSchedule: [
       { date: "2034-01-15", principalPercent: 50 },
