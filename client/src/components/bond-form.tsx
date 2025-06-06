@@ -22,6 +22,15 @@ export default function BondForm({
   onBuild, 
   isBuilding 
 }: BondFormProps) {
+  // Format number with thousand separators
+  const formatNumber = (num: number): string => {
+    return num.toLocaleString('en-US');
+  };
+
+  // Parse number from formatted string
+  const parseFormattedNumber = (str: string): number => {
+    return parseFloat(str.replace(/,/g, '')) || 0;
+  };
 
   const handleInputChange = (field: keyof InsertBond, value: any) => {
     onDataChange({ [field]: value });
@@ -173,10 +182,13 @@ export default function BondForm({
           <div>
             <Label className="text-xs terminal-text-muted">FACE_VALUE</Label>
             <Input
-              type="number"
-              value={bondData.faceValue || ""}
-              onChange={(e) => handleInputChange("faceValue", parseFloat(e.target.value) || 0)}
-              placeholder="1000000"
+              type="text"
+              value={bondData.faceValue ? formatNumber(bondData.faceValue) : ""}
+              onChange={(e) => {
+                const numValue = parseFormattedNumber(e.target.value);
+                handleInputChange("faceValue", numValue);
+              }}
+              placeholder="1,000"
               className={`form-input ${validationErrors.faceValue ? "error-field" : ""}`}
             />
             {validationErrors.faceValue && (
