@@ -232,20 +232,27 @@ export class MemStorage implements IStorage {
     const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
     const compoundingFreq = bond.paymentFrequency;
     
-    // Assume trading at par for market price
-    const marketPrice = 100;
+    // Use face value as market price for now
+    const marketPrice = bond.faceValue;
+    
+    console.log(`Analytics calculation - Cash flows count: ${cashFlows.length}`);
+    console.log(`Market price: ${marketPrice}, Compounding freq: ${compoundingFreq}`);
     
     // Calculate YTM using iterative method (Newton-Raphson approximation)
     const ytm = this.calculateYTM(cashFlows, marketPrice, issueDate, compoundingFreq);
+    console.log(`Calculated YTM: ${ytm}`);
     
     // Calculate Macaulay Duration
     const macaulayDuration = this.calculateMacaulayDuration(cashFlows, ytm, issueDate, compoundingFreq);
+    console.log(`Macaulay Duration: ${macaulayDuration}`);
     
     // Calculate Modified Duration
     const modifiedDuration = macaulayDuration / (1 + ytm / compoundingFreq);
+    console.log(`Modified Duration: ${modifiedDuration}`);
     
     // Calculate Average Life (weighted average time to principal repayment)
     const averageLife = this.calculateAverageLife(cashFlows, issueDate);
+    console.log(`Average Life: ${averageLife}`);
     
     // Calculate Present Value at YTM
     const presentValue = this.calculatePresentValue(cashFlows, ytm, issueDate, compoundingFreq);
@@ -256,14 +263,17 @@ export class MemStorage implements IStorage {
     // Convexity approximation
     const convexity = macaulayDuration * macaulayDuration / (1 + ytm);
 
-    return {
+    const result = {
       yieldToWorst: Number((yieldToWorst * 100).toFixed(2)),
       duration: Number(modifiedDuration.toFixed(2)),
       averageLife: Number(averageLife.toFixed(2)),
       convexity: Number(convexity.toFixed(2)),
       totalCoupons: Number(totalCoupons.toFixed(2)),
-      presentValue: Number(presentValue.toFixed(2)),
+      presentValue: Number(((presentValue / bond.faceValue) * 100).toFixed(2)),
     };
+    
+    console.log('Final analytics result:', result);
+    return result;
   }
 
   private calculateYTM(cashFlows: CashFlowResult[], marketPrice: number, issueDate: Date, compoundingFreq: number): number {
@@ -290,7 +300,7 @@ export class MemStorage implements IStorage {
     return ytm;
   }
 
-  private calculatePresentValue(cashFlows: CashFlowResult[], yield: number, issueDate: Date, compoundingFreq: number): number {
+  private calculatePresentValue(cashFlows: CashFlowResult[], yieldRate: number, issueDate: Date, compoundingFreq: number): number {
     let totalPV = 0;
     
     for (const flow of cashFlows) {
@@ -299,14 +309,14 @@ export class MemStorage implements IStorage {
       const totalCashFlow = flow.couponPayment + flow.principalPayment;
       
       // PV = CF / (1 + Y/n)^(n*t)
-      const discountFactor = Math.pow(1 + yield / compoundingFreq, compoundingFreq * timeYears);
+      const discountFactor = Math.pow(1 + yieldRate / compoundingFreq, compoundingFreq * timeYears);
       totalPV += totalCashFlow / discountFactor;
     }
     
     return totalPV;
   }
 
-  private calculatePVDerivative(cashFlows: CashFlowResult[], yield: number, issueDate: Date, compoundingFreq: number): number {
+  private calculatePVDerivative(cashFlows: CashFlowResult[], yieldRate: number, issueDate: Date, compoundingFreq: number): number {
     let derivative = 0;
     
     for (const flow of cashFlows) {
@@ -316,14 +326,14 @@ export class MemStorage implements IStorage {
       
       // d/dy [CF / (1 + y/n)^(n*t)] = -CF * (n*t) / (n * (1 + y/n)^(n*t + 1))
       const periods = compoundingFreq * timeYears;
-      const discountFactor = Math.pow(1 + yield / compoundingFreq, periods + 1);
+      const discountFactor = Math.pow(1 + yieldRate / compoundingFreq, periods + 1);
       derivative -= (totalCashFlow * periods) / (compoundingFreq * discountFactor);
     }
     
     return derivative;
   }
 
-  private calculateMacaulayDuration(cashFlows: CashFlowResult[], yield: number, issueDate: Date, compoundingFreq: number): number {
+  private calculateMacaulayDuration(cashFlows: CashFlowResult[], yieldRate: number, issueDate: Date, compoundingFreq: number): number {
     let weightedTimeSum = 0;
     let totalPV = 0;
     
@@ -332,7 +342,7 @@ export class MemStorage implements IStorage {
       const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
       const totalCashFlow = flow.couponPayment + flow.principalPayment;
       
-      const discountFactor = Math.pow(1 + yield / compoundingFreq, compoundingFreq * timeYears);
+      const discountFactor = Math.pow(1 + yieldRate / compoundingFreq, compoundingFreq * timeYears);
       const pvOfFlow = totalCashFlow / discountFactor;
       
       weightedTimeSum += timeYears * pvOfFlow;
