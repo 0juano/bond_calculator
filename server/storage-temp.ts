@@ -163,17 +163,17 @@ export class MemStorage implements IStorage {
       let paymentType = "COUPON";
 
       if (isMaturity) {
-        // Final payment includes remaining principal
-        couponPayment = couponAmount;
+        // Final payment: coupon based on remaining notional + all remaining principal
+        couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
         principalPayment = remainingNotional;
         paymentType = "MATURITY";
       } else if (amortAmount > 0) {
-        // Amortization payment
+        // Amortization payment: coupon on remaining notional before amortization
         couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
         principalPayment = amortAmount;
         paymentType = "AMORTIZATION";
       } else {
-        // Regular coupon payment
+        // Regular coupon payment: coupon on current remaining notional
         couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
         principalPayment = 0;
         paymentType = "COUPON";
