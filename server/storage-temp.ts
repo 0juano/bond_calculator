@@ -295,6 +295,7 @@ export class MemStorage implements IStorage {
       "amortizing-10y": "10Y 4.50% Amortizing",
       "callable-7y": "7Y 5.25% Callable",
       "puttable-3y": "3Y 3.75% Puttable",
+      "variable-step-up": "5Y Variable Step-Up",
       "complex-combo": "Complex Callable/Puttable",
     };
     return names[key] || key;

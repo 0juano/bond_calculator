@@ -310,78 +310,87 @@ export default function BondForm({
               />
               <Label className="text-xs terminal-text-green">PUTTABLE</Label>
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                checked={bondData.isVariableCoupon || false}
+                onCheckedChange={(checked) => handleInputChange("isVariableCoupon", checked)}
+              />
+              <Label className="text-xs terminal-text-green">VARIABLE_COUPON</Label>
+            </div>
           </div>
         </div>
 
         {/* Coupon Rate Changes for Variable Rate Bonds */}
-        <div className="mt-4">
-          <h4 className="text-xs terminal-text-muted mb-2">VARIABLE_COUPON_RATES</h4>
-          <div className="terminal-panel p-4">
-            <div className="space-y-2">
-              {(bondData.couponRateChanges || []).map((change, index) => (
-                <div key={index} className="grid grid-cols-4 gap-2">
-                  <div>
-                    <Label className="text-xs terminal-text-muted">EFFECTIVE_DATE</Label>
-                    <Input
-                      type="date"
-                      value={change.effectiveDate}
-                      onChange={(e) => {
-                        const newChanges = [...(bondData.couponRateChanges || [])];
-                        newChanges[index] = { ...change, effectiveDate: e.target.value };
-                        handleInputChange("couponRateChanges", newChanges);
-                      }}
-                      className="form-input text-xs"
-                    />
+        {bondData.isVariableCoupon && (
+          <div className="mt-4">
+            <h4 className="text-xs terminal-text-muted mb-2">VARIABLE_COUPON_RATES</h4>
+            <div className="terminal-panel p-4">
+              <div className="space-y-2">
+                {(bondData.couponRateChanges || []).map((change, index) => (
+                  <div key={index} className="grid grid-cols-4 gap-2">
+                    <div>
+                      <Label className="text-xs terminal-text-muted">EFFECTIVE_DATE</Label>
+                      <Input
+                        type="date"
+                        value={change.effectiveDate}
+                        onChange={(e) => {
+                          const newChanges = [...(bondData.couponRateChanges || [])];
+                          newChanges[index] = { ...change, effectiveDate: e.target.value };
+                          handleInputChange("couponRateChanges", newChanges);
+                        }}
+                        className="form-input text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs terminal-text-muted">NEW_RATE (%)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={change.newCouponRate}
+                        onChange={(e) => {
+                          const newChanges = [...(bondData.couponRateChanges || [])];
+                          newChanges[index] = { ...change, newCouponRate: parseFloat(e.target.value) || 0 };
+                          handleInputChange("couponRateChanges", newChanges);
+                        }}
+                        className="form-input text-xs"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          const newChanges = bondData.couponRateChanges?.filter((_, i) => i !== index) || [];
+                          handleInputChange("couponRateChanges", newChanges);
+                        }}
+                        className="text-xs"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-xs terminal-text-muted">NEW_RATE (%)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={change.newCouponRate}
-                      onChange={(e) => {
-                        const newChanges = [...(bondData.couponRateChanges || [])];
-                        newChanges[index] = { ...change, newCouponRate: parseFloat(e.target.value) || 0 };
-                        handleInputChange("couponRateChanges", newChanges);
-                      }}
-                      className="form-input text-xs"
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        const newChanges = bondData.couponRateChanges?.filter((_, i) => i !== index) || [];
-                        handleInputChange("couponRateChanges", newChanges);
-                      }}
-                      className="text-xs"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  const newChange = {
+                    effectiveDate: "",
+                    newCouponRate: bondData.couponRate || 0,
+                  };
+                  const newChanges = [...(bondData.couponRateChanges || []), newChange];
+                  handleInputChange("couponRateChanges", newChanges);
+                }}
+                variant="outline"
+                size="sm"
+                className="mt-2 text-xs border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                + ADD RATE CHANGE
+              </Button>
             </div>
-            <Button
-              type="button"
-              onClick={() => {
-                const newChange = {
-                  effectiveDate: "",
-                  newCouponRate: bondData.couponRate || 0,
-                };
-                const newChanges = [...(bondData.couponRateChanges || []), newChange];
-                handleInputChange("couponRateChanges", newChanges);
-              }}
-              variant="outline"
-              size="sm"
-              className="mt-2 text-xs border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              + ADD RATE CHANGE
-            </Button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Amortization Schedule */}

@@ -19,6 +19,7 @@ export const bonds = pgTable("bonds", {
   isAmortizing: boolean("is_amortizing").default(false),
   isCallable: boolean("is_callable").default(false),
   isPuttable: boolean("is_puttable").default(false),
+  isVariableCoupon: boolean("is_variable_coupon").default(false),
   settlementDays: integer("settlement_days").default(3),
   amortizationSchedule: jsonb("amortization_schedule").$type<AmortizationRow[]>(),
   callSchedule: jsonb("call_schedule").$type<CallRow[]>(),
@@ -156,6 +157,7 @@ export const GOLDEN_BONDS = {
     isAmortizing: false,
     isCallable: false,
     isPuttable: false,
+    isVariableCoupon: false,
     settlementDays: 3,
   },
   "amortizing-10y": {
@@ -173,6 +175,7 @@ export const GOLDEN_BONDS = {
     isAmortizing: true,
     isCallable: false,
     isPuttable: false,
+    isVariableCoupon: false,
     settlementDays: 3,
     amortizationSchedule: [
       { date: "2027-01-15", principalPercent: 25 },
@@ -195,6 +198,7 @@ export const GOLDEN_BONDS = {
     isAmortizing: false,
     isCallable: true,
     isPuttable: false,
+    isVariableCoupon: false,
     settlementDays: 3,
     callSchedule: [
       { firstCallDate: "2027-01-15", lastCallDate: "2031-01-15", callPrice: 102.5 },
@@ -215,9 +219,33 @@ export const GOLDEN_BONDS = {
     isAmortizing: false,
     isCallable: false,
     isPuttable: true,
+    isVariableCoupon: false,
     settlementDays: 3,
     putSchedule: [
       { firstPutDate: "2025-01-15", lastPutDate: "2026-01-15", putPrice: 98.0 },
+    ],
+  },
+  "variable-step-up": {
+    issuer: "TREASURY STEP UP CORP",
+    cusip: "987654321",
+    isin: "US9876543210",
+    faceValue: 1000000,
+    couponRate: 3.0,
+    issueDate: "2024-01-15",
+    maturityDate: "2029-01-15",
+    firstCouponDate: "2024-07-15",
+    paymentFrequency: 2,
+    dayCountConvention: "30/360",
+    currency: "USD",
+    isAmortizing: false,
+    isCallable: false,
+    isPuttable: false,
+    isVariableCoupon: true,
+    settlementDays: 3,
+    couponRateChanges: [
+      { effectiveDate: "2025-01-15", newCouponRate: 4.0 },
+      { effectiveDate: "2026-01-15", newCouponRate: 5.0 },
+      { effectiveDate: "2027-01-15", newCouponRate: 5.5 },
     ],
   },
   "complex-combo": {
@@ -235,6 +263,7 @@ export const GOLDEN_BONDS = {
     isAmortizing: true,
     isCallable: true,
     isPuttable: true,
+    isVariableCoupon: false,
     settlementDays: 3,
     amortizationSchedule: [
       { date: "2034-01-15", principalPercent: 50 },
