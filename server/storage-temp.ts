@@ -230,66 +230,133 @@ export class MemStorage implements IStorage {
   private calculateAnalytics(bond: InsertBond, cashFlows: CashFlowResult[]): BondAnalytics {
     const issueDate = new Date(bond.issueDate);
     const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
+    const compoundingFreq = bond.paymentFrequency;
     
-    // Use market price assumption (par = 100) and coupon rate as initial yield guess
-    const marketPrice = 100; // Assume trading at par
-    const initialYield = bond.couponRate / 100;
+    // Assume trading at par for market price
+    const marketPrice = 100;
     
-    // Calculate metrics using cash flows directly (like your Excel)
-    let totalPV = 0;
-    let weightedPVTime = 0; // For modified duration
-    let principalWeightedTime = 0;
-    let totalPrincipal = 0;
+    // Calculate YTM using iterative method (Newton-Raphson approximation)
+    const ytm = this.calculateYTM(cashFlows, marketPrice, issueDate, compoundingFreq);
     
-    for (let i = 0; i < cashFlows.length; i++) {
-      const flow = cashFlows[i];
-      const flowDate = new Date(flow.date);
-      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      const periods = timeYears * bond.paymentFrequency; // Convert to payment periods
-      
-      // Total cash flow for this payment
-      const totalFlow = flow.couponPayment + flow.principalPayment;
-      
-      // Present value factor: 1 / (1 + yield/frequency)^periods
-      const pvFactor = Math.pow(1 + initialYield / bond.paymentFrequency, -periods);
-      const pvOfFlow = totalFlow * pvFactor;
-      
-      totalPV += pvOfFlow;
-      weightedPVTime += timeYears * pvOfFlow;
-      
-      // For average life - only principal payments
-      if (flow.principalPayment > 0) {
-        principalWeightedTime += timeYears * flow.principalPayment;
-        totalPrincipal += flow.principalPayment;
-      }
-    }
+    // Calculate Macaulay Duration
+    const macaulayDuration = this.calculateMacaulayDuration(cashFlows, ytm, issueDate, compoundingFreq);
     
-    // Scale PV to face value (like Excel calculation)
-    const presentValue = (totalPV / bond.faceValue) * 100;
+    // Calculate Modified Duration
+    const modifiedDuration = macaulayDuration / (1 + ytm / compoundingFreq);
     
-    // Modified Duration = Sum(Time × PV) / Total PV
-    const modifiedDuration = totalPV > 0 ? weightedPVTime / totalPV : 0;
+    // Calculate Average Life (weighted average time to principal repayment)
+    const averageLife = this.calculateAverageLife(cashFlows, issueDate);
     
-    // Average Life = Sum(Principal × Time) / Total Principal  
-    const averageLife = totalPrincipal > 0 ? principalWeightedTime / totalPrincipal : 0;
+    // Calculate Present Value at YTM
+    const presentValue = this.calculatePresentValue(cashFlows, ytm, issueDate, compoundingFreq);
     
-    // Yield to Maturity (simplified - using coupon rate as proxy)
-    const yieldToMaturity = bond.couponRate;
+    // YTW calculation (simplified - for callable/puttable bonds would need call/put schedules)
+    const yieldToWorst = ytm;
     
-    // Yield to Worst (for callable/puttable bonds, simplified)
-    const yieldToWorst = bond.couponRate;
-    
-    // Convexity (simplified approximation)
-    const convexity = modifiedDuration * modifiedDuration / 100;
+    // Convexity approximation
+    const convexity = macaulayDuration * macaulayDuration / (1 + ytm);
 
     return {
-      yieldToWorst: Number(yieldToWorst.toFixed(2)),
+      yieldToWorst: Number((yieldToWorst * 100).toFixed(2)),
       duration: Number(modifiedDuration.toFixed(2)),
       averageLife: Number(averageLife.toFixed(2)),
       convexity: Number(convexity.toFixed(2)),
       totalCoupons: Number(totalCoupons.toFixed(2)),
       presentValue: Number(presentValue.toFixed(2)),
     };
+  }
+
+  private calculateYTM(cashFlows: CashFlowResult[], marketPrice: number, issueDate: Date, compoundingFreq: number): number {
+    // Newton-Raphson method to solve for YTM
+    let ytm = 0.05; // Initial guess of 5%
+    const tolerance = 1e-8;
+    const maxIterations = 100;
+    
+    for (let i = 0; i < maxIterations; i++) {
+      const pv = this.calculatePresentValue(cashFlows, ytm, issueDate, compoundingFreq);
+      const pvDerivative = this.calculatePVDerivative(cashFlows, ytm, issueDate, compoundingFreq);
+      
+      const f = pv - marketPrice;
+      if (Math.abs(f) < tolerance) break;
+      
+      if (Math.abs(pvDerivative) < tolerance) break; // Avoid division by zero
+      
+      ytm = ytm - f / pvDerivative;
+      
+      // Keep YTM in reasonable bounds
+      ytm = Math.max(-0.5, Math.min(2.0, ytm));
+    }
+    
+    return ytm;
+  }
+
+  private calculatePresentValue(cashFlows: CashFlowResult[], yield: number, issueDate: Date, compoundingFreq: number): number {
+    let totalPV = 0;
+    
+    for (const flow of cashFlows) {
+      const flowDate = new Date(flow.date);
+      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const totalCashFlow = flow.couponPayment + flow.principalPayment;
+      
+      // PV = CF / (1 + Y/n)^(n*t)
+      const discountFactor = Math.pow(1 + yield / compoundingFreq, compoundingFreq * timeYears);
+      totalPV += totalCashFlow / discountFactor;
+    }
+    
+    return totalPV;
+  }
+
+  private calculatePVDerivative(cashFlows: CashFlowResult[], yield: number, issueDate: Date, compoundingFreq: number): number {
+    let derivative = 0;
+    
+    for (const flow of cashFlows) {
+      const flowDate = new Date(flow.date);
+      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const totalCashFlow = flow.couponPayment + flow.principalPayment;
+      
+      // d/dy [CF / (1 + y/n)^(n*t)] = -CF * (n*t) / (n * (1 + y/n)^(n*t + 1))
+      const periods = compoundingFreq * timeYears;
+      const discountFactor = Math.pow(1 + yield / compoundingFreq, periods + 1);
+      derivative -= (totalCashFlow * periods) / (compoundingFreq * discountFactor);
+    }
+    
+    return derivative;
+  }
+
+  private calculateMacaulayDuration(cashFlows: CashFlowResult[], yield: number, issueDate: Date, compoundingFreq: number): number {
+    let weightedTimeSum = 0;
+    let totalPV = 0;
+    
+    for (const flow of cashFlows) {
+      const flowDate = new Date(flow.date);
+      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const totalCashFlow = flow.couponPayment + flow.principalPayment;
+      
+      const discountFactor = Math.pow(1 + yield / compoundingFreq, compoundingFreq * timeYears);
+      const pvOfFlow = totalCashFlow / discountFactor;
+      
+      weightedTimeSum += timeYears * pvOfFlow;
+      totalPV += pvOfFlow;
+    }
+    
+    return totalPV > 0 ? weightedTimeSum / totalPV : 0;
+  }
+
+  private calculateAverageLife(cashFlows: CashFlowResult[], issueDate: Date): number {
+    let principalWeightedTime = 0;
+    let totalPrincipal = 0;
+    
+    for (const flow of cashFlows) {
+      if (flow.principalPayment > 0) {
+        const flowDate = new Date(flow.date);
+        const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+        
+        principalWeightedTime += flow.principalPayment * timeYears;
+        totalPrincipal += flow.principalPayment;
+      }
+    }
+    
+    return totalPrincipal > 0 ? principalWeightedTime / totalPrincipal : 0;
   }
 
   private calculateYearsToMaturity(issueDate: string, maturityDate: string): number {
