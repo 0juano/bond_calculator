@@ -138,7 +138,6 @@ export class MemStorage implements IStorage {
     // Generate regular coupon payments
     let currentDate = new Date(firstCouponDate);
     let remainingNotional = bond.faceValue;
-    const couponAmount = (bond.faceValue * bond.couponRate / 100) / bond.paymentFrequency;
 
     // Handle amortization schedule
     const amortizationMap = new Map<string, number>();
@@ -157,31 +156,33 @@ export class MemStorage implements IStorage {
       const amortPercent = amortizationMap.get(dateStr) || 0;
       const amortAmount = (bond.faceValue * amortPercent) / 100;
       
+      // Calculate coupon based on current remaining notional
+      const currentCouponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+      
       // Determine payment type and amounts
       let couponPayment = 0;
       let principalPayment = 0;
       let paymentType = "COUPON";
 
       if (isMaturity) {
-        // Final payment: coupon based on remaining notional + all remaining principal
-        couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+        // Final payment: coupon on remaining notional + all remaining principal
+        couponPayment = currentCouponPayment;
         principalPayment = remainingNotional;
         paymentType = "MATURITY";
       } else if (amortAmount > 0) {
-        // Amortization payment: coupon on remaining notional before amortization
-        couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+        // Amortization payment: coupon on current notional + scheduled amortization
+        couponPayment = currentCouponPayment;
         principalPayment = amortAmount;
         paymentType = "AMORTIZATION";
       } else {
         // Regular coupon payment: coupon on current remaining notional
-        couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+        couponPayment = currentCouponPayment;
         principalPayment = 0;
         paymentType = "COUPON";
       }
 
       const totalPayment = couponPayment + principalPayment;
-      remainingNotional -= principalPayment;
-
+      
       flows.push({
         date: dateStr,
         couponPayment,
@@ -190,6 +191,9 @@ export class MemStorage implements IStorage {
         remainingNotional: Math.max(0, remainingNotional),
         paymentType,
       });
+
+      // Update remaining notional after recording the payment
+      remainingNotional -= principalPayment;
 
       if (isMaturity) break;
 
