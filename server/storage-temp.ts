@@ -228,53 +228,60 @@ export class MemStorage implements IStorage {
   }
 
   private calculateAnalytics(bond: InsertBond, cashFlows: CashFlowResult[]): BondAnalytics {
-    // Calculate analytics using proper financial formulas
-    const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
-    const presentValue = bond.faceValue; // Simplified - would use discounting in production
-    
-    const maturityYears = this.calculateYearsToMaturity(bond.issueDate, bond.maturityDate);
-    const yieldToWorst = bond.couponRate; // Simplified - would calculate YTW properly
     const issueDate = new Date(bond.issueDate);
+    const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
     
-    // Calculate average life (weighted average time to principal repayment)
+    // Assume a discount rate for present value calculations (using coupon rate as proxy)
+    const discountRate = bond.couponRate / 100;
+    
+    // Calculate present value of all cash flows
+    let presentValue = 0;
+    let weightedTimeValueSum = 0; // For duration calculation
+    
+    // Calculate average life (weighted average time to principal payments only)
     let principalWeightedSum = 0;
     let totalPrincipalPayments = 0;
     
     for (const flow of cashFlows) {
       const flowDate = new Date(flow.date);
       const yearsFromIssue = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      principalWeightedSum += flow.principalPayment * yearsFromIssue;
-      totalPrincipalPayments += flow.principalPayment;
+      
+      // Total cash flow for this period
+      const totalCashFlow = flow.couponPayment + flow.principalPayment;
+      
+      // Present value of this cash flow
+      const pvOfFlow = totalCashFlow / Math.pow(1 + discountRate / 2, yearsFromIssue * 2);
+      presentValue += pvOfFlow;
+      
+      // Weighted time-value for duration (Macaulay duration)
+      weightedTimeValueSum += yearsFromIssue * pvOfFlow;
+      
+      // Principal weighted sum for average life
+      if (flow.principalPayment > 0) {
+        principalWeightedSum += flow.principalPayment * yearsFromIssue;
+        totalPrincipalPayments += flow.principalPayment;
+      }
     }
     
-    const averageLife = totalPrincipalPayments > 0 ? principalWeightedSum / totalPrincipalPayments : maturityYears;
+    // Macaulay Duration = Sum(Time × PV of Cash Flow) / Total PV
+    const duration = presentValue > 0 ? weightedTimeValueSum / presentValue : 0;
     
-    // Calculate duration (weighted average time to all cash flows including coupons)
-    let cashFlowWeightedSum = 0;
-    let totalCashFlows = 0;
+    // Average Life = Sum(Principal Payment × Time) / Total Principal
+    const averageLife = totalPrincipalPayments > 0 ? principalWeightedSum / totalPrincipalPayments : 0;
     
-    for (const flow of cashFlows) {
-      const flowDate = new Date(flow.date);
-      const yearsFromIssue = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      const totalFlowAmount = flow.couponPayment + flow.principalPayment;
-      cashFlowWeightedSum += totalFlowAmount * yearsFromIssue;
-      totalCashFlows += totalFlowAmount;
-    }
+    // Yield to worst (simplified - using coupon rate)
+    const yieldToWorst = bond.couponRate;
     
-    // Duration should always be less than average life for amortizing bonds
-    const calculatedDuration = totalCashFlows > 0 ? cashFlowWeightedSum / totalCashFlows : maturityYears;
-    const duration = Math.min(calculatedDuration, averageLife);
-    
-    // Calculate convexity (simplified)
-    const convexity = duration * duration * 0.1;
+    // Convexity approximation
+    const convexity = duration * duration / (1 + discountRate);
 
     return {
       yieldToWorst,
-      duration,
-      averageLife,
-      convexity,
+      duration: Number(duration.toFixed(2)),
+      averageLife: Number(averageLife.toFixed(2)),
+      convexity: Number(convexity.toFixed(2)),
       totalCoupons,
-      presentValue,
+      presentValue: Number(presentValue.toFixed(2)),
     };
   }
 
