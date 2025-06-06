@@ -231,56 +231,63 @@ export class MemStorage implements IStorage {
     const issueDate = new Date(bond.issueDate);
     const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
     
-    // Assume a discount rate for present value calculations (using coupon rate as proxy)
-    const discountRate = bond.couponRate / 100;
+    // Use market price assumption (par = 100) and coupon rate as initial yield guess
+    const marketPrice = 100; // Assume trading at par
+    const initialYield = bond.couponRate / 100;
     
-    // Calculate present value of all cash flows
-    let presentValue = 0;
-    let weightedTimeValueSum = 0; // For duration calculation
+    // Calculate metrics using cash flows directly (like your Excel)
+    let totalPV = 0;
+    let weightedPVTime = 0; // For modified duration
+    let principalWeightedTime = 0;
+    let totalPrincipal = 0;
     
-    // Calculate average life (weighted average time to principal payments only)
-    let principalWeightedSum = 0;
-    let totalPrincipalPayments = 0;
-    
-    for (const flow of cashFlows) {
+    for (let i = 0; i < cashFlows.length; i++) {
+      const flow = cashFlows[i];
       const flowDate = new Date(flow.date);
-      const yearsFromIssue = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const periods = timeYears * bond.paymentFrequency; // Convert to payment periods
       
-      // Total cash flow for this period
-      const totalCashFlow = flow.couponPayment + flow.principalPayment;
+      // Total cash flow for this payment
+      const totalFlow = flow.couponPayment + flow.principalPayment;
       
-      // Present value of this cash flow
-      const pvOfFlow = totalCashFlow / Math.pow(1 + discountRate / 2, yearsFromIssue * 2);
-      presentValue += pvOfFlow;
+      // Present value factor: 1 / (1 + yield/frequency)^periods
+      const pvFactor = Math.pow(1 + initialYield / bond.paymentFrequency, -periods);
+      const pvOfFlow = totalFlow * pvFactor;
       
-      // Weighted time-value for duration (Macaulay duration)
-      weightedTimeValueSum += yearsFromIssue * pvOfFlow;
+      totalPV += pvOfFlow;
+      weightedPVTime += timeYears * pvOfFlow;
       
-      // Principal weighted sum for average life
+      // For average life - only principal payments
       if (flow.principalPayment > 0) {
-        principalWeightedSum += flow.principalPayment * yearsFromIssue;
-        totalPrincipalPayments += flow.principalPayment;
+        principalWeightedTime += timeYears * flow.principalPayment;
+        totalPrincipal += flow.principalPayment;
       }
     }
     
-    // Macaulay Duration = Sum(Time × PV of Cash Flow) / Total PV
-    const duration = presentValue > 0 ? weightedTimeValueSum / presentValue : 0;
+    // Scale PV to face value (like Excel calculation)
+    const presentValue = (totalPV / bond.faceValue) * 100;
     
-    // Average Life = Sum(Principal Payment × Time) / Total Principal
-    const averageLife = totalPrincipalPayments > 0 ? principalWeightedSum / totalPrincipalPayments : 0;
+    // Modified Duration = Sum(Time × PV) / Total PV
+    const modifiedDuration = totalPV > 0 ? weightedPVTime / totalPV : 0;
     
-    // Yield to worst (simplified - using coupon rate)
+    // Average Life = Sum(Principal × Time) / Total Principal  
+    const averageLife = totalPrincipal > 0 ? principalWeightedTime / totalPrincipal : 0;
+    
+    // Yield to Maturity (simplified - using coupon rate as proxy)
+    const yieldToMaturity = bond.couponRate;
+    
+    // Yield to Worst (for callable/puttable bonds, simplified)
     const yieldToWorst = bond.couponRate;
     
-    // Convexity approximation
-    const convexity = duration * duration / (1 + discountRate);
+    // Convexity (simplified approximation)
+    const convexity = modifiedDuration * modifiedDuration / 100;
 
     return {
-      yieldToWorst,
-      duration: Number(duration.toFixed(2)),
+      yieldToWorst: Number(yieldToWorst.toFixed(2)),
+      duration: Number(modifiedDuration.toFixed(2)),
       averageLife: Number(averageLife.toFixed(2)),
       convexity: Number(convexity.toFixed(2)),
-      totalCoupons,
+      totalCoupons: Number(totalCoupons.toFixed(2)),
       presentValue: Number(presentValue.toFixed(2)),
     };
   }
