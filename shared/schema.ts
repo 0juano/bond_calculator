@@ -19,7 +19,6 @@ export const bonds = pgTable("bonds", {
   isAmortizing: boolean("is_amortizing").default(false),
   isCallable: boolean("is_callable").default(false),
   isPuttable: boolean("is_puttable").default(false),
-  isFloating: boolean("is_floating").default(false),
   settlementDays: integer("settlement_days").default(3),
   amortizationSchedule: jsonb("amortization_schedule").$type<AmortizationRow[]>(),
   callSchedule: jsonb("call_schedule").$type<CallRow[]>(),
@@ -157,7 +156,6 @@ export const GOLDEN_BONDS = {
     isAmortizing: false,
     isCallable: false,
     isPuttable: false,
-    isFloating: false,
     settlementDays: 3,
   },
   "amortizing-10y": {
@@ -175,7 +173,6 @@ export const GOLDEN_BONDS = {
     isAmortizing: true,
     isCallable: false,
     isPuttable: false,
-    isFloating: false,
     settlementDays: 3,
     amortizationSchedule: [
       { date: "2027-01-15", principalPercent: 25 },
@@ -198,7 +195,6 @@ export const GOLDEN_BONDS = {
     isAmortizing: false,
     isCallable: true,
     isPuttable: false,
-    isFloating: false,
     settlementDays: 3,
     callSchedule: [
       { firstCallDate: "2027-01-15", lastCallDate: "2031-01-15", callPrice: 102.5 },
@@ -219,7 +215,6 @@ export const GOLDEN_BONDS = {
     isAmortizing: false,
     isCallable: false,
     isPuttable: true,
-    isFloating: false,
     settlementDays: 3,
     putSchedule: [
       { firstPutDate: "2025-01-15", lastPutDate: "2026-01-15", putPrice: 98.0 },
