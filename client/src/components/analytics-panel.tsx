@@ -1,33 +1,42 @@
 import { useMemo, useEffect, useRef } from "react";
+import { Chart } from "chart.js";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BondAnalytics } from "@shared/schema";
+import { BondAnalytics, CashFlowResult } from "@shared/schema";
 import { formatCurrency, formatPercent, safeToFixed } from "@/lib/bond-utils";
-import { createChart } from "@/lib/chart-utils";
+import { createStackedChart, processCashFlowsForChart } from "@/lib/chart-utils";
 
 interface AnalyticsPanelProps {
   analytics?: BondAnalytics;
+  cashFlows?: CashFlowResult[];
   buildStatus?: string;
   buildTime?: number;
 }
 
-export default function AnalyticsPanel({ analytics, buildStatus, buildTime }: AnalyticsPanelProps) {
+export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buildTime }: AnalyticsPanelProps) {
   const chartRef = useRef<HTMLCanvasElement>(null);
 
-  // Sample data for demonstration - in real app would come from analytics
+  // Process cash flows for chart visualization
   const chartData = useMemo(() => {
-    if (!analytics) return null;
+    if (!cashFlows || cashFlows.length === 0) return null;
     
-    return {
-      labels: ['2024-07', '2025-01', '2025-07', '2026-01', '2026-07', '2027-01'],
-      data: [25000, 25000, 25000, 25000, 25000, 1025000], // Simplified sample data
-    };
-  }, [analytics]);
+    return processCashFlowsForChart(cashFlows);
+  }, [cashFlows]);
 
   useEffect(() => {
     if (chartRef.current && chartData) {
-      createChart(chartRef.current, chartData);
+      createStackedChart(chartRef.current, chartData);
     }
+    
+    // Cleanup function to destroy chart when component unmounts
+    return () => {
+      if (chartRef.current) {
+        const existingChart = Chart.getChart(chartRef.current);
+        if (existingChart) {
+          existingChart.destroy();
+        }
+      }
+    };
   }, [chartData]);
 
   if (!analytics) {

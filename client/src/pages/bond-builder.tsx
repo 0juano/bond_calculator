@@ -317,6 +317,7 @@ export default function BondBuilder() {
               <div className="space-y-6">
                 <AnalyticsPanel 
                   analytics={buildResult?.analytics} 
+                  cashFlows={buildResult?.cashFlows}
                   buildStatus={buildResult?.status}
                   buildTime={buildResult?.buildTime}
                 />

@@ -186,6 +186,12 @@ GET  /api/bonds/golden/:id     # Get specific golden bond
 - **Annual coupon rate display** (not semi-annual)
 - **Complete summary totals** (payment count, coupon sum, principal sum, total cash flow)
 - Export capabilities
+- **NEW:**
+  - **Dynamic payment timeline chart**: Visualizes real cash flow data, not sample data
+  - **Auto-scaling timeline**: Chart automatically scales from issue date to maturity
+  - **Stacked bar chart**: Shows Coupons, Principal, and Options (Call/Put) payments
+  - **Interactive and robust**: Handles data changes and avoids canvas errors
+  - **Professional Bloomberg-style visualization**
 
 ## 🧪 Golden Bond Templates
 
@@ -311,6 +317,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by Bloomberg Terminal design
 - Built with modern web technologies
 - Designed for fixed-income professionals
+
+## 📝 Changelog
+
+### [Unreleased]
+- Payment timeline chart now uses real cash flow data
+- Timeline auto-scales to bond maturity
+- Stacked bar chart visualizes Coupons, Principal, and Options (Call/Put)
+- Chart is interactive and robust (no canvas reuse errors)
+- Improved chart destruction and React integration
 
 ---
 
