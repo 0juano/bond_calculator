@@ -7,19 +7,21 @@ interface GoldenBondsProps {
   onLoadBond: (bondId: string) => void;
 }
 
+interface GoldenBondInfo {
+  name: string;
+  description: string;
+  maturity: string;
+}
+
 export default function GoldenBonds({ onLoadBond }: GoldenBondsProps) {
-  const { data: goldenBonds, isLoading } = useQuery({
+  const { data: goldenBonds, isLoading } = useQuery<Record<string, GoldenBondInfo>>({
     queryKey: ["/api/bonds/golden"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/bonds/golden");
+      return response.json();
+    },
     staleTime: Infinity,
   });
-
-  const bondDisplayData = [
-    { id: "vanilla-5y", name: "VANILLA_5Y_5PCT", desc: "Plain 5% 5-year USD" },
-    { id: "amortizing-10y", name: "AMORT_10Y_4.5PCT", desc: "Amortizing 4.5% 10-year" },
-    { id: "callable-7y", name: "CALLABLE_7Y_6PCT", desc: "Callable 6% 7-year USD" },
-    { id: "puttable-3y", name: "PUTTABLE_15Y_3.75PCT", desc: "Puttable 3.75% 15-year" },
-    { id: "complex-combo", name: "COMBO_20Y_COMPLEX", desc: "Amort+Call+Put complex" },
-  ];
 
   if (isLoading) {
     return (
@@ -33,6 +35,14 @@ export default function GoldenBonds({ onLoadBond }: GoldenBondsProps) {
       </div>
     );
   }
+
+  const bondDisplayData = goldenBonds 
+    ? Object.entries(goldenBonds).map(([id, bond]) => ({
+        id,
+        name: bond.name,
+        desc: bond.description,
+      }))
+    : [];
 
   return (
     <div className="space-y-4">

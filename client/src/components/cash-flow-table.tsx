@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,54 +10,53 @@ import { formatCurrency, formatDate } from "@/lib/bond-utils";
 interface CashFlowTableProps {
   cashFlows: CashFlowResult[];
   isLoading: boolean;
+  bond?: {
+    faceValue?: number;
+    paymentFrequency?: number;
+    couponRate?: number;
+    couponRateChanges?: Array<{ effectiveDate: string; newCouponRate: number }>;
+  };
 }
 
-export default function CashFlowTable({ cashFlows, isLoading }: CashFlowTableProps) {
+export default function CashFlowTable({ cashFlows, isLoading, bond }: CashFlowTableProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Function to get coupon rate for a specific date
+  const getCouponRateForDate = (date: string): number => {
+    if (!bond) return 0;
+    
+    const paymentDate = new Date(date);
+    let currentRate = bond.couponRate || 0;
+    
+    if (bond.couponRateChanges) {
+      // Find the applicable coupon rate for this payment date
+      const sortedChanges = [...bond.couponRateChanges].sort((a, b) => 
+        new Date(a.effectiveDate).getTime() - new Date(b.effectiveDate).getTime()
+      );
+      
+      for (const change of sortedChanges) {
+        const changeDate = new Date(change.effectiveDate);
+        if (paymentDate >= changeDate) {
+          currentRate = change.newCouponRate;
+        }
+      }
+    }
+    
+    return currentRate;
+  };
   
   const summary = useMemo(() => {
     if (!cashFlows.length) return null;
     
     const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
     const totalPrincipal = cashFlows.reduce((sum, flow) => sum + flow.principalPayment, 0);
+    const totalPayments = cashFlows.reduce((sum, flow) => sum + flow.totalPayment, 0);
     const paymentCount = cashFlows.length;
     
-    return { totalCoupons, totalPrincipal, paymentCount };
+    return { totalCoupons, totalPrincipal, totalPayments, paymentCount };
   }, [cashFlows]);
 
-  const getPaymentTypeStyle = (type: string) => {
-    switch (type) {
-      case "COUPON":
-        return "terminal-text-blue";
-      case "AMORTIZATION":
-        return "terminal-text-amber";
-      case "CALL":
-        return "terminal-text-red";
-      case "PUT":
-        return "terminal-text-purple";
-      case "MATURITY":
-        return "terminal-text-green";
-      default:
-        return "terminal-text-muted";
-    }
-  };
 
-  const getPaymentTypeLabel = (type: string) => {
-    switch (type) {
-      case "COUPON":
-        return "CPN";
-      case "AMORTIZATION":
-        return "AMT";
-      case "CALL":
-        return "CALL";
-      case "PUT":
-        return "PUT";
-      case "MATURITY":
-        return "MAT";
-      default:
-        return type;
-    }
-  };
 
   // Reusable table component for both inline and dialog views
   const CashFlowTableContent = ({ maxHeight = "max-h-96" }: { maxHeight?: string }) => (
@@ -67,52 +65,55 @@ export default function CashFlowTable({ cashFlows, isLoading }: CashFlowTablePro
         <Table className="terminal-table">
           <TableHeader className="sticky top-0 bg-card">
             <TableRow className="border-b border-border hover:bg-transparent">
-              <TableHead className="text-xs font-bold terminal-text-green w-24">DATE</TableHead>
-              <TableHead className="text-xs font-bold terminal-text-green text-right w-20">COUPON</TableHead>
-              <TableHead className="text-xs font-bold terminal-text-green text-right w-20">PRINCIPAL</TableHead>
-              <TableHead className="text-xs font-bold terminal-text-green text-right w-24">TOTAL</TableHead>
-              <TableHead className="text-xs font-bold terminal-text-green text-right w-24">REMAINING</TableHead>
-              <TableHead className="text-xs font-bold terminal-text-green text-center w-16">TYPE</TableHead>
+              <TableHead className="text-xs font-bold terminal-text-green text-center w-24">DATE</TableHead>
+              <TableHead className="text-xs font-bold terminal-text-green text-center w-20">COUPON_%</TableHead>
+              <TableHead className="text-xs font-bold terminal-text-green text-center w-20">COUPON_$</TableHead>
+              <TableHead className="text-xs font-bold terminal-text-green text-center w-20">PRINCIPAL_$</TableHead>
+              <TableHead className="text-xs font-bold terminal-text-green text-center w-24">TOTAL_$</TableHead>
+              <TableHead className="text-xs font-bold terminal-text-green text-center w-24">REMAINING_%</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {cashFlows.map((flow, index) => (
-              <TableRow 
-                key={index} 
-                className="border-b border-border hover:bg-muted/50 transition-colors"
-              >
-                <TableCell className="text-xs font-mono">
-                  {formatDate(flow.date)}
-                </TableCell>
-                <TableCell className="text-xs font-mono text-right">
-                  {formatCurrency(flow.couponPayment)}
-                </TableCell>
-                <TableCell className="text-xs font-mono text-right">
-                  {formatCurrency(flow.principalPayment)}
-                </TableCell>
-                <TableCell className="text-xs font-mono text-right font-semibold terminal-text-green">
-                  {formatCurrency(flow.totalPayment)}
-                </TableCell>
-                <TableCell className="text-xs font-mono text-right">
-                  {formatCurrency(flow.remainingNotional)}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs px-1 py-0 ${getPaymentTypeStyle(flow.paymentType)}`}
-                  >
-                    {getPaymentTypeLabel(flow.paymentType)}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
+            {cashFlows.map((flow, index) => {
+              const couponRate = getCouponRateForDate(flow.date);
+              const paymentFreq = bond?.paymentFrequency || 2;
+              const couponPercentage = (couponRate * 100).toFixed(3);
+              const initialFaceValue = bond?.faceValue || 1;
+              const remainingPercentage = ((flow.remainingNotional / initialFaceValue) * 100).toFixed(1);
+              
+              return (
+                <TableRow 
+                  key={index} 
+                  className="border-b border-border hover:bg-muted/50 transition-colors"
+                >
+                  <TableCell className="text-xs font-mono text-center">
+                    {formatDate(flow.date)}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-center">
+                    {couponPercentage}%
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-center">
+                    {formatCurrency(flow.couponPayment)}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-center">
+                    {formatCurrency(flow.principalPayment)}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-center font-semibold terminal-text-green">
+                    {formatCurrency(flow.totalPayment)}
+                  </TableCell>
+                  <TableCell className="text-xs font-mono text-center">
+                    {remainingPercentage}%
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
       
       {summary && (
         <div className="border-t border-border p-3 bg-muted/30">
-          <div className="grid grid-cols-3 gap-4 text-xs">
+          <div className="grid grid-cols-4 gap-4 text-xs">
             <div>
               <span className="terminal-text-muted">Total Payments:</span>
               <span className="ml-2 font-mono font-semibold terminal-text-green">
@@ -129,6 +130,12 @@ export default function CashFlowTable({ cashFlows, isLoading }: CashFlowTablePro
               <span className="terminal-text-muted">Total Principal:</span>
               <span className="ml-2 font-mono font-semibold terminal-text-amber">
                 {formatCurrency(summary.totalPrincipal)}
+              </span>
+            </div>
+            <div>
+              <span className="terminal-text-muted">Total Cash Flow:</span>
+              <span className="ml-2 font-mono font-semibold terminal-text-green">
+                {formatCurrency(summary.totalPayments)}
               </span>
             </div>
           </div>

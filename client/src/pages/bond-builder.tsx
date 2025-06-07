@@ -324,6 +324,7 @@ export default function BondBuilder() {
                 <CashFlowTable 
                   cashFlows={buildResult?.cashFlows || []}
                   isLoading={buildMutation.isPending}
+                  bond={bondData}
                 />
               </div>
             </div>

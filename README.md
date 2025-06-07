@@ -180,9 +180,11 @@ GET  /api/bonds/golden/:id     # Get specific golden bond
 - Toast notifications for user feedback
 
 ### Data Visualization
-- Sortable cash flow tables
+- Sortable cash flow tables with expandable view
 - Payment type categorization
 - Remaining notional tracking
+- **Annual coupon rate display** (not semi-annual)
+- **Complete summary totals** (payment count, coupon sum, principal sum, total cash flow)
 - Export capabilities
 
 ## 🧪 Golden Bond Templates
@@ -192,6 +194,30 @@ Pre-configured bond examples for testing and learning:
 1. **vanilla-5y** - 5% 5-year US Treasury
 2. **amortizing-10y** - 4.5% 10-year corporate with amortization
 3. **callable-7y** - 5.25% 7-year municipal with call options
+4. **puttable-3y** - 3.75% 3-year Bank of America with put options
+5. **variable-step-up** - Treasury step-up bond with coupon rate changes
+6. **complex-combo** - Complex bond with amortization, call, and put features
+7. **al30d-argentina** - 🆕 **AL30D Argentina sovereign bond** (2020-2030) with step-up coupon structure
+
+### 🏆 AL30D - Argentina Sovereign Bond (NEW)
+
+Recently added authentic **AL30D** template based on official SEC prospectus specifications:
+
+- **Issuer**: Republic of Argentina
+- **ISIN**: ARARGE3209S6
+- **Maturity**: July 9, 2030
+- **Structure**: Amortizing bond with step-up coupon rates
+- **Face Value**: $1 USD (minimum legal denomination)
+
+**Step-up Coupon Schedule:**
+- 2020-2021: 0.125% p.a. (long first coupon)
+- 2021-2023: 0.500% p.a.
+- 2023-2027: 0.750% p.a.
+- 2027-2030: 1.750% p.a.
+
+**Amortization Schedule:**
+- July 2024: 4% principal payment
+- Jan/Jul 2025-2030: 12 equal payments of 8% each
 
 ## 💾 Data Persistence
 

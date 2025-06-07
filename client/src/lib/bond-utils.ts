@@ -115,7 +115,7 @@ export function validateAmortizationSchedule(schedule: Array<{date: string, prin
   for (const amort of schedule) {
     const amortDate = new Date(amort.date);
     
-    if (amortDate <= issue || amortDate >= maturity) {
+    if (amortDate <= issue || amortDate > maturity) {
       errors.push("Amortization dates must be between issue and maturity dates");
       break;
     }

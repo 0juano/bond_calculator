@@ -77,7 +77,7 @@ export class MemStorage implements IStorage {
       let totalAmortization = 0;
       for (const amort of bond.amortizationSchedule) {
         const amortDate = new Date(amort.date);
-        if (amortDate <= issueDate || amortDate >= maturityDate) {
+        if (amortDate <= issueDate || amortDate > maturityDate) {
           errors.amortizationSchedule = "Amortization dates must be between issue and maturity dates";
         }
         totalAmortization += amort.principalPercent;
@@ -202,8 +202,8 @@ export class MemStorage implements IStorage {
       const amortPercent = amortizationMap.get(dateStr) || 0;
       const amortAmount = (bond.faceValue * amortPercent) / 100;
       
-      // Calculate coupon based on current remaining notional and current coupon rate
-      const currentCouponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
+      // Calculate coupon based on REMAINING notional (not original face value) and current coupon rate
+      const currentCouponPayment = (remainingNotional * currentCouponRate) / bond.paymentFrequency;
       
       // Determine payment type and amounts
       let couponPayment = 0;
@@ -224,6 +224,9 @@ export class MemStorage implements IStorage {
 
       const totalPayment = couponPayment + principalPayment;
       
+      // Update remaining notional BEFORE recording the payment (to show closing balance)
+      remainingNotional -= principalPayment;
+      
       flows.push({
         date: dateStr,
         couponPayment,
@@ -232,9 +235,6 @@ export class MemStorage implements IStorage {
         remainingNotional: Math.max(0, remainingNotional),
         paymentType,
       });
-
-      // Update remaining notional after recording the payment
-      remainingNotional -= principalPayment;
 
       // Calculate next payment date
       currentDate = this.calculateNextCouponDate(currentDate, bond.paymentFrequency);
@@ -249,13 +249,14 @@ export class MemStorage implements IStorage {
     }
     
     // Final coupon payment on remaining notional
-    const finalCouponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
+    const finalCouponPayment = (remainingNotional * currentCouponRate) / bond.paymentFrequency;
+    const finalPrincipalPayment = remainingNotional;
     
     flows.push({
       date: maturityDateStr,
       couponPayment: finalCouponPayment,
-      principalPayment: remainingNotional,
-      totalPayment: finalCouponPayment + remainingNotional,
+      principalPayment: finalPrincipalPayment,
+      totalPayment: finalCouponPayment + finalPrincipalPayment,
       remainingNotional: 0,
       paymentType: "MATURITY",
     });

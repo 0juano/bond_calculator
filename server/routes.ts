@@ -50,6 +50,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Build golden bond by ID
+  app.post("/api/bonds/golden/:id/build", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const goldenBond = await storage.getGoldenBond(id);
+      
+      if (!goldenBond) {
+        return res.status(404).json({ error: "Golden bond not found" });
+      }
+      
+      const result = await storage.buildBond(goldenBond);
+      res.json(result);
+    } catch (error) {
+      console.error("Golden bond build error:", error);
+      res.status(500).json({ error: "Failed to build golden bond" });
+    }
+  });
+
   // List all golden bonds
   app.get("/api/bonds/golden", async (req, res) => {
     try {

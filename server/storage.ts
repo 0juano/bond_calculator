@@ -90,8 +90,9 @@ export class MemStorage implements IStorage {
       let totalAmortization = 0;
       for (const amort of bond.amortizationSchedule) {
         const amortDate = new Date(amort.date);
-        if (amortDate <= issueDate || amortDate >= maturityDate) {
+        if (amortDate <= issueDate || amortDate > maturityDate) {
           errors.amortizationSchedule = "Amortization dates must be between issue and maturity dates";
+          break;
         }
         totalAmortization += amort.principalPercent;
       }
@@ -351,7 +352,9 @@ export class MemStorage implements IStorage {
       "amortizing-10y": "10Y 4.50% Amortizing",
       "callable-7y": "7Y 5.25% Callable",
       "puttable-3y": "3Y 3.75% Puttable",
+      "variable-step-up": "5Y Variable Step-Up",
       "complex-combo": "Complex Callable/Puttable",
+      "al30d-argentina": "AL30D Argentina 2030 Step-Up",
     };
     return names[key] || key;
   }

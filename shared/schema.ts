@@ -292,4 +292,46 @@ export const GOLDEN_BONDS = {
       { firstPutDate: "2027-01-15", lastPutDate: "2032-01-15", putPrice: 97.5 },
     ],
   },
+  "al30d-argentina": {
+    issuer: "REPUBLIC OF ARGENTINA",
+    isin: "ARARGE3209S6",
+    cusip: null,
+    faceValue: 1,
+    couponRate: 0.00125,
+    issueDate: "2020-09-04",
+    maturityDate: "2030-07-09",
+    firstCouponDate: "2021-07-09",
+    paymentFrequency: 2,
+    dayCountConvention: "30/360",
+    currency: "USD",
+    isAmortizing: true,
+    isCallable: false,
+    isPuttable: false,
+    isVariableCoupon: true,
+    settlementDays: 2,
+    amortizationSchedule: [
+      { date: "2024-07-09", principalPercent: 4 },
+      { date: "2025-01-09", principalPercent: 8 },
+      { date: "2025-07-09", principalPercent: 8 },
+      { date: "2026-01-09", principalPercent: 8 },
+      { date: "2026-07-09", principalPercent: 8 },
+      { date: "2027-01-09", principalPercent: 8 },
+      { date: "2027-07-09", principalPercent: 8 },
+      { date: "2028-01-09", principalPercent: 8 },
+      { date: "2028-07-09", principalPercent: 8 },
+      { date: "2029-01-09", principalPercent: 8 },
+      { date: "2029-07-09", principalPercent: 8 },
+      { date: "2030-01-09", principalPercent: 8 },
+      { date: "2030-07-09", principalPercent: 8 }
+    ],
+    couponRateChanges: [
+      { effectiveDate: "2021-07-09", newCouponRate: 0.005 },
+      { effectiveDate: "2023-07-09", newCouponRate: 0.0075 },
+      { effectiveDate: "2027-07-09", newCouponRate: 0.0175 }
+    ]
+  },
 } as const;
+
+export const bondAnalytics = pgTable("bond_analytics", {
+  // ... existing code ...
+});
