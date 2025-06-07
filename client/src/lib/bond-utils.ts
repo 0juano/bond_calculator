@@ -1,4 +1,12 @@
-export function formatCurrency(amount: number, currency: string = "USD"): string {
+export function formatCurrency(amount: number | undefined, currency: string = "USD"): string {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(0);
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
@@ -7,7 +15,10 @@ export function formatCurrency(amount: number, currency: string = "USD"): string
   }).format(amount);
 }
 
-export function formatPercent(rate: number): string {
+export function formatPercent(rate: number | undefined): string {
+  if (rate === undefined || rate === null || isNaN(rate)) {
+    return "0.000%";
+  }
   return `${rate.toFixed(3)}%`;
 }
 
@@ -16,11 +27,21 @@ export function formatDate(dateString: string): string {
   return date.toISOString().split('T')[0];
 }
 
-export function formatNumber(num: number, decimals: number = 2): string {
+export function formatNumber(num: number | undefined, decimals: number = 2): string {
+  if (num === undefined || num === null || isNaN(num)) {
+    return "0" + (decimals > 0 ? "." + "0".repeat(decimals) : "");
+  }
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(num);
+}
+
+export function safeToFixed(num: number | undefined, decimals: number = 2): string {
+  if (num === undefined || num === null || isNaN(num)) {
+    return "0" + (decimals > 0 ? "." + "0".repeat(decimals) : "");
+  }
+  return num.toFixed(decimals);
 }
 
 export function calculateDaysBetween(startDate: string, endDate: string): number {

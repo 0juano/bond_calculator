@@ -2,7 +2,7 @@ import { useMemo, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BondAnalytics } from "@shared/schema";
-import { formatCurrency, formatPercent } from "@/lib/bond-utils";
+import { formatCurrency, formatPercent, safeToFixed } from "@/lib/bond-utils";
 import { createChart } from "@/lib/chart-utils";
 
 interface AnalyticsPanelProps {
@@ -87,29 +87,92 @@ export default function AnalyticsPanel({ analytics, buildStatus, buildTime }: An
         <div className="grid grid-cols-2 gap-4 text-xs">
           <div className="space-y-2">
             <div className="flex justify-between">
+              <span className="terminal-text-muted">YIELD_TO_MAT:</span>
+              <span className="terminal-text-green font-bold">
+                {formatPercent(analytics.yieldToMaturity)}
+              </span>
+            </div>
+            <div className="flex justify-between">
               <span className="terminal-text-muted">YIELD_TO_WORST:</span>
               <span className="terminal-text-green font-bold">
                 {formatPercent(analytics.yieldToWorst)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="terminal-text-muted">DURATION:</span>
+              <span className="terminal-text-muted">MOD_DURATION:</span>
               <span className="terminal-text-green font-bold">
-                {analytics.duration.toFixed(2)} yrs
+                {safeToFixed(analytics.duration, 4)} yrs
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">MAC_DURATION:</span>
+              <span className="terminal-text-green font-bold">
+                {safeToFixed(analytics.macaulayDuration, 4)} yrs
               </span>
             </div>
             <div className="flex justify-between">
               <span className="terminal-text-muted">CONVEXITY:</span>
               <span className="terminal-text-green font-bold">
-                {analytics.convexity.toFixed(2)}
+                {safeToFixed(analytics.convexity, 4)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">AVERAGE_LIFE:</span>
+              <span className="terminal-text-green font-bold">
+                {safeToFixed(analytics.averageLife, 4)} yrs
               </span>
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="terminal-text-muted">AVERAGE_LIFE:</span>
+              <span className="terminal-text-muted">MARKET_PRICE:</span>
               <span className="terminal-text-green font-bold">
-                {analytics.averageLife.toFixed(2)} yrs
+                {formatCurrency(analytics.marketPrice)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">CLEAN_PRICE:</span>
+              <span className="terminal-text-green font-bold">
+                {safeToFixed(analytics.cleanPrice, 4)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">DIRTY_PRICE:</span>
+              <span className="terminal-text-green font-bold">
+                {safeToFixed(analytics.dirtyPrice, 4)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">ACCRUED_INT:</span>
+              <span className="terminal-text-green font-bold">
+                {formatCurrency(analytics.accruedInterest)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">DAYS_TO_NEXT:</span>
+              <span className="terminal-text-green font-bold">
+                {analytics.daysToNextCoupon || 0} days
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">DV01:</span>
+              <span className="terminal-text-green font-bold">
+                {formatCurrency(analytics.dollarDuration)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Metrics Panel */}
+      <div className="terminal-panel p-4">
+        <h3 className="section-header">[ADDITIONAL_METRICS]</h3>
+        <div className="grid grid-cols-2 gap-4 text-xs">
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="terminal-text-muted">CURRENT_YLD:</span>
+              <span className="terminal-text-green font-bold">
+                {formatPercent(analytics.currentYield)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -121,9 +184,35 @@ export default function AnalyticsPanel({ analytics, buildStatus, buildTime }: An
             <div className="flex justify-between">
               <span className="terminal-text-muted">PV_CHECK:</span>
               <span className="terminal-text-green font-bold">
-                {(analytics.presentValue / 10000).toFixed(2)}
+                {safeToFixed(analytics.presentValue, 4)}%
               </span>
             </div>
+          </div>
+          <div className="space-y-2">
+            {analytics.yieldToCall && (
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">YIELD_TO_CALL:</span>
+                <span className="terminal-text-amber font-bold">
+                  {formatPercent(analytics.yieldToCall)}
+                </span>
+              </div>
+            )}
+            {analytics.yieldToPut && (
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">YIELD_TO_PUT:</span>
+                <span className="terminal-text-amber font-bold">
+                  {formatPercent(analytics.yieldToPut)}
+                </span>
+              </div>
+            )}
+                         {analytics.optionAdjustedSpread && (
+               <div className="flex justify-between">
+                 <span className="terminal-text-muted">OAS:</span>
+                 <span className="terminal-text-amber font-bold">
+                   {safeToFixed(analytics.optionAdjustedSpread, 2)} bps
+                 </span>
+               </div>
+             )}
           </div>
         </div>
       </div>

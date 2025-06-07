@@ -75,13 +75,29 @@ export interface CashFlowResult {
 
 // Bond analytics result
 export interface BondAnalytics {
+  // Existing metrics
   yieldToWorst: number;
-  duration: number;
+  duration: number;          // Modified Duration
   averageLife: number;
   convexity: number;
   totalCoupons: number;
   presentValue: number;
-  optionAdjustedSpread?: number;
+  
+  // New missing metrics
+  yieldToMaturity: number;        // Separate from YTW for callable bonds
+  macaulayDuration: number;       // Explicit Macaulay Duration
+  marketPrice: number;            // Current market price
+  cleanPrice: number;             // Price without accrued interest
+  dirtyPrice: number;             // Price with accrued interest
+  accruedInterest: number;        // Interest accrued since last payment
+  daysToNextCoupon: number;       // Days until next coupon payment
+  dollarDuration: number;         // DV01 - dollar duration
+  optionAdjustedSpread?: number;  // For bonds with embedded options
+  
+  // Additional useful metrics
+  currentYield: number;           // Annual coupon / market price
+  yieldToCall?: number;           // For callable bonds
+  yieldToPut?: number;           // For puttable bonds
 }
 
 // Complete bond result with cash flows and analytics
@@ -108,7 +124,8 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
   faceValue: z.number().positive(),
   couponRate: z.number().min(0).max(50),
   paymentFrequency: z.number().int().min(1).max(12),
-  settlementDays: z.number().int().min(0).max(30),
+  settlementDays: z.number().int().min(0).max(30).optional().default(3),
+  settlementDate: z.string().optional(), // Add settlement date for calculations
   isin: z.string().regex(/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, "ISIN must be 12 characters (2 letters, 9 alphanumeric, 1 digit)").optional().or(z.literal("")),
   amortizationSchedule: z.array(z.object({
     date: z.string(),

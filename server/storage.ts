@@ -48,7 +48,7 @@ export class MemStorage implements IStorage {
       isAmortizing: insertBond.isAmortizing || null,
       isCallable: insertBond.isCallable || null,
       isPuttable: insertBond.isPuttable || null,
-      isFloating: insertBond.isFloating || null,
+      isVariableCoupon: insertBond.isVariableCoupon || null,
       amortizationSchedule: insertBond.amortizationSchedule || null,
       callSchedule: insertBond.callSchedule || null,
       putSchedule: insertBond.putSchedule || null,
@@ -267,7 +267,9 @@ export class MemStorage implements IStorage {
     
     // Calculate duration (simplified Macaulay duration approximation)
     const maturityYears = this.calculateYearsToMaturity(bond.issueDate, bond.maturityDate);
+    const yieldToMaturity = bond.couponRate; // Simplified - would calculate YTM properly
     const yieldToWorst = bond.couponRate; // Simplified - would calculate YTW properly
+    const macaulayDuration = maturityYears * 0.95; // Simplified approximation
     const duration = maturityYears * 0.9; // Simplified approximation
     
     // Calculate average life
@@ -287,13 +289,34 @@ export class MemStorage implements IStorage {
     // Calculate convexity (simplified)
     const convexity = duration * duration * 0.1;
 
+    // Market price and accrual calculations (simplified)
+    const marketPrice = bond.faceValue;
+    const cleanPrice = marketPrice;
+    const accruedInterest = 0; // Simplified - would calculate based on settlement date
+    const dirtyPrice = cleanPrice + accruedInterest;
+    const daysToNextCoupon = 90; // Simplified - would calculate based on payment frequency
+    const dollarDuration = (duration * marketPrice) / 10000;
+    const currentYield = (bond.faceValue * bond.couponRate / 100) / marketPrice;
+
     return {
+      // Core metrics
+      yieldToMaturity,
       yieldToWorst,
       duration,
+      macaulayDuration,
       averageLife,
       convexity,
       totalCoupons,
       presentValue,
+      
+      // Price and accrual metrics
+      marketPrice,
+      cleanPrice,
+      dirtyPrice,
+      accruedInterest,
+      daysToNextCoupon,
+      dollarDuration,
+      currentYield,
     };
   }
 
