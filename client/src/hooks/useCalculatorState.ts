@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BondDefinition, BondAnalytics, BondResult } from "@shared/schema";
 
 export interface CalculatorInput {
@@ -21,7 +21,7 @@ export interface CalculatorState {
   // Actions
   setInput: (input: Partial<CalculatorInput>) => void;
   setPrice: (price: number) => void;
-  setYield: (yield: number) => void;
+  setYieldValue: (yieldValue: number) => void;
   setSpread: (spread: number) => void;
   setSettlementDate: (date: string) => void;
   lockField: (field: 'PRICE' | 'YIELD' | 'SPREAD') => void;
@@ -35,7 +35,7 @@ export function useCalculatorState(
   initialBondResult?: BondResult
 ): CalculatorState {
   const [input, setInputState] = useState<CalculatorInput>({
-    price: initialBondResult?.analytics?.marketPrice || bond?.faceValue || 100,
+    price: Number(initialBondResult?.analytics?.marketPrice || bond?.faceValue || 100),
     settlementDate: new Date().toISOString().split('T')[0],
     priceFormat: 'DECIMAL',
     yieldPrecision: 3,
@@ -67,7 +67,7 @@ export function useCalculatorState(
           settlementDate: input.settlementDate,
           // Override with user inputs
           ...(input.price && { marketPrice: input.price }),
-          ...(input.yield && { targetYield: input.yield }),
+          ...(input.yieldValue && { targetYield: input.yieldValue }),
           ...(input.spread && { targetSpread: input.spread }),
         };
 
@@ -111,7 +111,7 @@ export function useCalculatorState(
     // Debounce calculations to avoid excessive API calls
     const timeoutId = setTimeout(calculateAnalytics, 300);
     return () => clearTimeout(timeoutId);
-  }, [bond, input.price, input.yield, input.spread, input.settlementDate]);
+  }, [bond, input.price, input.yieldValue, input.spread, input.settlementDate]);
 
   // Action handlers
   const setInput = useCallback((partial: Partial<CalculatorInput>) => {
@@ -121,15 +121,15 @@ export function useCalculatorState(
   const setPrice = useCallback((price: number) => {
     setInput({ 
       price, 
-      yield: undefined, 
+      yieldValue: undefined, 
       spread: undefined, 
       lockedField: 'PRICE' 
     });
   }, [setInput]);
 
-  const setYield = useCallback((yield: number) => {
+  const setYieldValue = useCallback((yieldValue: number) => {
     setInput({ 
-      yield, 
+      yieldValue, 
       price: undefined, 
       spread: undefined, 
       lockedField: 'YIELD' 
@@ -140,7 +140,7 @@ export function useCalculatorState(
     setInput({ 
       spread, 
       price: undefined, 
-      yield: undefined, 
+      yieldValue: undefined, 
       lockedField: 'SPREAD' 
     });
   }, [setInput]);
@@ -159,8 +159,8 @@ export function useCalculatorState(
 
   const resetToMarket = useCallback(() => {
     setInput({
-      price: bondResult?.analytics?.marketPrice || bond?.faceValue || 100,
-      yield: undefined,
+      price: Number(bondResult?.analytics?.marketPrice || bond?.faceValue || 100),
+      yieldValue: undefined,
       spread: undefined,
       lockedField: undefined,
     });
@@ -169,9 +169,9 @@ export function useCalculatorState(
   const runScenario = useCallback((shockBp: number) => {
     if (bondResult?.analytics?.yieldToMaturity) {
       const newYield = bondResult.analytics.yieldToMaturity + shockBp / 100;
-      setYield(newYield);
+      setYieldValue(newYield);
     }
-  }, [bondResult?.analytics?.yieldToMaturity, setYield]);
+  }, [bondResult?.analytics?.yieldToMaturity, setYieldValue]);
 
   return {
     input,
@@ -181,7 +181,7 @@ export function useCalculatorState(
     error,
     setInput,
     setPrice,
-    setYield,
+    setYieldValue,
     setSpread,
     setSettlementDate,
     lockField,

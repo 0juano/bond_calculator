@@ -2,10 +2,22 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { 
+  initBackendMonitoring, 
+  requestMonitoringMiddleware,
+  errorHandlerMiddleware 
+} from "./middleware/monitoring";
+import { logger } from "./middleware/logging";
+
+// Initialize monitoring before anything else
+initBackendMonitoring();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add monitoring middleware
+app.use(requestMonitoringMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -40,13 +52,8 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
+  // Use enhanced error handler with monitoring
+  app.use(errorHandlerMiddleware);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
@@ -66,5 +73,11 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    logger.logSystemMetrics(); // Log initial system metrics
+    
+    // Set up periodic system metrics logging
+    setInterval(() => {
+      logger.logSystemMetrics();
+    }, 60000); // Every minute
   });
 })();

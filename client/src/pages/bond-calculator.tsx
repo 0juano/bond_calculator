@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator } from "lucide-react";
+import { ArrowLeft, Calculator, AlertTriangle } from "lucide-react";
 import { BondDefinition, BondResult } from "@shared/schema";
+import { useCalculatorState } from "@/hooks/useCalculatorState";
+import { captureCalculationError } from "@/lib/monitoring";
 
 export default function BondCalculator() {
   const { bondId } = useParams<{ bondId?: string }>();
@@ -12,6 +14,9 @@ export default function BondCalculator() {
   const [bondResult, setBondResult] = useState<BondResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize calculator state once bond is loaded
+  const calculatorState = useCalculatorState(bond || undefined, bondResult || undefined);
 
   // Load bond data on mount
   useEffect(() => {
@@ -56,7 +61,17 @@ export default function BondCalculator() {
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load bond');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load bond';
+        setError(errorMessage);
+        
+        // Capture error with context for monitoring
+        if (err instanceof Error) {
+          captureCalculationError(err, {
+            bondId,
+            calculationType: 'BOND_LOADING',
+            inputValues: { bondId },
+          });
+        }
       } finally {
         setIsLoading(false);
       }
@@ -145,23 +160,106 @@ export default function BondCalculator() {
           </div>
         </div>
 
-        {/* Calculator Content - Placeholder for now */}
-        <Card className="bg-gray-900 border-green-600">
-          <CardHeader>
-            <CardTitle className="text-green-400">Interactive Calculator</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-12 space-y-4">
-              <Calculator className="h-12 w-12 mx-auto text-green-400" />
-              <p className="text-gray-400">
-                Calculator interface coming soon...
-              </p>
-              {bondResult && (
-                <div className="text-sm text-gray-500">
-                  <p>Current YTM: {bondResult.analytics.yieldToMaturity.toFixed(3)}%</p>
-                  <p>Duration: {bondResult.analytics.duration.toFixed(4)}</p>
+        {/* Calculator Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pricing Panel */}
+          <Card className="bg-gray-900 border-green-600">
+            <CardHeader>
+              <CardTitle className="text-green-400 flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Pricing & Yield
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {calculatorState.isCalculating ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin h-6 w-6 border-2 border-green-400 border-t-transparent rounded-full"></div>
+                  <span className="ml-2 text-gray-400">Calculating...</span>
+                </div>
+              ) : calculatorState.error ? (
+                <div className="flex items-center gap-2 p-4 bg-red-900/20 border border-red-600 rounded">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                  <span className="text-red-400">{calculatorState.error}</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center py-8">
+                    <Calculator className="h-8 w-8 mx-auto text-green-400 mb-4" />
+                    <p className="text-gray-400 mb-4">Interactive pricing panel coming soon...</p>
+                    
+                    {/* Current Values Display */}
+                    {calculatorState.analytics && (
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="bg-gray-800 p-3 rounded">
+                          <p className="text-gray-400">Market Price</p>
+                          <p className="text-green-400 font-mono">
+                            {calculatorState.analytics.marketPrice?.toFixed(4) || 'N/A'}
+                          </p>
+                        </div>
+                        <div className="bg-gray-800 p-3 rounded">
+                          <p className="text-gray-400">Yield to Maturity</p>
+                          <p className="text-green-400 font-mono">
+                            {calculatorState.analytics.yieldToMaturity?.toFixed(3)}%
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Risk Metrics Panel */}
+          <Card className="bg-gray-900 border-green-600">
+            <CardHeader>
+              <CardTitle className="text-green-400">Risk Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {calculatorState.analytics ? (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-gray-800 p-3 rounded">
+                    <p className="text-gray-400">Duration</p>
+                    <p className="text-green-400 font-mono">
+                      {calculatorState.analytics.duration?.toFixed(4)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-800 p-3 rounded">
+                    <p className="text-gray-400">Convexity</p>
+                    <p className="text-green-400 font-mono">
+                      {calculatorState.analytics.convexity?.toFixed(2) || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-800 p-3 rounded">
+                    <p className="text-gray-400">DV01</p>
+                    <p className="text-green-400 font-mono">
+                      {calculatorState.analytics.dollarDuration?.toFixed(4) || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-800 p-3 rounded">
+                    <p className="text-gray-400">Current Yield</p>
+                    <p className="text-green-400 font-mono">
+                      {calculatorState.analytics.currentYield?.toFixed(3)}%
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  Risk metrics will appear here once bond is calculated
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Scenario Analysis Panel */}
+        <Card className="bg-gray-900 border-green-600">
+          <CardHeader>
+            <CardTitle className="text-green-400">Scenario Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-gray-400">
+              Scenario analysis panel coming soon...
             </div>
           </CardContent>
         </Card>
