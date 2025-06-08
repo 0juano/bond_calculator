@@ -119,10 +119,10 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
         </div>
       </div>
 
-      {/* 3. Export Options */}
+      {/* 3. Export & Analysis Options */}
       <div className="border-t border-border pt-4">
         <h3 className="section-header">[EXPORT_OPTIONS]</h3>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 mb-4">
           <button className="px-3 py-1 text-xs bg-muted text-foreground border border-primary hover:bg-primary hover:text-primary-foreground transition-colors">
             CSV
           </button>
@@ -133,6 +133,18 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
             XLSX
           </button>
         </div>
+        
+        {/* Calculator Link */}
+        {bond && (
+          <div className="pt-2 border-t border-border">
+            <button 
+              onClick={() => window.location.href = `/calculator/golden:${bond.id || 'vanilla-5y'}`}
+              className="px-4 py-2 text-sm bg-green-600 text-white border border-green-500 hover:bg-green-700 transition-colors rounded"
+            >
+              🧮 Open in Calculator
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 4. Build Status */}
