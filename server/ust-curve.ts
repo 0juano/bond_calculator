@@ -6,8 +6,9 @@
  */
 
 export interface USTCurveData {
-  recordDate: string;
+  recordDate: string; // Date when Treasury rates were recorded (market date)
   tenors: Record<string, number>; // tenor -> yield %
+  marketTime?: string; // When the Treasury actually published this data
 }
 
 export interface USTCurvePoint {
@@ -40,8 +41,26 @@ const FRED_SERIES_MAP: Record<string, { name: string; years: number }> = {
 /**
  * Fetch a single rate from FRED API
  */
-async function fetchFREDRate(seriesId: string, controller: AbortController): Promise<{ value: number; date: string } | null> {
+async function fetchFREDRate(seriesId: string, controller: AbortController): Promise<{ value: number; date: string; lastUpdated?: string } | null> {
   try {
+    // First get the series metadata to get the actual publication time
+    const seriesUrl = `https://api.stlouisfed.org/fred/series?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json`;
+    const seriesResponse = await fetch(seriesUrl, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'BondCalculator/1.0',
+      },
+    });
+
+    let lastUpdated: string | undefined;
+    if (seriesResponse.ok) {
+      const seriesData = await seriesResponse.json();
+      if (seriesData.seriess && seriesData.seriess[0]?.last_updated) {
+        lastUpdated = seriesData.seriess[0].last_updated;
+      }
+    }
+
+    // Then get the actual data
     const url = `${FRED_API_BASE}?series_id=${seriesId}&api_key=${FRED_API_KEY}&file_type=json&limit=1&sort_order=desc`;
     
     const response = await fetch(url, {
@@ -74,7 +93,8 @@ async function fetchFREDRate(seriesId: string, controller: AbortController): Pro
 
     return {
       value,
-      date: latest.date
+      date: latest.date,
+      lastUpdated
     };
 
   } catch (error) {
@@ -118,6 +138,7 @@ export async function fetchUSTCurve(): Promise<USTCurveData> {
     // Process results
     const tenors: Record<string, number> = {};
     let latestDate = '';
+    let latestPublicationTime = '';
     let validTenorCount = 0;
 
     for (const { mapping, result } of results) {
@@ -128,6 +149,11 @@ export async function fetchUSTCurve(): Promise<USTCurveData> {
         // Track the latest date across all series
         if (!latestDate || result.date > latestDate) {
           latestDate = result.date;
+        }
+
+        // Track the latest publication time (when Treasury actually published the data)
+        if (result.lastUpdated && (!latestPublicationTime || result.lastUpdated > latestPublicationTime)) {
+          latestPublicationTime = result.lastUpdated;
         }
       }
     }
@@ -150,9 +176,42 @@ export async function fetchUSTCurve(): Promise<USTCurveData> {
 
     console.log(`✓ UST curve fetched from FRED: ${latestDate} (${validTenorCount} tenors)`);
 
+    // Format the actual Treasury publication time
+    let marketTime = `${latestDate}`;
+    if (latestPublicationTime) {
+      // Parse FRED timestamp format: "2025-06-06 15:16:47-05"
+      try {
+        const pubDate = new Date(latestPublicationTime.replace(/(-\d{2})$/, ':00$1:00'));
+        const easternTime = pubDate.toLocaleString('en-US', {
+          timeZone: 'America/New_York',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        const buenosAiresTime = pubDate.toLocaleString('es-AR', {
+          timeZone: 'America/Argentina/Buenos_Aires',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+        marketTime = `${latestDate} published ${easternTime} ET (${buenosAiresTime} Buenos Aires)`;
+      } catch (error) {
+        marketTime = `${latestDate} (Published: ${latestPublicationTime})`;
+      }
+    }
+
     return {
       recordDate: latestDate,
       tenors,
+      marketTime,
     };
 
   } catch (error) {

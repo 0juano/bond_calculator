@@ -153,8 +153,9 @@ export const insertCashFlowSchema = createInsertSchema(cashFlows).omit({
 
 // UST Curve Types
 export interface USTCurveData {
-  recordDate: string;
+  recordDate: string; // Date when Treasury rates were recorded (market date)
   tenors: Record<string, number>; // tenor -> yield %
+  marketTime?: string; // When the Treasury actually published this data
 }
 
 export interface USTCurvePoint {

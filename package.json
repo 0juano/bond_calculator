@@ -10,7 +10,8 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "curve": "curl -s http://localhost:3000/api/ust-curve | jq '.tenors'",
-    "rates": "curl -s http://localhost:3000/api/ust-curve | jq -r '\"2Y=\" + (.tenors.\"2 Year\" | tostring) + \"% | 5Y=\" + (.tenors.\"5 Year\" | tostring) + \"% | 10Y=\" + (.tenors.\"10 Year\" | tostring) + \"% | 30Y=\" + (.tenors.\"30 Year\" | tostring) + \"%\"'"
+    "rates": "curl -s http://localhost:3000/api/ust-curve | jq -r '\"2Y=\" + (.tenors.\"2 Year\" | tostring) + \"% | 5Y=\" + (.tenors.\"5 Year\" | tostring) + \"% | 10Y=\" + (.tenors.\"10 Year\" | tostring) + \"% | 30Y=\" + (.tenors.\"30 Year\" | tostring) + \"%\"'",
+    "curve:time": "curl -s http://localhost:3000/api/ust-curve | jq -r '\"Market Date: \" + .recordDate, \"Published: \" + (.marketTime // \"Time unknown\")'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
