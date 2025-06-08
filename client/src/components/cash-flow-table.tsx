@@ -11,9 +11,9 @@ interface CashFlowTableProps {
   cashFlows: CashFlowResult[];
   isLoading: boolean;
   bond?: {
-    faceValue?: number;
+    faceValue?: number | string;
     paymentFrequency?: number;
-    couponRate?: number;
+    couponRate?: number | string;
     couponRateChanges?: Array<{ effectiveDate: string; newCouponRate: number }>;
   };
 }
@@ -26,7 +26,7 @@ export default function CashFlowTable({ cashFlows, isLoading, bond }: CashFlowTa
     if (!bond) return 0;
     
     const paymentDate = new Date(date);
-    let currentRate = bond.couponRate || 0;
+    let currentRate = typeof bond.couponRate === 'string' ? parseFloat(bond.couponRate) : (bond.couponRate || 0);
     
     if (bond.couponRateChanges) {
       // Find the applicable coupon rate for this payment date
@@ -77,8 +77,9 @@ export default function CashFlowTable({ cashFlows, isLoading, bond }: CashFlowTa
             {cashFlows.map((flow, index) => {
               const couponRate = getCouponRateForDate(flow.date);
               const paymentFreq = bond?.paymentFrequency || 2;
-              const couponPercentage = (couponRate * 100).toFixed(3);
-              const initialFaceValue = bond?.faceValue || 1;
+              // Show the annual coupon rate (not per-period)
+              const couponPercentage = couponRate.toFixed(3);
+              const initialFaceValue = typeof bond?.faceValue === 'string' ? parseFloat(bond.faceValue) : (bond?.faceValue || 1000);
               const remainingPercentage = ((flow.remainingNotional / initialFaceValue) * 100).toFixed(1);
               
               return (

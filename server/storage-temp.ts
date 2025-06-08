@@ -203,7 +203,7 @@ export class MemStorage implements IStorage {
       const amortAmount = (bond.faceValue * amortPercent) / 100;
       
       // Calculate coupon based on REMAINING notional (not original face value) and current coupon rate
-      const currentCouponPayment = (remainingNotional * currentCouponRate) / bond.paymentFrequency;
+      const currentCouponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
       
       // Determine payment type and amounts
       let couponPayment = 0;
@@ -249,7 +249,7 @@ export class MemStorage implements IStorage {
     }
     
     // Final coupon payment on remaining notional
-    const finalCouponPayment = (remainingNotional * currentCouponRate) / bond.paymentFrequency;
+    const finalCouponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
     const finalPrincipalPayment = remainingNotional;
     
     flows.push({
@@ -756,6 +756,7 @@ export class MemStorage implements IStorage {
     }, {} as Record<string, any>);
   }
 
+  // All coupon rates and couponRateChanges are in percentage format (e.g., 5.0 for 5%)
   private getGoldenBondDisplayName(key: string): string {
     const names: Record<string, string> = {
       "vanilla-5y": "5Y 5.00% Vanilla Bond",
@@ -763,7 +764,7 @@ export class MemStorage implements IStorage {
       "callable-7y": "7Y 5.25% Callable",
       "puttable-3y": "3Y 3.75% Puttable",
       "variable-step-up": "5Y Variable Step-Up",
-      "complex-combo": "Complex Callable/Puttable",
+      "ae38d-argentina": "AE38D Argentina Sovereign (2038)"
     };
     return names[key] || key;
   }

@@ -204,6 +204,9 @@ Pre-configured bond examples for testing and learning:
 5. **variable-step-up** - Treasury step-up bond with coupon rate changes
 6. **complex-combo** - Complex bond with amortization, call, and put features
 7. **al30d-argentina** - 🆕 **AL30D Argentina sovereign bond** (2020-2030) with step-up coupon structure
+8. **ae38d-argentina** - 🆕 **AE38D Argentina sovereign bond** (2020-2038) with step-up coupon and amortization
+
+> **Note:** All coupon rates and couponRateChanges are always in percentage format (e.g., 5.0 for 5%, 0.5 for 0.5%).
 
 ### 🏆 AL30D - Argentina Sovereign Bond (NEW)
 
@@ -224,6 +227,26 @@ Recently added authentic **AL30D** template based on official SEC prospectus spe
 **Amortization Schedule:**
 - July 2024: 4% principal payment
 - Jan/Jul 2025-2030: 12 equal payments of 8% each
+
+### 🏆 AE38D - Argentina Sovereign Bond (NEW)
+
+Recently added authentic **AE38D** template based on official SEC prospectus specifications:
+
+- **Issuer**: Republic of Argentina
+- **ISIN**: ARARGE3209U2
+- **Maturity**: January 9, 2038
+- **Structure**: Amortizing bond with step-up coupon rates
+- **Face Value**: $1,000 USD (minimum legal denomination)
+
+**Step-up Coupon Schedule:**
+- 2020-2021: 0.125% p.a. (long first coupon)
+- 2021-2022: 2.00% p.a.
+- 2022-2023: 3.875% p.a.
+- 2023-2024: 4.25% p.a.
+- 2024-2038: 5.00% p.a.
+
+**Amortization Schedule:**
+- 22 equal installments of 4.545% each, every Jan/Jul from 2027-07-09 to 2038-01-09
 
 ## 💾 Data Persistence
 
@@ -326,6 +349,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Stacked bar chart visualizes Coupons, Principal, and Options (Call/Put)
 - Chart is interactive and robust (no canvas reuse errors)
 - Improved chart destruction and React integration
+
+## Cash Flow Table Display
+
+- The `COUPON_%` column in the cash flow schedule now displays the **annual coupon rate** for each period (e.g., 0.500% for a 0.5% annual coupon), not the per-period rate. This matches standard bond market conventions.
+- The actual coupon payment (`COUPON_$`) is still calculated based on the payment frequency and the current coupon rate.
 
 ---
 

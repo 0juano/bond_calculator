@@ -157,13 +157,13 @@ export type InsertBond = z.infer<typeof insertBondSchema>;
 export type CashFlow = typeof cashFlows.$inferSelect;
 export type InsertCashFlow = z.infer<typeof insertCashFlowSchema>;
 
-// Golden bond templates
+// IMPORTANT: All couponRate and couponRateChanges must be in percentage format (e.g., 5.0 for 5%, 0.5 for 0.5%). Never use decimals (e.g., 0.05 for 5%).
 export const GOLDEN_BONDS = {
   "vanilla-5y": {
     issuer: "US TREASURY",
     cusip: "912828XM7",
     isin: "US9128283M71",
-    faceValue: 1000000,
+    faceValue: 1000,
     couponRate: 5.0,
     issueDate: "2024-01-15",
     maturityDate: "2029-01-15",
@@ -181,7 +181,7 @@ export const GOLDEN_BONDS = {
     issuer: "CORPORATE BONDS INC",
     cusip: "123456789",
     isin: "US1234567890",
-    faceValue: 1000000,
+    faceValue: 1000,
     couponRate: 4.5,
     issueDate: "2024-01-15",
     maturityDate: "2034-01-15",
@@ -204,7 +204,7 @@ export const GOLDEN_BONDS = {
     issuer: "MUNICIPAL AUTHORITY",
     cusip: "987654321",
     isin: "US9876543210",
-    faceValue: 1000000,
+    faceValue: 1000,
     couponRate: 5.25,
     issueDate: "2024-01-15",
     maturityDate: "2031-01-15",
@@ -225,7 +225,7 @@ export const GOLDEN_BONDS = {
     issuer: "BANK OF AMERICA",
     cusip: "456789123",
     isin: "US4567891234",
-    faceValue: 1000000,
+    faceValue: 1000,
     couponRate: 3.75,
     issueDate: "2024-01-15",
     maturityDate: "2027-01-15",
@@ -246,7 +246,7 @@ export const GOLDEN_BONDS = {
     issuer: "TREASURY STEP UP CORP",
     cusip: "987654321",
     isin: "US9876543210",
-    faceValue: 1000000,
+    faceValue: 1000,
     couponRate: 3.0,
     issueDate: "2024-01-15",
     maturityDate: "2029-01-15",
@@ -265,39 +265,12 @@ export const GOLDEN_BONDS = {
       { effectiveDate: "2027-01-15", newCouponRate: 5.5 },
     ],
   },
-  "complex-combo": {
-    issuer: "COMPLEX SECURITIES LLC",
-    cusip: "789123456",
-    isin: "US7891234567",
-    faceValue: 1000000,
-    couponRate: 5.5,
-    issueDate: "2024-01-15",
-    maturityDate: "2039-01-15",
-    firstCouponDate: "2024-07-15",
-    paymentFrequency: 2,
-    dayCountConvention: "30/360",
-    currency: "USD",
-    isAmortizing: true,
-    isCallable: true,
-    isPuttable: true,
-    isVariableCoupon: false,
-    settlementDays: 3,
-    amortizationSchedule: [
-      { date: "2034-01-15", principalPercent: 50 },
-    ],
-    callSchedule: [
-      { firstCallDate: "2029-01-15", lastCallDate: "2039-01-15", callPrice: 103.0 },
-    ],
-    putSchedule: [
-      { firstPutDate: "2027-01-15", lastPutDate: "2032-01-15", putPrice: 97.5 },
-    ],
-  },
   "al30d-argentina": {
     issuer: "REPUBLIC OF ARGENTINA",
     isin: "ARARGE3209S6",
     cusip: null,
-    faceValue: 1,
-    couponRate: 0.00125,
+    faceValue: 1000,
+    couponRate: 0.125,
     issueDate: "2020-09-04",
     maturityDate: "2030-07-09",
     firstCouponDate: "2021-07-09",
@@ -325,9 +298,57 @@ export const GOLDEN_BONDS = {
       { date: "2030-07-09", principalPercent: 8 }
     ],
     couponRateChanges: [
-      { effectiveDate: "2021-07-09", newCouponRate: 0.005 },
-      { effectiveDate: "2023-07-09", newCouponRate: 0.0075 },
-      { effectiveDate: "2027-07-09", newCouponRate: 0.0175 }
+      { effectiveDate: "2021-07-09", newCouponRate: 0.5 },
+      { effectiveDate: "2023-07-09", newCouponRate: 0.75 },
+      { effectiveDate: "2027-07-09", newCouponRate: 1.75 }
+    ]
+  },
+  "ae38d-argentina": {
+    issuer: "REPUBLIC OF ARGENTINA",
+    isin: "ARARGE3209U2",
+    cusip: null,                // local-law bonds do not carry a CUSIP
+    faceValue: 1000,
+    couponRate: 0.125,          // initial rate (Sep-2020 → Jul-2021)
+    issueDate: "2020-09-04",
+    maturityDate: "2038-01-09",
+    firstCouponDate: "2021-07-09",
+    paymentFrequency: 2,        // semi-annual
+    dayCountConvention: "30/360",
+    currency: "USD",
+    isAmortizing: true,
+    isCallable: false,
+    isPuttable: false,
+    isVariableCoupon: true,
+    settlementDays: 2,
+    amortizationSchedule: [
+      { date: "2027-07-09", principalPercent: 4.545 },
+      { date: "2028-01-09", principalPercent: 4.545 },
+      { date: "2028-07-09", principalPercent: 4.545 },
+      { date: "2029-01-09", principalPercent: 4.545 },
+      { date: "2029-07-09", principalPercent: 4.545 },
+      { date: "2030-01-09", principalPercent: 4.545 },
+      { date: "2030-07-09", principalPercent: 4.545 },
+      { date: "2031-01-09", principalPercent: 4.545 },
+      { date: "2031-07-09", principalPercent: 4.545 },
+      { date: "2032-01-09", principalPercent: 4.545 },
+      { date: "2032-07-09", principalPercent: 4.545 },
+      { date: "2033-01-09", principalPercent: 4.545 },
+      { date: "2033-07-09", principalPercent: 4.545 },
+      { date: "2034-01-09", principalPercent: 4.545 },
+      { date: "2034-07-09", principalPercent: 4.545 },
+      { date: "2035-01-09", principalPercent: 4.545 },
+      { date: "2035-07-09", principalPercent: 4.545 },
+      { date: "2036-01-09", principalPercent: 4.545 },
+      { date: "2036-07-09", principalPercent: 4.545 },
+      { date: "2037-01-09", principalPercent: 4.545 },
+      { date: "2037-07-09", principalPercent: 4.545 },
+      { date: "2038-01-09", principalPercent: 4.545 }
+    ],
+    couponRateChanges: [
+      { effectiveDate: "2021-07-09", newCouponRate: 2.00 },
+      { effectiveDate: "2022-07-09", newCouponRate: 3.875 },
+      { effectiveDate: "2023-07-09", newCouponRate: 4.25 },
+      { effectiveDate: "2024-07-09", newCouponRate: 5.00 }
     ]
   },
 } as const;

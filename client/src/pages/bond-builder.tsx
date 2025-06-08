@@ -314,20 +314,13 @@ export default function BondBuilder() {
 
             {/* Preview Panel */}
             <div className="w-1/2 p-6 overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
-              <div className="space-y-6">
-                <AnalyticsPanel 
-                  analytics={buildResult?.analytics} 
-                  cashFlows={buildResult?.cashFlows}
-                  buildStatus={buildResult?.status}
-                  buildTime={buildResult?.buildTime}
-                />
-                
-                <CashFlowTable 
-                  cashFlows={buildResult?.cashFlows || []}
-                  isLoading={buildMutation.isPending}
-                  bond={bondData}
-                />
-              </div>
+              <AnalyticsPanel 
+                analytics={buildResult?.analytics} 
+                cashFlows={buildResult?.cashFlows}
+                buildStatus={buildResult?.status}
+                buildTime={buildResult?.buildTime}
+                bond={buildResult?.bond}
+              />
             </div>
           </div>
         </main>

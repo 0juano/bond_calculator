@@ -192,7 +192,6 @@ export class MemStorage implements IStorage {
     // Generate regular coupon payments
     let currentDate = new Date(firstCouponDate);
     let remainingNotional = bond.faceValue;
-    const couponAmount = (bond.faceValue * bond.couponRate / 100) / bond.paymentFrequency;
 
     // Handle amortization schedule
     const amortizationMap = new Map<string, number>();
@@ -202,10 +201,27 @@ export class MemStorage implements IStorage {
       }
     }
 
+    // Handle coupon rate changes
+    const couponRateMap = new Map<string, number>();
+    if (bond.couponRateChanges) {
+      for (const change of bond.couponRateChanges) {
+        couponRateMap.set(change.effectiveDate, change.newCouponRate);
+      }
+    }
+
+    // Track current coupon rate
+    let currentCouponRate = bond.couponRate;
+
     // Generate payments until maturity
-    while (currentDate <= maturityDate) {
+    let paymentCount = 0;
+    while (currentDate <= maturityDate && paymentCount < 50) { // Safety limit
       const dateStr = currentDate.toISOString().split('T')[0];
       const isMaturity = currentDate.getTime() === maturityDate.getTime();
+      
+      // Check for coupon rate change on this date
+      if (couponRateMap.has(dateStr)) {
+        currentCouponRate = couponRateMap.get(dateStr)!;
+      }
       
       // Check for amortization on this date
       const amortPercent = amortizationMap.get(dateStr) || 0;
@@ -218,22 +234,24 @@ export class MemStorage implements IStorage {
 
       if (isMaturity) {
         // Final payment includes remaining principal
-        couponPayment = couponAmount;
+        couponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
         principalPayment = remainingNotional;
         paymentType = "MATURITY";
       } else if (amortAmount > 0) {
-        // Amortization payment
-        couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+        // Amortization payment: coupon on CURRENT remaining notional + scheduled amortization
+        couponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
         principalPayment = amortAmount;
         paymentType = "AMORTIZATION";
       } else {
-        // Regular coupon payment
-        couponPayment = (remainingNotional * bond.couponRate / 100) / bond.paymentFrequency;
+        // Regular coupon payment: coupon on CURRENT remaining notional
+        couponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
         principalPayment = 0;
         paymentType = "COUPON";
       }
 
       const totalPayment = couponPayment + principalPayment;
+      
+      // Update remaining notional AFTER calculating payment but BEFORE recording the flow
       remainingNotional -= principalPayment;
 
       flows.push({
@@ -249,6 +267,7 @@ export class MemStorage implements IStorage {
 
       // Calculate next payment date
       currentDate = this.calculateNextCouponDate(currentDate, bond.paymentFrequency);
+      paymentCount++;
     }
 
     return flows;
@@ -346,6 +365,7 @@ export class MemStorage implements IStorage {
     }, {} as Record<string, any>);
   }
 
+  // All coupon rates and couponRateChanges are in percentage format (e.g., 5.0 for 5%)
   private getGoldenBondDisplayName(key: string): string {
     const names: Record<string, string> = {
       "vanilla-5y": "5Y 5.00% Vanilla Bond",
@@ -355,6 +375,7 @@ export class MemStorage implements IStorage {
       "variable-step-up": "5Y Variable Step-Up",
       "complex-combo": "Complex Callable/Puttable",
       "al30d-argentina": "AL30D Argentina 2030 Step-Up",
+      "ae38d-argentina": "AE38D Argentina Sovereign (2038)"
     };
     return names[key] || key;
   }
