@@ -151,6 +151,25 @@ export const insertCashFlowSchema = createInsertSchema(cashFlows).omit({
   id: true,
 });
 
+// UST Curve Types
+export interface USTCurveData {
+  recordDate: string;
+  tenors: Record<string, number>; // tenor -> yield %
+}
+
+export interface USTCurvePoint {
+  tenor: string;
+  maturityYears: number;
+  yieldPercent: number;
+}
+
+export interface USTCurveResponse extends USTCurveData {
+  cached: boolean;
+  stale?: boolean;
+  cacheAge?: number;
+  warning?: string;
+}
+
 // Types
 export type BondDefinition = typeof bonds.$inferSelect;
 export type InsertBond = z.infer<typeof insertBondSchema>;

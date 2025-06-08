@@ -45,13 +45,26 @@ npm run dev
 
 The application will be available at **http://localhost:3000**
 
-### Environment Setup (Optional)
+### Environment Setup
 
-For database functionality, create a `.env` file:
+Create a `.env` file for configuration:
 
 ```env
+# Required: FRED API key for real-time Treasury data
+FRED_API_KEY=your_32_character_api_key_here
+
+# Optional: Database functionality  
 DATABASE_URL=postgresql://username:password@localhost:5432/bonds_db
 ```
+
+#### Getting a FRED API Key (Free)
+
+1. Visit [https://fredaccount.stlouisfed.org/apikey](https://fredaccount.stlouisfed.org/apikey)
+2. Create a free account or sign in
+3. Request an API key (instant approval)
+4. Copy the 32-character key to your `.env` file
+
+Without a FRED API key, the application will throw an error when trying to access Treasury data.
 
 ## 📁 Project Structure
 
@@ -154,6 +167,17 @@ GET  /api/bonds/:id            # Retrieve saved bond
 GET  /api/bonds/golden         # List all golden bonds
 GET  /api/bonds/golden/:id     # Get specific golden bond
 ```
+
+### Treasury Data (NEW)
+```http
+GET  /api/ust-curve           # Get current US Treasury yield curve
+```
+
+**Live Treasury Data Features:**
+- Real-time yield curve from Federal Reserve Economic Data (FRED)
+- Complete curve: 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y
+- 30-minute caching for performance
+- Used for spread calculations and benchmarking
 
 ## 📈 Analytics Calculated
 
@@ -274,6 +298,13 @@ npm run start        # Start production server
 
 # Database
 npm run db:push      # Push schema changes to database
+
+# Treasury Data (NEW)
+npm run curve        # Get current Treasury yield curve
+npm run rates        # Get key Treasury rates (2Y, 5Y, 10Y, 30Y)
+./curve.sh           # Treasury curve script (full curve)
+./curve.sh key       # Key rates only
+./curve.sh date      # Curve with date header
 ```
 
 ## 🔧 Configuration
@@ -344,6 +375,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📝 Changelog
 
 ### [Unreleased]
+- **NEW: Real-time Treasury Data Integration**
+  - FRED API integration for live US Treasury yield curve
+  - Complete 11-tenor curve (1M to 30Y) with 30-minute caching
+  - Environment variable configuration with `.env` support
+  - Easy access commands: `npm run curve`, `./curve.sh`
+  - Secure API key management (not committed to Git)
 - Payment timeline chart now uses real cash flow data
 - Timeline auto-scales to bond maturity
 - Stacked bar chart visualizes Coupons, Principal, and Options (Call/Put)
