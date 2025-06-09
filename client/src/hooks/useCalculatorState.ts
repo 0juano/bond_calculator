@@ -35,7 +35,7 @@ export function useCalculatorState(
   initialBondResult?: BondResult
 ): CalculatorState {
   const [input, setInputState] = useState<CalculatorInput>({
-    price: Number(initialBondResult?.analytics?.marketPrice || bond?.faceValue || 100),
+    price: initialBondResult?.analytics?.marketPrice || (typeof bond?.faceValue === 'number' ? bond.faceValue : 100),
     settlementDate: new Date().toISOString().split('T')[0],
     priceFormat: 'DECIMAL',
     yieldPrecision: 3,
@@ -119,12 +119,7 @@ export function useCalculatorState(
   }, []);
 
   const setPrice = useCallback((price: number) => {
-    setInput({ 
-      price, 
-      yieldValue: undefined, 
-      spread: undefined, 
-      lockedField: 'PRICE' 
-    });
+    setInput({ price });
   }, [setInput]);
 
   const setYieldValue = useCallback((yieldValue: number) => {
@@ -159,7 +154,7 @@ export function useCalculatorState(
 
   const resetToMarket = useCallback(() => {
     setInput({
-      price: Number(bondResult?.analytics?.marketPrice || bond?.faceValue || 100),
+      price: bondResult?.analytics?.marketPrice || (typeof bond?.faceValue === 'number' ? bond.faceValue : 100),
       yieldValue: undefined,
       spread: undefined,
       lockedField: undefined,
@@ -168,8 +163,8 @@ export function useCalculatorState(
 
   const runScenario = useCallback((shockBp: number) => {
     if (bondResult?.analytics?.yieldToMaturity) {
-      const newYield = bondResult.analytics.yieldToMaturity + shockBp / 100;
-      setYieldValue(newYield);
+      const newYieldValue = bondResult.analytics.yieldToMaturity + shockBp / 100;
+      setYieldValue(newYieldValue);
     }
   }, [bondResult?.analytics?.yieldToMaturity, setYieldValue]);
 

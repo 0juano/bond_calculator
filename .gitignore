@@ -11,3 +11,8 @@ vite.config.ts.*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Saved bonds - ignore individual files but keep structure
+saved_bonds/user_created/*.json
+saved_bonds/golden_bonds/*.json
+saved_bonds/imported/*.json

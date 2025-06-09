@@ -98,6 +98,9 @@ export interface BondAnalytics {
   currentYield: number;           // Annual coupon / market price
   yieldToCall?: number;           // For callable bonds
   yieldToPut?: number;           // For puttable bonds
+  
+  // Spread metrics
+  spread?: number;                // Spread over interpolated Treasury curve
 }
 
 // Complete bond result with cash flows and analytics
@@ -126,6 +129,8 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
   paymentFrequency: z.number().int().min(1).max(12),
   settlementDays: z.number().int().min(0).max(30).optional().default(3),
   settlementDate: z.string().optional(), // Add settlement date for calculations
+  marketPrice: z.number().positive().optional(), // Market price for yield calculations
+  targetYield: z.number().min(0).max(50).optional(), // Target yield for price calculations
   isin: z.string().regex(/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/, "ISIN must be 12 characters (2 letters, 9 alphanumeric, 1 digit)").optional().or(z.literal("")),
   amortizationSchedule: z.array(z.object({
     date: z.string(),

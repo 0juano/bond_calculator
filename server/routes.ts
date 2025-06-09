@@ -4,15 +4,110 @@ import { storage } from "./storage-temp";
 import { insertBondSchema } from "@shared/schema";
 import { z } from "zod";
 import { fetchUSTCurve, type USTCurveData } from "./ust-curve";
+import { BondStorageService } from "./bond-storage";
+import { BondJsonUtils } from "../shared/bond-definition";
 
 // In-memory cache for UST curve data
 let ustCurveCache: { data: USTCurveData; timestamp: number } | null = null;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Save bond to repository (different from export - this stores in repo for later use)
+  app.post("/api/bonds/save", async (req, res) => {
+    try {
+      const { bondData, cashFlows, category = 'user_created' } = req.body;
+      
+      // Create clean bond definition
+      const cleanBond = BondJsonUtils.fromLegacyBond(bondData, cashFlows);
+      
+      // Save to repository file system
+      const result = await BondStorageService.saveBond(cleanBond, category);
+      
+      if (result.success) {
+        res.json({
+          success: true,
+          message: "Bond saved to repository",
+          filename: result.filename,
+          bondId: cleanBond.metadata.id,
+          path: result.path
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: "Failed to save bond to repository"
+        });
+      }
+    } catch (error) {
+      console.error("Bond save error:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to save bond" 
+      });
+    }
+  });
+
+  // Load saved bond from repository
+  app.get("/api/bonds/saved/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const { category = 'user_created' } = req.query;
+      
+      const bond = await BondStorageService.loadBond(filename, category as string);
+      
+      if (!bond) {
+        return res.status(404).json({ error: "Saved bond not found" });
+      }
+      
+      res.json(bond);
+    } catch (error) {
+      console.error("Saved bond load error:", error);
+      res.status(500).json({ error: "Failed to load saved bond" });
+    }
+  });
+
+  // List all saved bonds
+  app.get("/api/bonds/saved", async (req, res) => {
+    try {
+      const bonds = await BondStorageService.getAllBondsWithMetadata();
+      res.json({
+        bonds,
+        count: bonds.length,
+        categories: {
+          user_created: bonds.filter(b => b.category === 'user_created').length,
+          golden_bonds: bonds.filter(b => b.category === 'golden_bonds').length,
+          imported: bonds.filter(b => b.category === 'imported').length,
+        }
+      });
+    } catch (error) {
+      console.error("Saved bonds list error:", error);
+      res.status(500).json({ error: "Failed to list saved bonds" });
+    }
+  });
+
+  // Delete saved bond
+  app.delete("/api/bonds/saved/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const { category = 'user_created' } = req.query;
+      
+      const success = await BondStorageService.deleteBond(filename, category as string);
+      
+      if (success) {
+        res.json({ success: true, message: "Bond deleted successfully" });
+      } else {
+        res.status(500).json({ success: false, error: "Failed to delete bond" });
+      }
+    } catch (error) {
+      console.error("Bond delete error:", error);
+      res.status(500).json({ error: "Failed to delete bond" });
+    }
+  });
+
   // Bond building endpoint
   app.post("/api/bonds/build", async (req, res) => {
     try {
+      // Ensure storage has latest UST curve cache
+      storage.setUSTCurveCache(ustCurveCache);
+      
       const bondData = insertBondSchema.parse(req.body);
       const result = await storage.buildBond(bondData);
       res.json(result);
@@ -20,6 +115,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Bond build error:", error);
       res.status(400).json({ 
         error: error instanceof Error ? error.message : "Invalid bond data" 
+      });
+    }
+  });
+
+  // Bond calculation endpoint (for real-time price/yield calculations)
+  app.post("/api/bonds/calculate", async (req, res) => {
+    try {
+      // Ensure storage has latest UST curve cache
+      storage.setUSTCurveCache(ustCurveCache);
+      
+      console.log('📊 Calculate request received:', JSON.stringify(req.body, null, 2));
+      
+      const bondData = insertBondSchema.parse(req.body);
+      console.log('📊 Parsed bond data:', JSON.stringify(bondData, null, 2));
+      
+      const result = await storage.buildBond(bondData);
+      
+      // Return just the analytics for faster calculations
+      res.json({
+        analytics: result.analytics,
+        calculationTime: result.buildTime,
+        status: 'success'
+      });
+    } catch (error) {
+      console.error("Bond calculation error:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Calculation failed" 
       });
     }
   });
@@ -58,6 +180,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Build golden bond by ID
   app.post("/api/bonds/golden/:id/build", async (req, res) => {
     try {
+      // Ensure storage has latest UST curve cache
+      storage.setUSTCurveCache(ustCurveCache);
+      
       const { id } = req.params;
       const goldenBond = await storage.getGoldenBond(id);
       
@@ -107,6 +232,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: curveData,
         timestamp: now,
       };
+
+      // Update storage with UST curve cache
+      storage.setUSTCurveCache(ustCurveCache);
 
       res.json({
         ...curveData,
@@ -192,6 +320,9 @@ async function loadUSTCurveOnStartup(): Promise<void> {
       data: curveData,
       timestamp: Date.now(),
     };
+    
+    // Update storage with UST curve cache
+    storage.setUSTCurveCache(ustCurveCache);
     
     console.log('✅ UST curve data pre-loaded successfully');
     

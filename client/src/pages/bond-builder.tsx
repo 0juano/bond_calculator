@@ -6,6 +6,7 @@ import CashFlowTable from "@/components/cash-flow-table";
 import AnalyticsPanel from "@/components/analytics-panel";
 import GoldenBonds from "@/components/golden-bonds";
 import { BondResult, InsertBond, ValidationResult } from "@shared/schema";
+import { BondJsonUtils } from "@shared/bond-definition";
 import { useToast } from "@/hooks/use-toast";
 
 export default function BondBuilder() {
@@ -178,12 +179,42 @@ export default function BondBuilder() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Save draft to localStorage for quick recovery
     localStorage.setItem("bond_draft", JSON.stringify(bondData));
-    toast({
-      title: "Bond Saved",
-      description: "Bond configuration saved to localStorage",
-    });
+    
+    // If we have a completed bond result, save to repository
+    if (buildResult && buildResult.cashFlows) {
+      try {
+        const response = await apiRequest("POST", "/api/bonds/save", {
+          bondData,
+          cashFlows: buildResult.cashFlows,
+          category: 'user_created'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          toast({
+            title: "Bond Saved to Repository",
+            description: `Saved as: ${result.filename}`,
+          });
+        } else {
+          throw new Error(result.error || "Failed to save bond");
+        }
+      } catch (error) {
+        toast({
+          title: "Save Error",
+          description: error instanceof Error ? error.message : "Failed to save bond to repository",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Draft Saved",
+        description: "Bond configuration saved to localStorage (build bond first for repository save)",
+      });
+    }
   };
 
   return (
@@ -271,28 +302,42 @@ export default function BondBuilder() {
               </button>
               <button
                 onClick={() => {
-                  if (buildResult) {
-                    const csv = buildResult.cashFlows.map(flow => 
-                      `${flow.date},${flow.couponPayment},${flow.principalPayment},${flow.totalPayment},${flow.remainingNotional},${flow.paymentType}`
-                    ).join('\n');
-                    const blob = new Blob([`Date,Coupon,Principal,Total,Remaining,Type\n${csv}`], { type: 'text/csv' });
+                  if (buildResult?.cashFlows) {
+                    const headers = ['Date', 'Coupon_Payment', 'Principal_Payment', 'Total_Payment', 'Remaining_Notional', 'Payment_Type'];
+                    const csvData = buildResult.cashFlows.map(flow => [
+                      flow.date,
+                      flow.couponPayment.toFixed(2),
+                      flow.principalPayment.toFixed(2),
+                      flow.totalPayment.toFixed(2),
+                      flow.remainingNotional.toFixed(2),
+                      flow.paymentType
+                    ]);
+                    
+                    const csv = [headers, ...csvData].map(row => row.join(',')).join('\n');
+                    const issuer = bondData.issuer?.replace(/[^a-zA-Z0-9]/g, '_') || 'Bond';
+                    const timestamp = new Date().toISOString().split('T')[0];
+                    const filename = `${issuer}_CashFlows_${timestamp}.csv`;
+                    
+                    const blob = new Blob([csv], { type: 'text/csv' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'bond_cash_flows.csv';
+                    a.download = filename;
                     a.click();
                     URL.revokeObjectURL(url);
                   }
                 }}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors"
+                disabled={!buildResult?.cashFlows}
+                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 [CTRL+E] EXPORT_CSV
               </button>
               <button
                 onClick={handleSave}
                 className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors"
+title={buildResult ? "Save bond to repository for later use in calculator" : "Save draft to localStorage"}
               >
-                [CTRL+S] SAVE_LOCAL
+[CTRL+S] {buildResult ? 'SAVE_BOND' : 'SAVE_DRAFT'}
               </button>
             </div>
           </div>

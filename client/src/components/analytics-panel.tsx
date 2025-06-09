@@ -3,6 +3,7 @@ import { Chart } from "chart.js";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BondAnalytics, CashFlowResult } from "@shared/schema";
+import { CleanBondDefinition, BondJsonUtils } from "@shared/bond-definition";
 import { formatCurrency, formatPercent, safeToFixed } from "@/lib/bond-utils";
 import { createStackedChart, processCashFlowsForChart } from "@/lib/chart-utils";
 import CashFlowTable from "@/components/cash-flow-table";
@@ -24,6 +25,50 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
     
     return processCashFlowsForChart(cashFlows);
   }, [cashFlows]);
+
+  // Export Functions - CSV contains cash flows, JSON contains clean bond definition (exogenous only)
+  const handleExportCSV = () => {
+    if (!cashFlows?.length) return;
+    
+    const headers = ['Date', 'Coupon_Payment', 'Principal_Payment', 'Total_Payment', 'Remaining_Notional', 'Payment_Type'];
+    const csvData = cashFlows.map(flow => [
+      flow.date,
+      flow.couponPayment.toFixed(2),
+      flow.principalPayment.toFixed(2), 
+      flow.totalPayment.toFixed(2),
+      flow.remainingNotional.toFixed(2),
+      flow.paymentType
+    ]);
+    
+    const csv = [headers, ...csvData].map(row => row.join(',')).join('\n');
+    const issuer = bond?.issuer?.replace(/[^a-zA-Z0-9]/g, '_') || 'Bond';
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `${issuer}_CashFlows_${timestamp}.csv`;
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJSON = () => {
+    if (!cashFlows?.length || !bond) return;
+    
+    // Create clean bond definition with ONLY exogenous variables
+    const cleanBond = BondJsonUtils.fromLegacyBond(bond, cashFlows);
+    
+    const filename = BondJsonUtils.generateFilename(cleanBond);
+    const blob = new Blob([JSON.stringify(cleanBond, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
     if (chartRef.current && chartData) {
@@ -119,19 +164,29 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
         </div>
       </div>
 
-      {/* 3. Export & Analysis Options */}
+      {/* 3. Export Options (User Downloads) */}
       <div className="border-t border-border pt-4">
         <h3 className="section-header">[EXPORT_OPTIONS]</h3>
         <div className="flex space-x-2 mb-4">
-          <button className="px-3 py-1 text-xs bg-muted text-foreground border border-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-            CSV
+          <button 
+            onClick={handleExportCSV}
+            disabled={!cashFlows?.length}
+            className="px-3 py-1 text-xs bg-muted text-foreground border border-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Download cash flows as CSV file"
+          >
+            📄 CSV
           </button>
-          <button className="px-3 py-1 text-xs bg-muted text-foreground border border-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-            JSON
+          <button 
+            onClick={handleExportJSON}
+            disabled={!cashFlows?.length || !bond}
+            className="px-3 py-1 text-xs bg-muted text-foreground border border-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Download bond definition as JSON file (exogenous variables only)"
+          >
+            📋 JSON
           </button>
-          <button className="px-3 py-1 text-xs bg-muted text-foreground border border-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-            XLSX
-          </button>
+        </div>
+        <div className="text-xs terminal-text-muted mb-2">
+          📥 Downloads files to your computer for external use
         </div>
         
         {/* Calculator Link */}

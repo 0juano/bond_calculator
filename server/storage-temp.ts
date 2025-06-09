@@ -7,8 +7,10 @@ import {
   CashFlowResult, 
   BondAnalytics, 
   ValidationResult,
-  GOLDEN_BONDS 
+  GOLDEN_BONDS,
+  USTCurveData
 } from "@shared/schema";
+import { interpolateUSTYield, calculateSpreadToTreasury } from "./ust-curve";
 
 export interface IStorage {
   getBond(id: number): Promise<any>;
@@ -23,11 +25,17 @@ export class MemStorage implements IStorage {
   private bonds: Map<number, any>;
   private cashFlows: Map<number, any[]>;
   private currentId: number;
+  private ustCurveCache: { data: USTCurveData; timestamp: number } | null = null;
 
   constructor() {
     this.bonds = new Map();
     this.cashFlows = new Map();
     this.currentId = 1;
+  }
+
+  // Method to set UST curve cache (to be called from routes)
+  setUSTCurveCache(cache: { data: USTCurveData; timestamp: number } | null) {
+    this.ustCurveCache = cache;
   }
 
   async getBond(id: number): Promise<any> {
@@ -277,8 +285,21 @@ export class MemStorage implements IStorage {
     const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
     const compoundingFreq = bond.paymentFrequency;
     
-    // Use face value as market price for now (can be overridden in future)
-    const marketPrice = bond.faceValue;
+    // Convert price input to absolute dollars
+    // If marketPrice is provided, treat it as percentage of face value
+    // If targetYield is provided, calculate price from yield
+    let marketPrice: number;
+    
+    if (bond.targetYield) {
+      // Calculate price from target yield
+      marketPrice = this.calculatePresentValue(cashFlows, bond.targetYield / 100, settlementDate, compoundingFreq);
+    } else if (bond.marketPrice) {
+      // Treat marketPrice as percentage of face value (100 = 100% = face value)
+      marketPrice = (bond.marketPrice / 100) * bond.faceValue;
+    } else {
+      // Default to face value (par)
+      marketPrice = bond.faceValue;
+    }
     
     console.log(`Enhanced analytics calculation - Settlement: ${settlementDate.toISOString()}`);
     console.log(`Market price: ${marketPrice}, Compounding freq: ${compoundingFreq}`);
@@ -316,6 +337,9 @@ export class MemStorage implements IStorage {
     // Enhanced convexity calculation
     const convexity = this.calculateConvexity(cashFlows, ytm, settlementDate, compoundingFreq);
 
+    // Calculate spread to Treasury using UST curve
+    const spread = this.calculateSpread(bond, ytm * 100, settlementDate);
+
     const result: BondAnalytics = {
       // Core metrics
       yieldToMaturity: Number((ytm * 100).toFixed(3)),
@@ -339,21 +363,24 @@ export class MemStorage implements IStorage {
       // Optional metrics for bonds with options
       ...(yieldToCall !== null && { yieldToCall: Number((yieldToCall * 100).toFixed(3)) }),
       ...(yieldToPut !== null && { yieldToPut: Number((yieldToPut * 100).toFixed(3)) }),
+      
+      // Spread metrics
+      ...(spread !== null && { spread: Number((spread / 100).toFixed(4)) }),
     };
     
     console.log('Enhanced analytics result:', result);
     return result;
   }
 
-  private calculateYTM(cashFlows: CashFlowResult[], marketPrice: number, issueDate: Date, compoundingFreq: number): number {
+  private calculateYTM(cashFlows: CashFlowResult[], marketPrice: number, settlementDate: Date, compoundingFreq: number): number {
     // Newton-Raphson method to solve for YTM
     let ytm = 0.05; // Initial guess of 5%
     const tolerance = 1e-8;
     const maxIterations = 100;
     
     for (let i = 0; i < maxIterations; i++) {
-      const pv = this.calculatePresentValue(cashFlows, ytm, issueDate, compoundingFreq);
-      const pvDerivative = this.calculatePVDerivative(cashFlows, ytm, issueDate, compoundingFreq);
+      const pv = this.calculatePresentValue(cashFlows, ytm, settlementDate, compoundingFreq);
+      const pvDerivative = this.calculatePVDerivative(cashFlows, ytm, settlementDate, compoundingFreq);
       
       const f = pv - marketPrice;
       if (Math.abs(f) < tolerance) break;
@@ -369,12 +396,16 @@ export class MemStorage implements IStorage {
     return ytm;
   }
 
-  private calculatePresentValue(cashFlows: CashFlowResult[], yieldRate: number, issueDate: Date, compoundingFreq: number): number {
+  private calculatePresentValue(cashFlows: CashFlowResult[], yieldRate: number, settlementDate: Date, compoundingFreq: number): number {
     let totalPV = 0;
     
     for (const flow of cashFlows) {
       const flowDate = new Date(flow.date);
-      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const timeYears = (flowDate.getTime() - settlementDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      
+      // Skip past cash flows
+      if (timeYears <= 0) continue;
+      
       const totalCashFlow = flow.couponPayment + flow.principalPayment;
       
       // PV = CF / (1 + Y/n)^(n*t)
@@ -385,12 +416,16 @@ export class MemStorage implements IStorage {
     return totalPV;
   }
 
-  private calculatePVDerivative(cashFlows: CashFlowResult[], yieldRate: number, issueDate: Date, compoundingFreq: number): number {
+  private calculatePVDerivative(cashFlows: CashFlowResult[], yieldRate: number, settlementDate: Date, compoundingFreq: number): number {
     let derivative = 0;
     
     for (const flow of cashFlows) {
       const flowDate = new Date(flow.date);
-      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const timeYears = (flowDate.getTime() - settlementDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      
+      // Skip past cash flows
+      if (timeYears <= 0) continue;
+      
       const totalCashFlow = flow.couponPayment + flow.principalPayment;
       
       // d/dy [CF / (1 + y/n)^(n*t)] = -CF * (n*t) / (n * (1 + y/n)^(n*t + 1))
@@ -402,13 +437,17 @@ export class MemStorage implements IStorage {
     return derivative;
   }
 
-  private calculateMacaulayDuration(cashFlows: CashFlowResult[], yieldRate: number, issueDate: Date, compoundingFreq: number): number {
+  private calculateMacaulayDuration(cashFlows: CashFlowResult[], yieldRate: number, settlementDate: Date, compoundingFreq: number): number {
     let weightedTimeSum = 0;
     let totalPV = 0;
     
     for (const flow of cashFlows) {
       const flowDate = new Date(flow.date);
-      const timeYears = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      const timeYears = (flowDate.getTime() - settlementDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      
+      // Skip past cash flows
+      if (timeYears <= 0) continue;
+      
       const totalCashFlow = flow.couponPayment + flow.principalPayment;
       
       const discountFactor = Math.pow(1 + yieldRate / compoundingFreq, compoundingFreq * timeYears);
@@ -491,6 +530,39 @@ export class MemStorage implements IStorage {
     if (marketPrice <= 0) return 0;
     const annualCoupon = (bond.faceValue * bond.couponRate / 100);
     return annualCoupon / marketPrice;
+  }
+
+  private calculateSpread(bond: InsertBond, bondYieldPercent: number, settlementDate: Date): number | null {
+    try {
+      // Check if we have UST curve data
+      if (!this.ustCurveCache) {
+        console.log('No UST curve cache available for spread calculation');
+        return null;
+      }
+
+      // Calculate years to maturity from settlement date
+      const maturityDate = new Date(bond.maturityDate);
+      const maturityYears = (maturityDate.getTime() - settlementDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      
+      if (maturityYears <= 0) {
+        console.log('Bond has already matured, cannot calculate spread');
+        return null;
+      }
+
+      // Calculate spread using UST curve interpolation
+      const spreadBps = calculateSpreadToTreasury(
+        bondYieldPercent,
+        maturityYears,
+        this.ustCurveCache.data
+      );
+
+      console.log(`Calculated spread: ${spreadBps}bp for ${maturityYears.toFixed(2)}Y maturity`);
+      return spreadBps;
+
+    } catch (error) {
+      console.error('Error calculating spread:', error);
+      return null;
+    }
   }
 
   private calculateAdvancedYields(
