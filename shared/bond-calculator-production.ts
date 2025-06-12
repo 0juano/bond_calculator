@@ -174,16 +174,6 @@ export class BondCalculatorPro {
       cleanPrice = dirtyPrice - accruedPercent;
       const dirtyDollar = (dirtyPrice / 100) * currentOutstanding;
       
-      console.log(`💵 Price to YTM Calculation:`);
-      console.log(`  - Input Price: ${price}%`);
-      console.log(`  - Clean Price: ${cleanPrice}%`);
-      console.log(`  - Accrued Interest: ${accruedPercent}%`);
-      console.log(`  - Current Outstanding: ${currentOutstanding}`);
-      console.log(`  - Dirty Dollar Price: ${dirtyDollar}`);
-      console.log(`  - Future CFs count: ${futureCFs.length}`);
-      console.log(`  - Future CFs total: ${futureCFs.reduce((sum, cf) => sum + cf.amount, 0)}`);
-      console.log(`  - First CF: ${futureCFs[0]?.date} = ${futureCFs[0]?.amount}`);
-      console.log(`  - Last CF: ${futureCFs[futureCFs.length-1]?.date} = ${futureCFs[futureCFs.length-1]?.amount}`);
       
       const ytmResult = this.calculateYTM(futureCFs, dirtyDollar, settlementDate);
       ytm = ytmResult.yield;
@@ -193,10 +183,6 @@ export class BondCalculatorPro {
         precision: ytmResult.precision
       };
       
-      console.log(`  - Calculated YTM: ${ytm} (${(ytm * 100).toFixed(3)}%)`)
-      console.log(`  - Algorithm used: ${ytmResult.algorithm}`);
-      console.log(`  - Iterations: ${ytmResult.iterations}`);
-      console.log(`  - Precision achieved: ${ytmResult.precision}`);
     } else if (inputYield !== undefined) {
       // Yield given, calculate price
       ytm = inputYield;
@@ -227,21 +213,6 @@ export class BondCalculatorPro {
       // ytm is in decimal form (0.10 = 10%), treasuryYield is in percentage form (4.5 = 4.5%)
       const spread = (ytm * 100) - treasuryYield; // This gives the spread in percentage points
       
-      console.log(`📈 Spread Calculation Debug:`);
-      console.log(`  - YTM (decimal): ${ytm}`);
-      console.log(`  - YTM (percentage): ${(ytm * 100).toFixed(3)}%`);
-      console.log(`  - Average Life: ${averageLife.toFixed(2)} years`);
-      console.log(`  - Treasury Yield: ${treasuryYield.toFixed(3)}%`);
-      console.log(`  - Spread (percentage points): ${spread.toFixed(3)}%`);
-      console.log(`  - Spread (basis points): ${(spread * 100).toFixed(0)} bp`);
-      
-      // Additional validation
-      if (ytm > 0.5) {
-        console.warn(`⚠️ WARNING: Extremely high YTM detected (${(ytm * 100).toFixed(1)}%). This may indicate:`);
-        console.warn(`  - Price/notional mismatch for amortizing bonds`);
-        console.warn(`  - Incorrect cash flow generation`);
-        console.warn(`  - Convergence to wrong solution`);
-      }
       
       const zSpread = this.calculateZSpread(
         futureCFs,

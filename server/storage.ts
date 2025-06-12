@@ -366,21 +366,12 @@ export class MemStorage implements IStorage {
       }
     };
     
-    // Get market price and settlement date
-    const marketPrice = (bond as any).marketPrice || bond.faceValue;
+    // Get calculation inputs
+    const marketPrice = (bond as any).marketPrice;
+    const targetYield = (bond as any).targetYield;
+    const targetSpread = (bond as any).targetSpread;
     const settlementDate = new Date((bond as any).settlementDate || new Date());
     
-    // Convert price to percentage if it's in dollar terms
-    const priceAsPercentage = marketPrice > 200 ? (marketPrice / bond.faceValue) * 100 : marketPrice;
-    
-    // Debug future cash flows
-    const futureCFs = cashFlows.filter(cf => new Date(cf.date) > settlementDate);
-    
-    console.log(`📊 Calculating with price: ${priceAsPercentage.toFixed(4)}% (${marketPrice} input)`);
-    console.log(`📊 Settlement date: ${settlementDate.toISOString().split('T')[0]}`);
-    console.log(`📊 Bond: ${bond.issuer} ${bond.couponRate}% ${bond.maturityDate}`);
-    console.log(`📊 Cash flows count: ${cashFlows.length}, Future CFs: ${futureCFs.length}`);
-    console.log(`📊 Current outstanding notional: ${calcBond.cashFlows[0]?.outstandingNotional || bond.faceValue}`);
     
     // Prepare treasury curve if available
     let treasuryCurve;
@@ -400,23 +391,63 @@ export class MemStorage implements IStorage {
           return { years, rate };
         })
       };
-      console.log('📊 Treasury curve available with', treasuryCurve.tenors.length, 'tenors');
     }
     
     try {
-      // Calculate analytics - the production calculator handles amortizing bonds correctly
-      const result = calculator.analyze({
-        bond: calcBond,
-        settlementDate,
-        price: priceAsPercentage,
-        treasuryCurve
-      });
+      let result;
       
-      console.log(`✅ Calculation successful:`);
-      console.log(`  - YTM: ${result.yields.ytm.toFixed(3)}%`);
-      console.log(`  - Clean Price: ${result.price.clean.toFixed(4)}%`);
-      console.log(`  - Modified Duration: ${result.risk.modifiedDuration.toFixed(4)}`);
-      console.log(`  - Spread: ${result.spreads?.treasury || 0} bps`);
+      // Determine calculation mode and call appropriate method
+      if (targetYield !== undefined && targetYield !== null) {
+        // YTM → Price mode
+        result = calculator.analyze({
+          bond: calcBond,
+          settlementDate,
+          yield: targetYield / 100, // Convert percentage to decimal
+          treasuryCurve
+        });
+      } else if (targetSpread !== undefined && targetSpread !== null) {
+        // Spread → Price mode (requires Treasury curve)
+        if (!treasuryCurve) {
+          throw new Error('Treasury curve data required for spread-based calculations');
+        }
+        
+        // First, estimate average life to get the right treasury tenor
+        // Use a reasonable initial guess for YTM
+        const initialYtm = 0.05 + (targetSpread / 10000);
+        const tempResult = calculator.analyze({
+          bond: calcBond,
+          settlementDate,
+          yield: initialYtm,
+          treasuryCurve
+        });
+        
+        const avgLife = tempResult.analytics.averageLife;
+        const treasuryYield = this.interpolateTreasuryYield(avgLife, treasuryCurve);
+        const targetYieldFromSpread = treasuryYield + (targetSpread / 100);
+        
+        result = calculator.analyze({
+          bond: calcBond,
+          settlementDate,
+          yield: targetYieldFromSpread / 100, // Convert to decimal
+          treasuryCurve
+        });
+      } else {
+        // Price → YTM mode (default)
+        // IMPORTANT: Don't default to 100 if no price is provided - this breaks the calculator
+        if (!marketPrice && !targetYield && !targetSpread) {
+          throw new Error('At least one of price, yield, or spread must be provided');
+        }
+        
+        const priceAsPercentage = marketPrice > 200 ? (marketPrice / bond.faceValue) * 100 : marketPrice;
+        
+        result = calculator.analyze({
+          bond: calcBond,
+          settlementDate,
+          price: priceAsPercentage,
+          treasuryCurve
+        });
+      }
+      
       
       // Convert back to legacy format
       const totalCoupons = cashFlows
@@ -445,7 +476,10 @@ export class MemStorage implements IStorage {
     } catch (error) {
       console.error('❌ Calculator failed:', error);
       console.error('❌ Bond that failed:', bond.issuer, bond.couponRate, bond.maturityDate);
-      throw error;
+      console.error('❌ Inputs were - Price:', marketPrice, 'Yield:', targetYield, 'Spread:', targetSpread);
+      
+      // Return default analytics instead of throwing to prevent UI from getting stuck
+      return this.getDefaultAnalytics();
     }
   }
 
@@ -482,6 +516,30 @@ export class MemStorage implements IStorage {
       "ae38d-argentina": "AE38D Argentina Sovereign (2038)"
     };
     return names[key] || key;
+  }
+
+  private interpolateTreasuryYield(years: number, treasuryCurve: any): number {
+    const tenors = treasuryCurve.tenors.sort((a: any, b: any) => a.years - b.years);
+    
+    // Find bracketing points
+    let lower = tenors[0];
+    let upper = tenors[tenors.length - 1];
+    
+    for (let i = 0; i < tenors.length - 1; i++) {
+      if (tenors[i].years <= years && tenors[i + 1].years >= years) {
+        lower = tenors[i];
+        upper = tenors[i + 1];
+        break;
+      }
+    }
+    
+    // Handle edge cases
+    if (years <= lower.years) return lower.rate;
+    if (years >= upper.years) return upper.rate;
+    
+    // Linear interpolation
+    const weight = (years - lower.years) / (upper.years - lower.years);
+    return lower.rate + weight * (upper.rate - lower.rate);
   }
 
   private getDefaultAnalytics(): BondAnalytics {

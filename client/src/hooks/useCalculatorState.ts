@@ -36,10 +36,13 @@ export function useCalculatorState(
   predefinedCashFlows?: any[] // Add support for predefined cash flows
 ): CalculatorState {
   const [input, setInputState] = useState<CalculatorInput>({
-    price: initialBondResult?.analytics?.marketPrice || 100, // Always default to 100 (par percentage)
+    price: initialBondResult?.analytics?.cleanPrice || undefined,
+    yieldValue: initialBondResult?.analytics?.yieldToMaturity || undefined,
+    spread: initialBondResult?.analytics?.spread || undefined,
     settlementDate: new Date().toISOString().split('T')[0],
     priceFormat: 'DECIMAL',
     yieldPrecision: 3,
+    lockedField: 'PRICE' // Default to price mode
   });
 
   const [bondResult, setBondResult] = useState<BondResult | undefined>(initialBondResult);
@@ -103,19 +106,27 @@ export function useCalculatorState(
               paymentType: cf.paymentType,
             }))
           }),
-          // Override with user inputs - NO adjustment needed for amortizing bonds
-          // The price entered is already relative to current outstanding notional
-          ...(input.price && { 
+          // Override with user inputs based on locked field
+          // Only send the input that's currently being edited
+          ...(input.lockedField === 'PRICE' && input.price && { 
             marketPrice: input.price
           }),
-          ...(input.yieldValue && { targetYield: input.yieldValue }),
-          ...(input.spread && { targetSpread: input.spread }),
+          ...(input.lockedField === 'YIELD' && input.yieldValue && { 
+            targetYield: input.yieldValue 
+          }),
+          ...(input.lockedField === 'SPREAD' && input.spread && { 
+            targetSpread: input.spread 
+          }),
+          // If no field is locked but we have a price, send it
+          ...(!input.lockedField && input.price && { 
+            marketPrice: input.price
+          }),
+          // Fallback: if nothing is provided, use a reasonable default
+          ...(!input.price && !input.yieldValue && !input.spread && !input.lockedField && {
+            marketPrice: 100 // Par as last resort
+          }),
         };
 
-        console.log('💰 Sending calculation request with price:', input.price);
-        console.log('📊 Has predefined cash flows:', !!(calculationRequest as any).predefinedCashFlows);
-        console.log('📊 Number of predefined cash flows:', ((calculationRequest as any).predefinedCashFlows || []).length);
-        console.log('📊 Full request:', JSON.stringify(calculationRequest, null, 2));
         
         const response = await fetch('/api/bonds/calculate', {
           method: 'POST',
@@ -165,14 +176,15 @@ export function useCalculatorState(
   }, []);
 
   const setPrice = useCallback((price: number) => {
-    setInput({ price });
+    setInput({ 
+      price,
+      lockedField: 'PRICE'
+    });
   }, [setInput]);
 
   const setYieldValue = useCallback((yieldValue: number) => {
     setInput({ 
       yieldValue, 
-      price: undefined, 
-      spread: undefined, 
       lockedField: 'YIELD' 
     });
   }, [setInput]);
@@ -180,8 +192,6 @@ export function useCalculatorState(
   const setSpread = useCallback((spread: number) => {
     setInput({ 
       spread, 
-      price: undefined, 
-      yieldValue: undefined, 
       lockedField: 'SPREAD' 
     });
   }, [setInput]);
@@ -199,13 +209,14 @@ export function useCalculatorState(
   }, [setInput]);
 
   const resetToMarket = useCallback(() => {
+    // Reset to the last calculated values
     setInput({
-      price: bondResult?.analytics?.marketPrice || 100, // Always reset to 100 (par percentage)
-      yieldValue: undefined,
-      spread: undefined,
-      lockedField: undefined,
+      price: bondResult?.analytics?.cleanPrice || input.price || 100,
+      yieldValue: bondResult?.analytics?.yieldToMaturity || input.yieldValue,
+      spread: bondResult?.analytics?.spread || input.spread,
+      lockedField: 'PRICE',
     });
-  }, [bondResult?.analytics?.marketPrice, setInput]);
+  }, [bondResult?.analytics, input, setInput]);
 
   const runScenario = useCallback((shockBp: number) => {
     if (bondResult?.analytics?.yieldToMaturity) {

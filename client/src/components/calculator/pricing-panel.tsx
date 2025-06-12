@@ -15,12 +15,13 @@ interface PricingPanelProps {
  * Simple pricing panel - enter price and hit Enter to calculate yield and spread
  */
 export function PricingPanel({ calculatorState, className }: PricingPanelProps) {
-  const { input, analytics, isCalculating, setPrice, setYieldValue, setSettlementDate, resetToMarket } = calculatorState;
+  const { input, analytics, isCalculating, setPrice, setYieldValue, setSpread, setSettlementDate, resetToMarket } = calculatorState;
   
-  // Local input state for price and yield
+  // Local input state for price, yield, and spread
   const [priceInput, setPriceInput] = useState<string>('');
   const [yieldInput, setYieldInput] = useState<string>('');
-  const [focusedField, setFocusedField] = useState<'price' | 'yield' | null>(null);
+  const [spreadInput, setSpreadInput] = useState<string>('');
+  const [focusedField, setFocusedField] = useState<'price' | 'yield' | 'spread' | null>(null);
 
   // Sync price input with calculator state when not focused
   useEffect(() => {
@@ -38,6 +39,14 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
     }
   }, [input.yieldValue, analytics?.yieldToMaturity, focusedField]);
 
+  // Sync spread input with calculator state when not focused
+  useEffect(() => {
+    if (focusedField !== 'spread') {
+      const currentSpread = input.spread ?? analytics?.spread ?? 0;
+      setSpreadInput(currentSpread.toFixed(0));
+    }
+  }, [input.spread, analytics?.spread, focusedField]);
+
   // Handle price input changes
   const handlePriceChange = (value: string) => {
     setPriceInput(value);
@@ -46,6 +55,11 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
   // Handle yield input changes
   const handleYieldChange = (value: string) => {
     setYieldInput(value);
+  };
+
+  // Handle spread input changes
+  const handleSpreadChange = (value: string) => {
+    setSpreadInput(value);
   };
 
   // Handle Enter key or blur to trigger calculation
@@ -65,6 +79,14 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
     setFocusedField(null);
   };
 
+  const handleSpreadCommit = () => {
+    const spreadValue = parseFloat(spreadInput);
+    if (!isNaN(spreadValue)) {
+      setSpread(spreadValue);
+    }
+    setFocusedField(null);
+  };
+
   // Keyboard handlers for Enter key
   const handlePriceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -76,6 +98,13 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
   const handleYieldKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleYieldCommit();
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const handleSpreadKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSpreadCommit();
       (e.target as HTMLInputElement).blur();
     }
   };
@@ -137,15 +166,28 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
           <p className="text-xs text-gray-500">Enter yield and press Enter to calculate price</p>
         </div>
 
-        {/* Calculated Spread - Read Only */}
+        {/* Spread to Treasury - Editable */}
         <div className="space-y-2">
-          <Label className="text-gray-300 font-medium">
+          <Label htmlFor="spread" className="text-gray-300 font-medium">
             Spread to Treasury
           </Label>
-          <div className="p-3 bg-gray-800 border border-gray-600 rounded-md font-mono text-white">
-            {spreadValue !== null && spreadValue !== undefined ? `${spreadValue.toFixed(0)} bp` : '—'}
+          <div className="relative">
+            <Input
+              id="spread"
+              type="number"
+              step="1"
+              value={spreadInput}
+              onChange={e => handleSpreadChange(e.target.value)}
+              onBlur={handleSpreadCommit}
+              onKeyDown={handleSpreadKeyDown}
+              onFocus={() => setFocusedField('spread')}
+              placeholder="Enter spread in bp..."
+              disabled={isCalculating}
+              className="font-mono border-gray-600 bg-gray-800 text-white focus:border-green-500 pr-12"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">bp</span>
           </div>
-          <p className="text-xs text-gray-500">Spread over interpolated Treasury curve</p>
+          <p className="text-xs text-gray-500">Enter spread and press Enter to calculate price</p>
         </div>
 
         {/* Settlement Date */}

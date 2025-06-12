@@ -158,6 +158,7 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
     remainingNotional: z.number(),
     paymentType: z.string(),
   })).optional(), // Support for predefined cash flows from JSON files
+  targetSpread: z.number().optional(), // For Spread → Price calculations (in basis points)
 });
 
 export const insertCashFlowSchema = createInsertSchema(cashFlows).omit({
