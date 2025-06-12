@@ -21,6 +21,9 @@ YAS Bond Builder is a comprehensive fixed-income analysis tool that allows power
 - **💾 Auto-save**: Automatic localStorage persistence of bond drafts
 - **🏆 Golden Bond Templates**: Pre-configured bond examples for quick testing
 - **✅ Live Validation**: Real-time form validation with detailed error reporting
+- **🔥 Production Calculator**: Robust YTM solver with multiple algorithms and high precision
+- **📈 UST Curve Integration**: Real-time Treasury data from FRED API for spread calculations
+- **💱 Amortizing Bond Support**: Accurate calculations for bonds with principal payments
 
 ## 🚀 Quick Start
 
@@ -339,6 +342,36 @@ DATABASE_URL=postgresql://...    # Optional database connection
 - Options impact analysis
 - Yield curve studies
 
+## 🎮 Interactive Bond Calculator
+
+### Calculator Features
+- **Bond Search & Selection**: Intelligent search across saved bonds and golden templates
+- **Real-time Price/Yield Calculations**: Interactive pricing with field locking
+- **Risk Metrics Dashboard**: Duration, convexity, DV01, and scenario analysis
+- **Settlement Controls**: Date picker with accrued interest calculations
+- **Responsive Design**: Mobile-optimized with Bloomberg terminal aesthetics
+
+### Bond Selector Implementation
+- **Search-based Selection**: Auto-complete with keyboard navigation
+- **Visual Categories**: Color-coded icons for golden bonds (🌟), user-created (👤), and imported (📄)
+- **Performance Optimized**: Limits results to 10 bonds for fast rendering
+- **Type-safe**: Full TypeScript coverage with proper interfaces
+
+## 🏗️ Development Guidelines
+
+### Adding New Bond Templates
+Follow the conventions in `docs/ADDING_BONDS.md`:
+- **Coupon rates**: Always percentage format (5.0 for 5%, not 0.05)
+- **Face value**: Use 1000 unless special case (sovereign bonds)
+- **Dates**: ISO format (YYYY-MM-DD)
+- **Boolean flags**: Explicitly set all (`isAmortizing`, `isCallable`, `isPuttable`, `isVariableCoupon`)
+
+### Code Standards
+- Use TypeScript with strict type checking
+- Follow existing patterns in neighboring components
+- Implement precision-safe math with `decimal.js` for calculations
+- Always run `npm run check` before committing
+
 ## 🔮 Future Enhancements
 
 ### Planned Features
@@ -391,6 +424,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - The `COUPON_%` column in the cash flow schedule now displays the **annual coupon rate** for each period (e.g., 0.500% for a 0.5% annual coupon), not the per-period rate. This matches standard bond market conventions.
 - The actual coupon payment (`COUPON_$`) is still calculated based on the payment frequency and the current coupon rate.
+
+## 🧠 Technical Learnings & Architecture
+
+### Bond Calculator Architecture Cleanup
+- **Simplified Calculator Stack**: Removed redundant calculator implementations, keeping only:
+  - Bond Builder (frontend + API)
+  - Production Calculator (`BondCalculatorPro` - robust YTM solver)
+  - UST Curve API (FRED integration)
+  - Frontend calculator interface
+- **JSON-First Architecture**: Complex bonds with predefined cash flows take precedence over generated ones
+- **High-Precision Math**: Using `decimal.js` for financial calculations to avoid floating-point errors
+
+### Amortizing Bond Calculations
+- **Market Price Interpretation**: For amortizing bonds, market prices are quoted as percentage of **current outstanding notional**, not original face value
+- **Price Adjustment Logic**: When market quotes 80% for a bond with $960 outstanding (after amortization), the effective price is 80% × $960 = $768, or 76.8% of original $1000 face value
+- **Production Calculator**: `BondCalculatorPro` correctly handles this by using `currentOutstanding` in dollar price calculations
+
+### YTM Solver Robustness
+- **Multiple Algorithms**: Newton-Raphson (primary), Brent's method, Bisection (fallback)
+- **Automatic Fallback**: If one algorithm fails, automatically tries the next
+- **Convergence Tracking**: Detailed metadata about algorithm used, iterations, and precision
+- **Bracket Finding**: Intelligent initial guess and bracket detection for difficult cases
+
+### Real-World Bond Testing
+- **AL30 Argentina 2030**: Successfully validates at 80% price → 10.475% YTM (expected 10.45%)
+- **Variable Coupon Bonds**: Handles step-up coupon structures with predefined cash flows
+- **Treasury Spread**: Accurate spread calculations using interpolated Treasury curve
 
 ---
 

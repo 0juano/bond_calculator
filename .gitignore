@@ -16,3 +16,6 @@ vite.config.ts.*
 saved_bonds/user_created/*.json
 saved_bonds/golden_bonds/*.json
 saved_bonds/imported/*.json
+
+# Logs
+server.log

@@ -4,18 +4,19 @@ This repository is a TypeScript/React project with an Express backend for bond c
 
 @docs/ADDING_BONDS.md
 
-## Development
-- Install dependencies with `npm install`.
-- Run the dev server using `npm run dev`.
-- Run TypeScript checks with `npm run check` before committing.
-- Use `npm run build` to ensure the project builds without errors.
+## Development Commands
+- Install dependencies: `npm install`
+- Dev server: `npm run dev` 
+- Type checking: `npm run check` (required before commits)
+- Build verification: `npm run build`
+- Treasury data: `npm run curve` or `./curve.sh`
 
-## Style
-- Use standard TypeScript style. Keep variable and file names in kebab-case or camelCase as appropriate.
-- Preferred formatting is Prettier-compatible (no explicit config yet).
-
-## Bond Data
-- When editing or creating bond templates, review `docs/ADDING_BONDS.md` for field conventions and required checklist items.
+## Code Standards
+- TypeScript with strict type checking
+- Kebab-case/camelCase naming conventions
+- Prettier-compatible formatting (no explicit config)
+- Use `decimal.js` for financial calculations (precision-safe)
+- Follow existing patterns in neighboring components
 
 ## Commits and PRs
 - Write clear, descriptive commit messages.
