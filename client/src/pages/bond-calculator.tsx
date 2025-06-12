@@ -7,6 +7,7 @@ import { BondDefinition, BondResult } from "@shared/schema";
 import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { PricingPanel } from "@/components/calculator/pricing-panel";
 import { RiskMetricsPanel } from "@/components/calculator/risk-metrics-panel";
+import { BondSearchSelector } from "@/components/calculator/bond-search-selector";
 
 export default function BondCalculator() {
   const { bondId } = useParams<{ bondId?: string }>();
@@ -16,8 +17,11 @@ export default function BondCalculator() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Store predefined cash flows for complex bonds
+  const [predefinedCashFlows, setPredefinedCashFlows] = useState<any[] | undefined>();
+
   // Initialize calculator state once bond is loaded
-  const calculatorState = useCalculatorState(bond || undefined, bondResult || undefined);
+  const calculatorState = useCalculatorState(bond || undefined, bondResult || undefined, predefinedCashFlows);
 
   // Load bond data on mount
   useEffect(() => {
@@ -29,29 +33,133 @@ export default function BondCalculator() {
 
       try {
         let response;
+        let data;
         
-        // Handle golden bonds vs regular bonds
+        // Handle different bond types
         if (bondId.startsWith('golden:')) {
+          // Golden bonds
           const goldenId = bondId.replace('golden:', '');
           response = await fetch(`/api/bonds/golden/${goldenId}/build`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
           });
-        } else {
-          response = await fetch(`/api/bonds/${bondId}`);
-        }
-
-        if (!response.ok) {
-          throw new Error(`Failed to load bond: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        
-        if (bondId.startsWith('golden:')) {
+          
+          if (!response.ok) {
+            throw new Error(`Failed to load golden bond: ${response.statusText}`);
+          }
+          
+          data = await response.json();
           setBondResult(data);
           setBond(data.bond);
+          
+        } else if (bondId.startsWith('bond_')) {
+          // Saved bonds (user_created, imported, etc.)
+          // First, get all saved bonds to find the filename
+          const savedBondsResponse = await fetch('/api/bonds/saved');
+          if (!savedBondsResponse.ok) {
+            throw new Error('Failed to load saved bonds list');
+          }
+          
+          const savedBondsData = await savedBondsResponse.json();
+          const bondMetadata = savedBondsData.bonds.find((b: any) => b.metadata.id === bondId);
+          
+          if (!bondMetadata) {
+            throw new Error(`Saved bond with ID ${bondId} not found`);
+          }
+          
+          // Load the specific saved bond
+          response = await fetch(`/api/bonds/saved/${bondMetadata.filename}?category=${bondMetadata.category}`);
+          if (!response.ok) {
+            throw new Error(`Failed to load saved bond: ${response.statusText}`);
+          }
+          
+          const bondDefinition = await response.json();
+          
+          // Convert clean bond definition to API format for building
+          // CRITICAL: Include predefined cash flows to preserve JSON-first architecture
+          const apiBond = {
+            issuer: bondDefinition.bondInfo.issuer,
+            cusip: bondDefinition.bondInfo.cusip,
+            isin: bondDefinition.bondInfo.isin,
+            faceValue: Number(bondDefinition.bondInfo.faceValue),
+            couponRate: Number(bondDefinition.bondInfo.couponRate),
+            issueDate: bondDefinition.bondInfo.issueDate,
+            maturityDate: bondDefinition.bondInfo.maturityDate,
+            firstCouponDate: bondDefinition.bondInfo.firstCouponDate,
+            paymentFrequency: bondDefinition.bondInfo.paymentFrequency,
+            dayCountConvention: bondDefinition.bondInfo.dayCountConvention,
+            currency: bondDefinition.bondInfo.currency,
+            settlementDays: bondDefinition.bondInfo.settlementDays,
+            isAmortizing: bondDefinition.features.isAmortizing,
+            isCallable: bondDefinition.features.isCallable,
+            isPuttable: bondDefinition.features.isPuttable,
+            isVariableCoupon: bondDefinition.features.isVariableCoupon,
+            amortizationSchedule: bondDefinition.schedules?.amortizationSchedule || [],
+            callSchedule: bondDefinition.schedules?.callSchedule || [],
+            putSchedule: bondDefinition.schedules?.putSchedule || [],
+            couponRateChanges: bondDefinition.schedules?.couponRateChanges || [],
+            // PRESERVE PREDEFINED CASH FLOWS - This is the fix for wrong YTM calculations
+            predefinedCashFlows: bondDefinition.cashFlowSchedule || [],
+          };
+          
+          // Create legacy bond for display
+          const legacyBond: BondDefinition = {
+            id: 0, // Temporary ID for saved bonds
+            issuer: bondDefinition.bondInfo.issuer,
+            cusip: bondDefinition.bondInfo.cusip,
+            isin: bondDefinition.bondInfo.isin,
+            faceValue: bondDefinition.bondInfo.faceValue.toString(),
+            couponRate: bondDefinition.bondInfo.couponRate.toString(),
+            issueDate: bondDefinition.bondInfo.issueDate,
+            maturityDate: bondDefinition.bondInfo.maturityDate,
+            firstCouponDate: bondDefinition.bondInfo.firstCouponDate,
+            paymentFrequency: bondDefinition.bondInfo.paymentFrequency,
+            dayCountConvention: bondDefinition.bondInfo.dayCountConvention,
+            currency: bondDefinition.bondInfo.currency,
+            settlementDays: bondDefinition.bondInfo.settlementDays,
+            isAmortizing: bondDefinition.features.isAmortizing,
+            isCallable: bondDefinition.features.isCallable,
+            isPuttable: bondDefinition.features.isPuttable,
+            isVariableCoupon: bondDefinition.features.isVariableCoupon,
+            amortizationSchedule: bondDefinition.schedules?.amortizationSchedule || null,
+            callSchedule: bondDefinition.schedules?.callSchedule || null,
+            putSchedule: bondDefinition.schedules?.putSchedule || null,
+            couponRateChanges: bondDefinition.schedules?.couponRateChanges || null,
+            createdAt: null,
+          };
+          
+          setBond(legacyBond);
+          
+          // CRITICAL: Store predefined cash flows for JSON-first architecture
+          console.log('🔥 Bond Loading: Setting predefined cash flows', bondDefinition.cashFlowSchedule?.length || 0, 'flows');
+          setPredefinedCashFlows(bondDefinition.cashFlowSchedule || []);
+          
+          // Build the bond to get analytics
+          const buildResponse = await fetch('/api/bonds/build', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(apiBond),
+          });
+          
+          if (buildResponse.ok) {
+            const buildResult = await buildResponse.json();
+            setBondResult(buildResult);
+          }
+          
         } else {
+          // Database bonds (numeric IDs)
+          response = await fetch(`/api/bonds/${bondId}`);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to load bond: ${response.statusText}`);
+          }
+          
+          data = await response.json();
           setBond(data);
+          
+          // Database bonds don't have predefined cash flows
+          setPredefinedCashFlows(undefined);
+          
           // Build the bond to get analytics
           const buildResponse = await fetch('/api/bonds/build', {
             method: 'POST',
@@ -140,25 +248,27 @@ export default function BondCalculator() {
     <div className="min-h-screen bg-gray-950 text-green-400 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setLocation('/builder')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            
-            <div>
-              <h1 className="text-2xl font-bold text-green-400">
-                📊 {bond.issuer} {bond.couponRate}% {new Date(bond.maturityDate).getFullYear()}
-              </h1>
-              <p className="text-sm text-gray-400">{bond.isin}</p>
-            </div>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setLocation('/builder')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
         </div>
+
+        {/* Bond Selector */}
+        <BondSearchSelector 
+          currentBondId={bondId}
+          currentBondData={{
+            issuer: bond.issuer,
+            couponRate: parseFloat(bond.couponRate),
+            maturityDate: bond.maturityDate,
+            isin: bond.isin || undefined
+          }}
+        />
 
         {/* Calculator Interface */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

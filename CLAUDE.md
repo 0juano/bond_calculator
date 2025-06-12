@@ -1,6 +1,8 @@
-# Guidelines for Code Agents
+# Claude Code Project Memory
 
-This repository is a TypeScript/React project with an Express backend. Follow these guidelines when making changes.
+This repository is a TypeScript/React project with an Express backend for bond calculations and analytics.
+
+@docs/ADDING_BONDS.md
 
 ## Development
 - Install dependencies with `npm install`.

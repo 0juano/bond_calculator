@@ -11,6 +11,7 @@ import {
   USTCurveData
 } from "@shared/schema";
 import { interpolateUSTYield, calculateSpreadToTreasury } from "./ust-curve";
+import { BondCalculatorPro, Bond as CalcBond, MarketInputs } from "../shared/bond-calculator-production";
 
 export interface IStorage {
   getBond(id: number): Promise<any>;
@@ -117,21 +118,36 @@ export class MemStorage implements IStorage {
         throw new Error(`Validation failed: ${Object.values(validation.errors).join(', ')}`);
       }
       
-      // Generate cash flows with error handling
+      // Use predefined cash flows if available, otherwise generate them
       let cashFlows: CashFlowResult[];
       try {
-        cashFlows = this.generateCashFlows(bond);
+        if (bond.predefinedCashFlows && bond.predefinedCashFlows.length > 0) {
+          console.log('🔄 Using predefined cash flows from JSON bond definition');
+          cashFlows = bond.predefinedCashFlows.map(cf => ({
+            date: cf.date,
+            couponPayment: cf.couponPayment,
+            principalPayment: cf.principalPayment,
+            totalPayment: cf.totalPayment,
+            remainingNotional: cf.remainingNotional,
+            paymentType: cf.paymentType,
+          }));
+        } else {
+          console.log('🔄 Generating cash flows from bond parameters');
+          cashFlows = this.generateCashFlows(bond);
+        }
+        
         if (cashFlows.length === 0) {
-          throw new Error('No cash flows generated - check bond parameters');
+          throw new Error('No cash flows available - check bond parameters or predefined cash flows');
         }
       } catch (error) {
-        throw new Error(`Cash flow generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(`Cash flow processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       
       // Calculate analytics with error handling
       let analytics: BondAnalytics;
       try {
-        analytics = this.calculateAnalytics(bond, cashFlows);
+        // Use new robust calculator engine
+        analytics = await this.calculateWithNewEngine(bond, cashFlows);
       } catch (error) {
         console.error('Analytics calculation error:', error);
         throw new Error(`Analytics calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -294,8 +310,23 @@ export class MemStorage implements IStorage {
       // Calculate price from target yield
       marketPrice = this.calculatePresentValue(cashFlows, bond.targetYield / 100, settlementDate, compoundingFreq);
     } else if (bond.marketPrice) {
-      // Treat marketPrice as percentage of face value (100 = 100% = face value)
-      marketPrice = (bond.marketPrice / 100) * bond.faceValue;
+      // For amortizing bonds, get current outstanding notional
+      let currentOutstanding = bond.faceValue;
+      if (bond.isAmortizing && cashFlows.length > 0) {
+        // Find the most recent cash flow before or on settlement date
+        const sortedCFs = cashFlows
+          .filter(cf => new Date(cf.date) <= settlementDate)
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
+        if (sortedCFs.length > 0) {
+          const mostRecentCF = sortedCFs[sortedCFs.length - 1];
+          currentOutstanding = mostRecentCF.remainingNotional;
+        }
+      }
+      
+      // Treat marketPrice as percentage of current outstanding (not original face value)
+      marketPrice = (bond.marketPrice / 100) * currentOutstanding;
+      console.log(`📊 OLD calculator price fix: ${bond.marketPrice}% × ${currentOutstanding} (current outstanding) = ${marketPrice}`);
     } else {
       // Default to face value (par)
       marketPrice = bond.faceValue;
@@ -364,8 +395,8 @@ export class MemStorage implements IStorage {
       ...(yieldToCall !== null && { yieldToCall: Number((yieldToCall * 100).toFixed(3)) }),
       ...(yieldToPut !== null && { yieldToPut: Number((yieldToPut * 100).toFixed(3)) }),
       
-      // Spread metrics
-      ...(spread !== null && { spread: Number((spread / 100).toFixed(4)) }),
+      // Spread metrics (spread is already in basis points from calculateSpreadToTreasury)
+      ...(spread !== null && { spread: Number(spread.toFixed(0)) }),
     };
     
     console.log('Enhanced analytics result:', result);
@@ -839,6 +870,162 @@ export class MemStorage implements IStorage {
       "ae38d-argentina": "AE38D Argentina Sovereign (2038)"
     };
     return names[key] || key;
+  }
+
+  // New method using the robust bond calculator
+  private async calculateWithNewEngine(bond: InsertBond, cashFlows: CashFlowResult[]): Promise<BondAnalytics> {
+    console.log('🚀 Using new robust bond calculator engine');
+    console.log('📊 Input bond details:', {
+      issuer: bond.issuer,
+      couponRate: bond.couponRate,
+      maturityDate: bond.maturityDate,
+      faceValue: bond.faceValue,
+      isVariableCoupon: bond.isVariableCoupon,
+      cashFlowCount: cashFlows.length
+    });
+    
+    // Debug cash flows
+    const sampleCFs = cashFlows.slice(0, 5).concat(cashFlows.slice(-5));
+    console.log('💸 Sample cash flows (first 5 and last 5):');
+    sampleCFs.forEach(cf => {
+      console.log(`  ${cf.date}: Coupon=${cf.couponPayment}, Principal=${cf.principalPayment}, Total=${cf.totalPayment}, Remaining=${cf.remainingNotional}`);
+    });
+    
+    const calculator = new BondCalculatorPro();
+    
+    // Convert to calculator format
+    const calcBond: CalcBond = {
+      faceValue: bond.faceValue,
+      currency: bond.currency || 'USD',
+      dayCountConvention: bond.dayCountConvention as any || '30/360',
+      cashFlows: cashFlows.map(cf => ({
+        date: cf.date,
+        coupon: cf.couponPayment,
+        principal: cf.principalPayment,
+        total: cf.totalPayment,
+        outstandingNotional: cf.remainingNotional
+      })),
+      metadata: {
+        issuer: bond.issuer,
+        isin: bond.isin || undefined,
+        cusip: bond.cusip || undefined,
+        name: `${bond.issuer} ${bond.couponRate}% ${bond.maturityDate}`
+      }
+    };
+    
+    // Get market price and settlement date
+    const marketPrice = (bond as any).marketPrice || bond.faceValue;
+    const settlementDate = new Date((bond as any).settlementDate || new Date());
+    
+    // Convert price to percentage if it's in dollar terms
+    const priceAsPercentage = marketPrice > 200 ? (marketPrice / bond.faceValue) * 100 : marketPrice;
+    
+    console.log(`📊 Calculating with price: ${priceAsPercentage.toFixed(4)}% of face value (${marketPrice} input)`);
+    console.log(`📊 Settlement date: ${settlementDate.toISOString().split('T')[0]}`);
+    console.log(`📊 Bond: ${bond.issuer} ${bond.couponRate}% ${bond.maturityDate}`);
+    console.log(`📊 Using NEW calculator with amortization fix`);
+    
+    // Debug future cash flows
+    const futureCFs = cashFlows.filter(cf => new Date(cf.date) > settlementDate);
+    console.log(`📊 Future cash flows: ${futureCFs.length} out of ${cashFlows.length} total`);
+    const totalFutureCF = futureCFs.reduce((sum, cf) => sum + cf.totalPayment, 0);
+    console.log(`📊 Total future cash flows: ${totalFutureCF.toFixed(2)}`);
+    
+    // Prepare treasury curve if available
+    let treasuryCurve;
+    if (this.ustCurveCache && this.ustCurveCache.data) {
+      treasuryCurve = {
+        date: this.ustCurveCache.data.recordDate,
+        tenors: Object.entries(this.ustCurveCache.data.tenors).map(([tenor, rate]) => {
+          // Convert tenor string to years
+          let years: number;
+          if (tenor.endsWith('M')) {
+            years = parseInt(tenor) / 12;
+          } else if (tenor.endsWith('Y')) {
+            years = parseInt(tenor);
+          } else {
+            years = 1; // Default
+          }
+          return { years, rate };
+        })
+      };
+      console.log('📊 Treasury curve available with', treasuryCurve.tenors.length, 'tenors');
+    }
+    
+    try {
+      // For amortizing bonds, adjust price to account for current outstanding
+      let adjustedPrice = priceAsPercentage;
+      if (bond.isAmortizing && cashFlows.length > 0) {
+        // Find current outstanding notional - get the most recent cash flow before settlement
+        let currentOutstanding = bond.faceValue;
+        const sortedCFs = cashFlows
+          .filter(cf => new Date(cf.date) <= settlementDate)
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
+        if (sortedCFs.length > 0) {
+          const mostRecentCF = sortedCFs[sortedCFs.length - 1];
+          currentOutstanding = mostRecentCF.remainingNotional;
+        }
+        
+        // Adjust price: if market quotes 80% and outstanding is 960, 
+        // the effective price on original face value is 80% * 960/1000 = 76.8%
+        adjustedPrice = priceAsPercentage * (currentOutstanding / bond.faceValue);
+        console.log(`📊 NEW calculator price adjustment: ${priceAsPercentage}% × (${currentOutstanding}/${bond.faceValue}) = ${adjustedPrice.toFixed(4)}%`);
+        
+        // Return a test result to see if this code path is being executed
+        if (bond.issuer === "REPUBLIC OF ARGENTINA" && bond.maturityDate === "2030-07-09") {
+          console.log(`📊 AL30 DETECTED - Adjustment applied: ${priceAsPercentage}% -> ${adjustedPrice.toFixed(4)}%`);
+        }
+      }
+      
+      // Calculate analytics
+      const result = calculator.analyze({
+        bond: calcBond,
+        settlementDate,
+        price: adjustedPrice,
+        treasuryCurve
+      });
+      
+      console.log(`✅ Calculation successful:`);
+      console.log(`  - YTM: ${result.yields.ytm.toFixed(3)}%`);
+      console.log(`  - Clean Price: ${result.price.clean.toFixed(4)}%`);
+      console.log(`  - Dirty Price: ${result.price.dirty.toFixed(4)}%`);
+      console.log(`  - Accrued Interest: ${result.price.accruedInterest.toFixed(2)}`);
+      console.log(`  - Modified Duration: ${result.risk.modifiedDuration.toFixed(4)}`);
+      console.log(`  - Spread: ${result.spreads?.treasury || 0} bps`);
+      console.log(`  - Algorithm: ${result.metadata.algorithm}`);
+      console.log(`  - Iterations: ${result.metadata.iterations}`);
+      
+      // Convert back to legacy format
+      const totalCoupons = cashFlows
+        .filter(cf => new Date(cf.date) > settlementDate)
+        .reduce((sum, cf) => sum + cf.couponPayment, 0);
+      
+      return {
+        yieldToMaturity: result.yields.ytm,
+        yieldToWorst: result.yields.ytw,
+        duration: result.risk.modifiedDuration,
+        macaulayDuration: result.risk.macaulayDuration,
+        averageLife: result.analytics.averageLife,
+        convexity: result.risk.convexity,
+        totalCoupons,
+        presentValue: result.price.clean,
+        marketPrice: result.price.dirtyDollar,
+        cleanPrice: result.price.cleanDollar,
+        dirtyPrice: result.price.dirtyDollar,
+        accruedInterest: result.price.accruedInterest,
+        daysToNextCoupon: result.analytics.daysToNextPayment,
+        dollarDuration: result.risk.dv01,
+        currentYield: result.yields.current,
+        spread: result.spreads ? result.spreads.treasury : undefined // Keep in bps
+      };
+      
+    } catch (error) {
+      console.error('❌ New calculator failed, falling back to legacy:', error);
+      console.error('❌ Bond that failed:', bond.issuer, bond.couponRate, bond.maturityDate);
+      // Fallback to old calculator
+      return this.calculateAnalytics(bond, cashFlows);
+    }
   }
 }
 

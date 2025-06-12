@@ -150,6 +150,14 @@ export const insertBondSchema = createInsertSchema(bonds).omit({
     effectiveDate: z.string(),
     newCouponRate: z.number().min(0).max(50),
   })).optional(),
+  predefinedCashFlows: z.array(z.object({
+    date: z.string(),
+    couponPayment: z.number(),
+    principalPayment: z.number(),
+    totalPayment: z.number(),
+    remainingNotional: z.number(),
+    paymentType: z.string(),
+  })).optional(), // Support for predefined cash flows from JSON files
 });
 
 export const insertCashFlowSchema = createInsertSchema(cashFlows).omit({

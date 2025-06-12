@@ -7,17 +7,116 @@ import fs from 'fs/promises';
 import path from 'path';
 import { CleanBondDefinition, BondJsonUtils } from '../shared/bond-definition';
 
+export interface DuplicateCheckResult {
+  isDuplicate: boolean;
+  duplicateType?: 'ISIN' | 'CUSIP' | 'BOND_MATCH';
+  existingBond?: {
+    filename: string;
+    category: string;
+    bondInfo: CleanBondDefinition['bondInfo'];
+  };
+  message?: string;
+}
+
 export class BondStorageService {
   private static readonly SAVED_BONDS_DIR = path.join(process.cwd(), 'saved_bonds');
   
   /**
-   * Save bond to repository file system
+   * Check for duplicate bonds before saving
+   */
+  static async checkForDuplicates(newBond: CleanBondDefinition): Promise<DuplicateCheckResult> {
+    try {
+      console.log(`🔍 Starting duplicate check for: ${newBond.bondInfo.issuer} (ISIN: ${newBond.bondInfo.isin || 'none'})`);
+      
+      const allBonds = await this.getAllBondsWithMetadata();
+      console.log(`🔍 Found ${allBonds.length} existing bonds to compare`);
+      
+      if (allBonds.length === 0) {
+        console.log('✅ No existing bonds to compare against');
+        return { isDuplicate: false };
+      }
+      
+      for (let i = 0; i < allBonds.length; i++) {
+        const existingBond = allBonds[i];
+        console.log(`📋 [${i+1}/${allBonds.length}] Comparing with: ${existingBond.bondInfo.issuer} (ISIN: ${existingBond.bondInfo.isin || 'none'})`);
+        
+        // Simple ISIN check first
+        if (newBond.bondInfo.isin && existingBond.bondInfo.isin) {
+          console.log(`🔍 Comparing ISINs: "${newBond.bondInfo.isin}" vs "${existingBond.bondInfo.isin}"`);
+          if (newBond.bondInfo.isin === existingBond.bondInfo.isin) {
+            console.log(`🚨 ISIN DUPLICATE FOUND! "${newBond.bondInfo.isin}" matches existing bond: ${existingBond.bondInfo.issuer}`);
+            return {
+              isDuplicate: true,
+              duplicateType: 'ISIN',
+              existingBond: {
+                filename: existingBond.filename,
+                category: existingBond.category,
+                bondInfo: existingBond.bondInfo
+              },
+              message: `Bond with ISIN ${newBond.bondInfo.isin} already exists: ${existingBond.bondInfo.issuer} ${existingBond.bondInfo.couponRate}% ${existingBond.bondInfo.maturityDate}`
+            };
+          }
+        }
+        
+        // CUSIP check
+        if (newBond.bondInfo.cusip && existingBond.bondInfo.cusip) {
+          console.log(`🔍 Comparing CUSIPs: "${newBond.bondInfo.cusip}" vs "${existingBond.bondInfo.cusip}"`);
+          if (newBond.bondInfo.cusip === existingBond.bondInfo.cusip) {
+            console.log(`🚨 CUSIP DUPLICATE FOUND! "${newBond.bondInfo.cusip}" matches existing bond: ${existingBond.bondInfo.issuer}`);
+            return {
+              isDuplicate: true,
+              duplicateType: 'CUSIP',
+              existingBond: {
+                filename: existingBond.filename,
+                category: existingBond.category,
+                bondInfo: existingBond.bondInfo
+              },
+              message: `Bond with CUSIP ${newBond.bondInfo.cusip} already exists: ${existingBond.bondInfo.issuer} ${existingBond.bondInfo.couponRate}% ${existingBond.bondInfo.maturityDate}`
+            };
+          }
+        }
+      }
+      
+      console.log('✅ No duplicates found after checking all bonds');
+      return { isDuplicate: false };
+    } catch (error) {
+      console.error('❌ Error in checkForDuplicates:', error);
+      return { isDuplicate: false };
+    }
+  }
+  
+  /**
+   * Save bond to repository file system with duplicate checking
    */
   static async saveBond(
     bond: CleanBondDefinition, 
-    category: 'user_created' | 'golden_bonds' | 'imported' = 'user_created'
-  ): Promise<{ success: boolean; filename: string; path: string }> {
+    category: 'user_created' | 'golden_bonds' | 'imported' = 'user_created',
+    allowDuplicates: boolean = false
+  ): Promise<{ success: boolean; filename: string; path: string; error?: string; duplicateCheck?: DuplicateCheckResult }> {
     try {
+      console.log(`💾 SAVE BOND CALLED: Issuer=${bond.bondInfo.issuer}, ISIN=${bond.bondInfo.isin}, allowDuplicates=${allowDuplicates}, type=${typeof allowDuplicates}`);
+      
+      // FORCE duplicate checking for debugging
+      if (allowDuplicates !== true) {
+        console.log('🔍 Running duplicate check...');
+        const duplicateCheck = await this.checkForDuplicates(bond);
+        console.log('🔍 Duplicate check completed:', duplicateCheck);
+        if (duplicateCheck.isDuplicate) {
+          console.log('❌ DUPLICATE DETECTED! Blocking save. Type:', duplicateCheck.duplicateType, 'Message:', duplicateCheck.message);
+          return {
+            success: false,
+            filename: '',
+            path: '',
+            error: duplicateCheck.message,
+            duplicateCheck
+          };
+        } else {
+          console.log('✅ No duplicates found, proceeding with save');
+        }
+      } else {
+        console.log('⚠️  Skipping duplicate check (allowDuplicates=true)');
+      }
+      
       // Ensure directory exists
       const categoryDir = path.join(this.SAVED_BONDS_DIR, category);
       await fs.mkdir(categoryDir, { recursive: true });
@@ -41,7 +140,8 @@ export class BondStorageService {
       return {
         success: false,
         filename: '',
-        path: ''
+        path: '',
+        error: error instanceof Error ? error.message : 'Failed to save bond'
       };
     }
   }

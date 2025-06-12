@@ -143,7 +143,7 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
             Spread to Treasury
           </Label>
           <div className="p-3 bg-gray-800 border border-gray-600 rounded-md font-mono text-white">
-            {spreadValue !== null && spreadValue !== 0 ? `${(spreadValue * 10000).toFixed(0)} bp` : '—'}
+            {spreadValue !== null && spreadValue !== undefined ? `${(spreadValue * 100).toFixed(0)} bp` : '—'}
           </div>
           <p className="text-xs text-gray-500">Spread over interpolated Treasury curve</p>
         </div>

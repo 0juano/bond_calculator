@@ -12,16 +12,78 @@ let ustCurveCache: { data: USTCurveData; timestamp: number } | null = null;
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // DEBUG: Test duplicate checking endpoint
+  app.post("/api/bonds/test-duplicate", async (req, res) => {
+    try {
+      // Test with a known duplicate ISIN
+      const testBond = {
+        metadata: {
+          id: "test_123",
+          name: "Test Bond",
+          created: new Date().toISOString(),
+          modified: new Date().toISOString(),
+          version: "1.0" as const,
+          source: "USER_CREATED" as const
+        },
+        bondInfo: {
+          issuer: "TEST ISSUER",
+          faceValue: 1000,
+          couponRate: 5,
+          issueDate: "2024-01-15",
+          maturityDate: "2029-01-15",
+          paymentFrequency: 2,
+          dayCountConvention: "30/360",
+          currency: "USD",
+          settlementDays: 3,
+          isin: "ARARGE3209S6" // Known duplicate ISIN
+        },
+        features: {
+          isAmortizing: false,
+          isCallable: false,
+          isPuttable: false,
+          isVariableCoupon: false,
+          isInflationLinked: false
+        },
+        cashFlowSchedule: []
+      };
+      
+      console.log('🧪 Testing duplicate check with known ISIN:', testBond.bondInfo.isin);
+      
+      // Get all bonds to see what we're comparing against
+      const allBonds = await BondStorageService.getAllBondsWithMetadata();
+      console.log('📋 Found bonds for comparison:', allBonds.map(b => ({issuer: b.bondInfo.issuer, isin: b.bondInfo.isin})));
+      
+      const duplicateCheck = await BondStorageService.checkForDuplicates(testBond);
+      
+      res.json({
+        testBondISIN: testBond.bondInfo.isin,
+        existingBonds: allBonds.map(b => ({issuer: b.bondInfo.issuer, isin: b.bondInfo.isin})),
+        duplicateCheck: {
+          isDuplicate: duplicateCheck.isDuplicate,
+          duplicateType: duplicateCheck.duplicateType,
+          message: duplicateCheck.message,
+          existingBond: duplicateCheck.existingBond
+        }
+      });
+    } catch (error) {
+      console.error("Duplicate test error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "Test failed" });
+    }
+  });
+
   // Save bond to repository (different from export - this stores in repo for later use)
   app.post("/api/bonds/save", async (req, res) => {
     try {
-      const { bondData, cashFlows, category = 'user_created' } = req.body;
+      const { bondData, cashFlows, category = 'user_created', allowDuplicates = false } = req.body;
+      console.log(`🔧 Save request - allowDuplicates: ${allowDuplicates}, issuer: ${bondData?.issuer}, isin: ${bondData?.isin}`);
       
       // Create clean bond definition
       const cleanBond = BondJsonUtils.fromLegacyBond(bondData, cashFlows);
+      console.log(`🔧 Clean bond created - issuer: ${cleanBond.bondInfo.issuer}, isin: ${cleanBond.bondInfo.isin}`);
       
-      // Save to repository file system
-      const result = await BondStorageService.saveBond(cleanBond, category);
+      // Save to repository file system with duplicate checking
+      const result = await BondStorageService.saveBond(cleanBond, category, allowDuplicates);
+      console.log(`🔧 Save result - success: ${result.success}, isDuplicate: ${result.duplicateCheck?.isDuplicate}`);
       
       if (result.success) {
         res.json({
@@ -31,10 +93,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           bondId: cleanBond.metadata.id,
           path: result.path
         });
+      } else if (result.duplicateCheck?.isDuplicate) {
+        // Return specific duplicate error with 409 Conflict status
+        res.status(409).json({
+          success: false,
+          error: result.error,
+          duplicateType: result.duplicateCheck.duplicateType,
+          existingBond: result.duplicateCheck.existingBond,
+          isDuplicate: true
+        });
       } else {
         res.status(500).json({
           success: false,
-          error: "Failed to save bond to repository"
+          error: result.error || "Failed to save bond to repository"
         });
       }
     } catch (error) {
@@ -125,10 +196,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Ensure storage has latest UST curve cache
       storage.setUSTCurveCache(ustCurveCache);
       
-      console.log('📊 Calculate request received:', JSON.stringify(req.body, null, 2));
+      console.log('📊 Calculate request received with predefinedCashFlows?', !!(req.body.predefinedCashFlows && req.body.predefinedCashFlows.length > 0));
+      console.log('📊 Number of predefined cash flows:', (req.body.predefinedCashFlows || []).length);
       
       const bondData = insertBondSchema.parse(req.body);
-      console.log('📊 Parsed bond data:', JSON.stringify(bondData, null, 2));
+      console.log('📊 Parsed bond data has predefinedCashFlows?', !!(bondData.predefinedCashFlows && bondData.predefinedCashFlows.length > 0));
       
       const result = await storage.buildBond(bondData);
       

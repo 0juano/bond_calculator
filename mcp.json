@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "node",
+      "args": ["node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js"],
+      "env": {}
+    }
+  }
+}

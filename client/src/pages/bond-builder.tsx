@@ -179,17 +179,100 @@ export default function BondBuilder() {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (allowDuplicates: boolean = false) => {
     // Save draft to localStorage for quick recovery
     localStorage.setItem("bond_draft", JSON.stringify(bondData));
     
     // If we have a completed bond result, save to repository
     if (buildResult && buildResult.cashFlows) {
       try {
+        // Client-side duplicate check first (if not overriding)
+        if (!allowDuplicates) {
+          try {
+            const savedBondsResponse = await apiRequest("GET", "/api/bonds/saved");
+            const savedBondsData = await savedBondsResponse.json();
+            
+            // Check for ISIN duplicates
+            if (bondData.isin) {
+              const duplicateISIN = savedBondsData.bonds.find((bond: any) => 
+                bond.bondInfo.isin === bondData.isin
+              );
+              if (duplicateISIN) {
+                toast({
+                  title: "Duplicate ISIN Detected",
+                  description: `Bond with ISIN ${bondData.isin} already exists: ${duplicateISIN.bondInfo.issuer} ${duplicateISIN.bondInfo.couponRate}% ${duplicateISIN.bondInfo.maturityDate}`,
+                  variant: "destructive",
+                  action: (
+                    <button
+                      onClick={() => handleSave(true)}
+                      className="text-xs bg-destructive-foreground text-destructive px-2 py-1 rounded hover:bg-muted"
+                    >
+                      Save Anyway
+                    </button>
+                  ),
+                });
+                return;
+              }
+            }
+            
+            // Check for CUSIP duplicates
+            if (bondData.cusip) {
+              const duplicateCUSIP = savedBondsData.bonds.find((bond: any) => 
+                bond.bondInfo.cusip === bondData.cusip
+              );
+              if (duplicateCUSIP) {
+                toast({
+                  title: "Duplicate CUSIP Detected", 
+                  description: `Bond with CUSIP ${bondData.cusip} already exists: ${duplicateCUSIP.bondInfo.issuer} ${duplicateCUSIP.bondInfo.couponRate}% ${duplicateCUSIP.bondInfo.maturityDate}`,
+                  variant: "destructive",
+                  action: (
+                    <button
+                      onClick={() => handleSave(true)}
+                      className="text-xs bg-destructive-foreground text-destructive px-2 py-1 rounded hover:bg-muted"
+                    >
+                      Save Anyway
+                    </button>
+                  ),
+                });
+                return;
+              }
+            }
+            
+            // Check for bond characteristic duplicates
+            const duplicateBond = savedBondsData.bonds.find((bond: any) => 
+              bond.bondInfo.issuer.toUpperCase() === bondData.issuer?.toUpperCase() &&
+              Math.abs(bond.bondInfo.couponRate - (bondData.couponRate || 0)) < 0.001 &&
+              bond.bondInfo.maturityDate === bondData.maturityDate &&
+              bond.bondInfo.faceValue === bondData.faceValue &&
+              (bond.bondInfo.currency || 'USD') === (bondData.currency || 'USD')
+            );
+            if (duplicateBond) {
+              toast({
+                title: "Similar Bond Detected",
+                description: `Similar bond already exists: ${duplicateBond.bondInfo.issuer} ${duplicateBond.bondInfo.couponRate}% ${duplicateBond.bondInfo.maturityDate}`,
+                variant: "destructive", 
+                action: (
+                  <button
+                    onClick={() => handleSave(true)}
+                    className="text-xs bg-destructive-foreground text-destructive px-2 py-1 rounded hover:bg-muted"
+                  >
+                    Save Anyway
+                  </button>
+                ),
+              });
+              return;
+            }
+          } catch (error) {
+            console.warn("Failed to check for duplicates:", error);
+            // Continue with save if duplicate check fails
+          }
+        }
+        
         const response = await apiRequest("POST", "/api/bonds/save", {
           bondData,
           cashFlows: buildResult.cashFlows,
-          category: 'user_created'
+          category: 'user_created',
+          allowDuplicates
         });
         
         const result = await response.json();
@@ -198,6 +281,24 @@ export default function BondBuilder() {
           toast({
             title: "Bond Saved to Repository",
             description: `Saved as: ${result.filename}`,
+          });
+        } else if (result.isDuplicate && !allowDuplicates) {
+          // Handle duplicate detection - ask user if they want to save anyway
+          const duplicateType = result.duplicateType;
+          const existingBond = result.existingBond;
+          
+          toast({
+            title: `Duplicate ${duplicateType} Detected`,
+            description: result.error,
+            variant: "destructive",
+            action: (
+              <button
+                onClick={() => handleSave(true)}
+                className="text-xs bg-destructive-foreground text-destructive px-2 py-1 rounded hover:bg-muted"
+              >
+                Save Anyway
+              </button>
+            ),
           });
         } else {
           throw new Error(result.error || "Failed to save bond");
@@ -235,7 +336,7 @@ export default function BondBuilder() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <button
-                onClick={handleSave}
+                onClick={() => handleSave()}
                 className="form-button-secondary text-xs"
               >
                 SAVE
@@ -333,7 +434,7 @@ export default function BondBuilder() {
                 [CTRL+E] EXPORT_CSV
               </button>
               <button
-                onClick={handleSave}
+                onClick={() => handleSave()}
                 className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors"
 title={buildResult ? "Save bond to repository for later use in calculator" : "Save draft to localStorage"}
               >
