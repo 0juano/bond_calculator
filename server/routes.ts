@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage-temp";
+import { storage } from "./storage";
 import { insertBondSchema } from "@shared/schema";
 import { z } from "zod";
 import { fetchUSTCurve, type USTCurveData } from "./ust-curve";
@@ -256,6 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       storage.setUSTCurveCache(ustCurveCache);
       
       const { id } = req.params;
+      console.log(`🎲 Building golden bond: ${id}`);
       const goldenBond = await storage.getGoldenBond(id);
       
       if (!goldenBond) {

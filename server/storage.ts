@@ -7,8 +7,11 @@ import {
   CashFlowResult, 
   BondAnalytics, 
   ValidationResult,
-  GOLDEN_BONDS 
+  GOLDEN_BONDS,
+  USTCurveData
 } from "@shared/schema";
+import { interpolateUSTYield, calculateSpreadToTreasury } from "./ust-curve";
+import { BondCalculatorPro, Bond as CalcBond, MarketInputs } from "../shared/bond-calculator-production";
 
 export interface IStorage {
   getBond(id: number): Promise<BondDefinition | undefined>;
@@ -23,11 +26,17 @@ export class MemStorage implements IStorage {
   private bonds: Map<number, BondDefinition>;
   private cashFlows: Map<number, CashFlow[]>;
   private currentId: number;
+  private ustCurveCache: { data: USTCurveData; timestamp: number } | null = null;
 
   constructor() {
     this.bonds = new Map();
     this.cashFlows = new Map();
     this.currentId = 1;
+  }
+
+  // Method to set UST curve cache (to be called from routes)
+  setUSTCurveCache(cache: { data: USTCurveData; timestamp: number } | null) {
+    this.ustCurveCache = cache;
   }
 
   async getBond(id: number): Promise<BondDefinition | undefined> {
@@ -155,28 +164,74 @@ export class MemStorage implements IStorage {
 
   async buildBond(bond: InsertBond): Promise<BondResult> {
     const startTime = Date.now();
-
-    // First validate the bond
-    const validation = await this.validateBond(bond);
-    if (!validation.isValid) {
-      throw new Error(`Validation failed: ${Object.values(validation.errors).join(', ')}`);
+    
+    try {
+      // Enhanced validation
+      const validation = await this.validateBond(bond);
+      if (!validation.isValid) {
+        throw new Error(`Validation failed: ${Object.values(validation.errors).join(', ')}`);
+      }
+      
+      // Use predefined cash flows if available, otherwise generate them
+      let cashFlows: CashFlowResult[];
+      try {
+        if (bond.predefinedCashFlows && bond.predefinedCashFlows.length > 0) {
+          console.log(`🔄 Using predefined cash flows from JSON bond definition: ${bond.predefinedCashFlows.length} flows`);
+          
+          // Validate predefined cash flows
+          const totalPrincipal = bond.predefinedCashFlows.reduce((sum, cf) => sum + cf.principalPayment, 0);
+          console.log(`🔄 Total principal in cash flows: ${totalPrincipal}`);
+          console.log(`🔄 Expected face value: ${bond.faceValue}`);
+          
+          if (Math.abs(totalPrincipal - bond.faceValue) > 0.01) {
+            console.warn(`⚠️ WARNING: Total principal (${totalPrincipal}) doesn't match face value (${bond.faceValue})`);
+          }
+          
+          cashFlows = bond.predefinedCashFlows.map(cf => ({
+            date: cf.date,
+            couponPayment: cf.couponPayment,
+            principalPayment: cf.principalPayment,
+            totalPayment: cf.totalPayment,
+            remainingNotional: cf.remainingNotional,
+            paymentType: cf.paymentType,
+          }));
+        } else {
+          console.log('🔄 Generating cash flows from bond parameters');
+          cashFlows = this.generateCashFlows(bond);
+        }
+        
+        if (cashFlows.length === 0) {
+          throw new Error('No cash flows available - check bond parameters or predefined cash flows');
+        }
+      } catch (error) {
+        throw new Error(`Cash flow processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      
+      // Calculate analytics using the robust calculator
+      const analytics = await this.calculateBondAnalytics(bond, cashFlows);
+      
+      const buildTime = Date.now() - startTime;
+      
+      return {
+        bond: bond as any,
+        cashFlows,
+        analytics,
+        buildTime,
+        status: "SUCCESS"
+      };
+      
+    } catch (error) {
+      const buildTime = Date.now() - startTime;
+      console.error('Bond build error:', error);
+      
+      return {
+        bond: bond as any,
+        cashFlows: [],
+        analytics: this.getDefaultAnalytics(),
+        buildTime,
+        status: `ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
     }
-
-    // Generate cash flows
-    const cashFlows = this.generateCashFlows(bond);
-    
-    // Calculate analytics
-    const analytics = this.calculateAnalytics(bond, cashFlows);
-    
-    const buildTime = Date.now() - startTime;
-
-    return {
-      bond: bond as any,
-      cashFlows,
-      analytics,
-      buildTime,
-      status: "SUCCESS",
-    };
   }
 
   private generateCashFlows(bond: InsertBond): CashFlowResult[] {
@@ -280,71 +335,120 @@ export class MemStorage implements IStorage {
     return nextDate;
   }
 
-  private calculateAnalytics(bond: InsertBond, cashFlows: CashFlowResult[]): BondAnalytics {
-    // Simple analytics calculations - in production would use more sophisticated methods
-    const totalCoupons = cashFlows.reduce((sum, flow) => sum + flow.couponPayment, 0);
-    const presentValue = bond.faceValue; // Simplified - would use discounting in production
+  // Simplified method using BondCalculatorPro directly
+  private async calculateBondAnalytics(bond: InsertBond, cashFlows: CashFlowResult[]): Promise<BondAnalytics> {
+    return this.calculateWithProductionEngine(bond, cashFlows);
+  }
+
+  // Method using the robust production bond calculator
+  private async calculateWithProductionEngine(bond: InsertBond, cashFlows: CashFlowResult[]): Promise<BondAnalytics> {
+    console.log('🚀 Using production bond calculator engine');
     
-    // Calculate duration (simplified Macaulay duration approximation)
-    const maturityYears = this.calculateYearsToMaturity(bond.issueDate, bond.maturityDate);
-    const yieldToMaturity = bond.couponRate; // Simplified - would calculate YTM properly
-    const yieldToWorst = bond.couponRate; // Simplified - would calculate YTW properly
-    const macaulayDuration = maturityYears * 0.95; // Simplified approximation
-    const duration = maturityYears * 0.9; // Simplified approximation
+    const calculator = new BondCalculatorPro();
     
-    // Calculate average life
-    let weightedSum = 0;
-    let totalPayments = 0;
-    const issueDate = new Date(bond.issueDate);
+    // Convert to calculator format
+    const calcBond: CalcBond = {
+      faceValue: bond.faceValue,
+      currency: bond.currency || 'USD',
+      dayCountConvention: bond.dayCountConvention as any || '30/360',
+      cashFlows: cashFlows.map(cf => ({
+        date: cf.date,
+        coupon: cf.couponPayment,
+        principal: cf.principalPayment,
+        total: cf.totalPayment,
+        outstandingNotional: cf.remainingNotional
+      })),
+      metadata: {
+        issuer: bond.issuer,
+        isin: bond.isin || undefined,
+        cusip: bond.cusip || undefined,
+        name: `${bond.issuer} ${bond.couponRate}% ${bond.maturityDate}`
+      }
+    };
     
-    for (const flow of cashFlows) {
-      const flowDate = new Date(flow.date);
-      const yearsFromIssue = (flowDate.getTime() - issueDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      weightedSum += flow.principalPayment * yearsFromIssue;
-      totalPayments += flow.principalPayment;
+    // Get market price and settlement date
+    const marketPrice = (bond as any).marketPrice || bond.faceValue;
+    const settlementDate = new Date((bond as any).settlementDate || new Date());
+    
+    // Convert price to percentage if it's in dollar terms
+    const priceAsPercentage = marketPrice > 200 ? (marketPrice / bond.faceValue) * 100 : marketPrice;
+    
+    // Debug future cash flows
+    const futureCFs = cashFlows.filter(cf => new Date(cf.date) > settlementDate);
+    
+    console.log(`📊 Calculating with price: ${priceAsPercentage.toFixed(4)}% (${marketPrice} input)`);
+    console.log(`📊 Settlement date: ${settlementDate.toISOString().split('T')[0]}`);
+    console.log(`📊 Bond: ${bond.issuer} ${bond.couponRate}% ${bond.maturityDate}`);
+    console.log(`📊 Cash flows count: ${cashFlows.length}, Future CFs: ${futureCFs.length}`);
+    console.log(`📊 Current outstanding notional: ${calcBond.cashFlows[0]?.outstandingNotional || bond.faceValue}`);
+    
+    // Prepare treasury curve if available
+    let treasuryCurve;
+    if (this.ustCurveCache && this.ustCurveCache.data) {
+      treasuryCurve = {
+        date: this.ustCurveCache.data.recordDate,
+        tenors: Object.entries(this.ustCurveCache.data.tenors).map(([tenor, rate]) => {
+          // Convert tenor string to years
+          let years: number;
+          if (tenor.endsWith('M')) {
+            years = parseInt(tenor) / 12;
+          } else if (tenor.endsWith('Y')) {
+            years = parseInt(tenor);
+          } else {
+            years = 1; // Default
+          }
+          return { years, rate };
+        })
+      };
+      console.log('📊 Treasury curve available with', treasuryCurve.tenors.length, 'tenors');
     }
     
-    const averageLife = totalPayments > 0 ? weightedSum / totalPayments : maturityYears;
-    
-    // Calculate convexity (simplified)
-    const convexity = duration * duration * 0.1;
-
-    // Market price and accrual calculations (simplified)
-    const marketPrice = bond.faceValue;
-    const cleanPrice = marketPrice;
-    const accruedInterest = 0; // Simplified - would calculate based on settlement date
-    const dirtyPrice = cleanPrice + accruedInterest;
-    const daysToNextCoupon = 90; // Simplified - would calculate based on payment frequency
-    const dollarDuration = (duration * marketPrice) / 10000;
-    const currentYield = (bond.faceValue * bond.couponRate / 100) / marketPrice;
-
-    return {
-      // Core metrics
-      yieldToMaturity,
-      yieldToWorst,
-      duration,
-      macaulayDuration,
-      averageLife,
-      convexity,
-      totalCoupons,
-      presentValue,
+    try {
+      // Calculate analytics - the production calculator handles amortizing bonds correctly
+      const result = calculator.analyze({
+        bond: calcBond,
+        settlementDate,
+        price: priceAsPercentage,
+        treasuryCurve
+      });
       
-      // Price and accrual metrics
-      marketPrice,
-      cleanPrice,
-      dirtyPrice,
-      accruedInterest,
-      daysToNextCoupon,
-      dollarDuration,
-      currentYield,
-    };
+      console.log(`✅ Calculation successful:`);
+      console.log(`  - YTM: ${result.yields.ytm.toFixed(3)}%`);
+      console.log(`  - Clean Price: ${result.price.clean.toFixed(4)}%`);
+      console.log(`  - Modified Duration: ${result.risk.modifiedDuration.toFixed(4)}`);
+      console.log(`  - Spread: ${result.spreads?.treasury || 0} bps`);
+      
+      // Convert back to legacy format
+      const totalCoupons = cashFlows
+        .filter(cf => new Date(cf.date) > settlementDate)
+        .reduce((sum, cf) => sum + cf.couponPayment, 0);
+      
+      return {
+        yieldToMaturity: result.yields.ytm,
+        yieldToWorst: result.yields.ytw,
+        duration: result.risk.modifiedDuration,
+        macaulayDuration: result.risk.macaulayDuration,
+        averageLife: result.analytics.averageLife,
+        convexity: result.risk.convexity,
+        totalCoupons,
+        presentValue: result.price.clean,
+        marketPrice: result.price.dirtyDollar,
+        cleanPrice: result.price.cleanDollar,
+        dirtyPrice: result.price.dirtyDollar,
+        accruedInterest: result.price.accruedInterest,
+        daysToNextCoupon: result.analytics.daysToNextPayment,
+        dollarDuration: result.risk.dv01,
+        currentYield: result.yields.current,
+        spread: result.spreads ? result.spreads.treasury : undefined // Keep in bps
+      };
+      
+    } catch (error) {
+      console.error('❌ Calculator failed:', error);
+      console.error('❌ Bond that failed:', bond.issuer, bond.couponRate, bond.maturityDate);
+      throw error;
+    }
   }
 
-  private calculateYearsToMaturity(issueDate: string, maturityDate: string): number {
-    const issue = new Date(issueDate);
-    const maturity = new Date(maturityDate);
-    return (maturity.getTime() - issue.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-  }
 
   async getGoldenBond(id: string): Promise<InsertBond | undefined> {
     const goldenBond = GOLDEN_BONDS[id as keyof typeof GOLDEN_BONDS];
@@ -378,6 +482,27 @@ export class MemStorage implements IStorage {
       "ae38d-argentina": "AE38D Argentina Sovereign (2038)"
     };
     return names[key] || key;
+  }
+
+  private getDefaultAnalytics(): BondAnalytics {
+    return {
+      yieldToMaturity: 0,
+      yieldToWorst: 0,
+      duration: 0,
+      macaulayDuration: 0,
+      averageLife: 0,
+      convexity: 0,
+      totalCoupons: 0,
+      presentValue: 0,
+      marketPrice: 0,
+      cleanPrice: 0,
+      dirtyPrice: 0,
+      accruedInterest: 0,
+      daysToNextCoupon: 0,
+      dollarDuration: 0,
+      currentYield: 0,
+      spread: undefined
+    };
   }
 }
 

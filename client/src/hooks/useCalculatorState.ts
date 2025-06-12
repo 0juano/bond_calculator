@@ -103,28 +103,10 @@ export function useCalculatorState(
               paymentType: cf.paymentType,
             }))
           }),
-          // Override with user inputs - adjust for amortizing bonds
+          // Override with user inputs - NO adjustment needed for amortizing bonds
+          // The price entered is already relative to current outstanding notional
           ...(input.price && { 
-            marketPrice: (() => {
-              // For amortizing bonds, adjust market price to account for principal already paid
-              if (bond.isAmortizing && predefinedCashFlows && predefinedCashFlows.length > 0) {
-                const settlementDate = new Date(input.settlementDate);
-                const pastCFs = predefinedCashFlows
-                  .filter(cf => new Date(cf.date) <= settlementDate)
-                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                
-                if (pastCFs.length > 0) {
-                  const mostRecentCF = pastCFs[pastCFs.length - 1];
-                  const currentOutstanding = mostRecentCF.remainingNotional;
-                  const originalFaceValue = bond.faceValue ? parseFloat(bond.faceValue) : 1000;
-                  const adjustedPrice = input.price * (currentOutstanding / originalFaceValue);
-                  
-                  console.log(`🔧 Amortizing bond price adjustment: ${input.price}% × (${currentOutstanding}/${originalFaceValue}) = ${adjustedPrice.toFixed(4)}%`);
-                  return adjustedPrice;
-                }
-              }
-              return input.price;
-            })()
+            marketPrice: input.price
           }),
           ...(input.yieldValue && { targetYield: input.yieldValue }),
           ...(input.spread && { targetSpread: input.spread }),

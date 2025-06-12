@@ -174,6 +174,17 @@ export class BondCalculatorPro {
       cleanPrice = dirtyPrice - accruedPercent;
       const dirtyDollar = (dirtyPrice / 100) * currentOutstanding;
       
+      console.log(`💵 Price to YTM Calculation:`);
+      console.log(`  - Input Price: ${price}%`);
+      console.log(`  - Clean Price: ${cleanPrice}%`);
+      console.log(`  - Accrued Interest: ${accruedPercent}%`);
+      console.log(`  - Current Outstanding: ${currentOutstanding}`);
+      console.log(`  - Dirty Dollar Price: ${dirtyDollar}`);
+      console.log(`  - Future CFs count: ${futureCFs.length}`);
+      console.log(`  - Future CFs total: ${futureCFs.reduce((sum, cf) => sum + cf.amount, 0)}`);
+      console.log(`  - First CF: ${futureCFs[0]?.date} = ${futureCFs[0]?.amount}`);
+      console.log(`  - Last CF: ${futureCFs[futureCFs.length-1]?.date} = ${futureCFs[futureCFs.length-1]?.amount}`);
+      
       const ytmResult = this.calculateYTM(futureCFs, dirtyDollar, settlementDate);
       ytm = ytmResult.yield;
       convergenceInfo = {
@@ -181,6 +192,11 @@ export class BondCalculatorPro {
         iterations: ytmResult.iterations,
         precision: ytmResult.precision
       };
+      
+      console.log(`  - Calculated YTM: ${ytm} (${(ytm * 100).toFixed(3)}%)`)
+      console.log(`  - Algorithm used: ${ytmResult.algorithm}`);
+      console.log(`  - Iterations: ${ytmResult.iterations}`);
+      console.log(`  - Precision achieved: ${ytmResult.precision}`);
     } else if (inputYield !== undefined) {
       // Yield given, calculate price
       ytm = inputYield;
@@ -208,7 +224,25 @@ export class BondCalculatorPro {
     let spreads: BondAnalyticsResult['spreads'];
     if (treasuryCurve) {
       const treasuryYield = this.interpolateTreasury(averageLife, treasuryCurve);
-      const spread = (ytm * 100) - treasuryYield;
+      // ytm is in decimal form (0.10 = 10%), treasuryYield is in percentage form (4.5 = 4.5%)
+      const spread = (ytm * 100) - treasuryYield; // This gives the spread in percentage points
+      
+      console.log(`📈 Spread Calculation Debug:`);
+      console.log(`  - YTM (decimal): ${ytm}`);
+      console.log(`  - YTM (percentage): ${(ytm * 100).toFixed(3)}%`);
+      console.log(`  - Average Life: ${averageLife.toFixed(2)} years`);
+      console.log(`  - Treasury Yield: ${treasuryYield.toFixed(3)}%`);
+      console.log(`  - Spread (percentage points): ${spread.toFixed(3)}%`);
+      console.log(`  - Spread (basis points): ${(spread * 100).toFixed(0)} bp`);
+      
+      // Additional validation
+      if (ytm > 0.5) {
+        console.warn(`⚠️ WARNING: Extremely high YTM detected (${(ytm * 100).toFixed(1)}%). This may indicate:`);
+        console.warn(`  - Price/notional mismatch for amortizing bonds`);
+        console.warn(`  - Incorrect cash flow generation`);
+        console.warn(`  - Convergence to wrong solution`);
+      }
+      
       const zSpread = this.calculateZSpread(
         futureCFs,
         (dirtyPrice / 100) * bond.faceValue,
@@ -217,8 +251,8 @@ export class BondCalculatorPro {
       );
       
       spreads = {
-        treasury: spread * 100, // Convert to bps
-        zSpread: zSpread * 10000 // Convert to bps
+        treasury: spread * 100, // Convert percentage points to basis points
+        zSpread: zSpread * 10000 // zSpread is in decimal form (0.05 = 5%), convert to bps
       };
     }
     
@@ -355,6 +389,18 @@ export class BondCalculatorPro {
     targetPrice: number,
     settlementDate: Date
   ): { yield: number; algorithm: string; iterations: number; precision: number } {
+    console.log(`🎯 YTM Solver Starting:`);
+    console.log(`  - Target Price: ${targetPrice}`);
+    console.log(`  - Cash Flows: ${cashFlows.length}`);
+    console.log(`  - Total CF Amount: ${cashFlows.reduce((sum, cf) => sum + cf.amount, 0)}`);
+    
+    // Sanity check
+    const totalCF = cashFlows.reduce((sum, cf) => sum + cf.amount, 0);
+    if (targetPrice > totalCF) {
+      console.warn(`⚠️ WARNING: Target price (${targetPrice}) exceeds total cash flows (${totalCF})`);
+      console.warn(`  This will result in negative yield`);
+    }
+    
     // Try algorithms in order of preference
     const algorithms = [
       { name: 'Newton-Raphson', method: this.solveNewtonRaphson.bind(this) },
@@ -364,17 +410,21 @@ export class BondCalculatorPro {
     
     for (const { name, method } of algorithms) {
       try {
+        console.log(`  🔧 Trying ${name} algorithm...`);
         const result = method(cashFlows, targetPrice, settlementDate);
         if (result.converged) {
+          console.log(`  ✅ ${name} converged: YTM = ${(result.yield * 100).toFixed(3)}%`);
           return {
             yield: result.yield,
             algorithm: name,
             iterations: result.iterations,
             precision: result.precision
           };
+        } else {
+          console.log(`  ❌ ${name} failed to converge`);
         }
       } catch (e) {
-        // Continue to next method
+        console.log(`  ❌ ${name} threw error: ${e instanceof Error ? e.message : 'Unknown'}`);
       }
     }
     
@@ -388,6 +438,7 @@ export class BondCalculatorPro {
   ): { yield: number; converged: boolean; iterations: number; precision: number } {
     let yield_ = new Decimal(this.getInitialGuess(cashFlows, targetPrice, settlementDate));
     let iterations = 0;
+    let lastYield = yield_.toNumber();
     
     while (iterations < this.MAX_ITERATIONS) {
       const { pv, duration } = this.getPVAndDuration(cashFlows, yield_, settlementDate);
@@ -420,6 +471,18 @@ export class BondCalculatorPro {
       // Bounds
       if (yield_.lt(-0.99)) yield_ = new Decimal(-0.99);
       if (yield_.gt(5)) yield_ = new Decimal(5);
+      
+      // Log progress every 5 iterations
+      if (iterations % 5 === 0) {
+        console.log(`    Iteration ${iterations}: yield = ${(yield_.toNumber() * 100).toFixed(3)}%, error = ${error.toFixed(6)}`);
+      }
+      
+      // Check for oscillation
+      if (Math.abs(yield_.toNumber() - lastYield) < 1e-8 && iterations > 10) {
+        console.log(`    ⚠️ Yield oscillating, stopping at ${(yield_.toNumber() * 100).toFixed(3)}%`);
+        break;
+      }
+      lastYield = yield_.toNumber();
       
       iterations++;
     }
@@ -550,7 +613,17 @@ export class BondCalculatorPro {
     const totalReturn = totalCF / price;
     const annualizedReturn = Math.pow(totalReturn, 1 / avgTime) - 1;
     
-    return Math.max(-0.5, Math.min(0.5, annualizedReturn));
+    const guess = Math.max(-0.5, Math.min(0.5, annualizedReturn));
+    
+    console.log(`💡 Initial YTM Guess:`);
+    console.log(`  - Total CFs: ${totalCF}`);
+    console.log(`  - Target Price: ${price}`);
+    console.log(`  - Total Return: ${totalReturn.toFixed(4)}`);
+    console.log(`  - Average Time: ${avgTime.toFixed(2)} years`);
+    console.log(`  - Raw Annualized: ${(annualizedReturn * 100).toFixed(2)}%`);
+    console.log(`  - Clamped Guess: ${(guess * 100).toFixed(2)}%`);
+    
+    return guess;
   }
   
   private calculatePresentValue(
@@ -778,6 +851,9 @@ export class BondCalculatorPro {
     settlementDate: Date,
     treasuryCurve: NonNullable<MarketInputs['treasuryCurve']>
   ): number {
+    console.log(`🔄 Z-Spread Calculation:`);
+    console.log(`  - Target Price: ${targetPrice}`);
+    console.log(`  - Cash Flows: ${cashFlows.length}`);
     let lower = -0.01;
     let upper = 0.05;
     
@@ -794,6 +870,7 @@ export class BondCalculatorPro {
       }
       
       if (Math.abs(pv - targetPrice) < 0.01) {
+        console.log(`  - Z-Spread converged: ${(mid * 10000).toFixed(0)} bps`);
         return mid;
       }
       
@@ -804,7 +881,9 @@ export class BondCalculatorPro {
       }
     }
     
-    return (lower + upper) / 2;
+    const finalSpread = (lower + upper) / 2;
+    console.log(`  - Z-Spread final: ${(finalSpread * 10000).toFixed(0)} bps`);
+    return finalSpread;
   }
   
   private yearsBetween(date1: Date, date2: Date): number {
