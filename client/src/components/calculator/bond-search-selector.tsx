@@ -162,27 +162,7 @@ export function BondSearchSelector({ currentBondId, currentBondData }: BondSearc
         console.warn("Failed to load saved bonds:", error);
       }
 
-      // Load golden bonds
-      try {
-        const goldenResponse = await apiRequest("GET", "/api/bonds/golden");
-        const goldenData = await goldenResponse.json();
-        
-        const goldenBonds: BondOption[] = Object.entries(goldenData).map(([id, bond]: [string, any]) => ({
-          id: `golden:${id}`,
-          category: 'golden_bonds' as const,
-          name: bond.name,
-          description: bond.description,
-          bondInfo: {
-            issuer: bond.issuer || id.toUpperCase(),
-            couponRate: bond.couponRate || 0,
-            maturityDate: bond.maturityDate || new Date().toISOString().split('T')[0],
-          }
-        }));
-        
-        bondOptions.push(...goldenBonds);
-      } catch (error) {
-        console.warn("Failed to load golden bonds:", error);
-      }
+      // Skip loading golden bonds - user only wants saved bonds
 
       setBonds(bondOptions);
     } catch (error) {
@@ -211,8 +191,7 @@ export function BondSearchSelector({ currentBondId, currentBondData }: BondSearc
   };
 
   const formatBondSubtitle = (bond: BondOption): string => {
-    const category = bond.category === 'golden_bonds' ? 'Golden' : 
-                   bond.category === 'user_created' ? 'User Created' : 'Imported';
+    const category = bond.category === 'user_created' ? 'User Created' : 'Imported';
     return bond.description || `${category} Bond`;
   };
 
@@ -230,8 +209,6 @@ export function BondSearchSelector({ currentBondId, currentBondData }: BondSearc
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'golden_bonds':
-        return <Star className="h-3 w-3 text-yellow-400" />;
       case 'user_created':
         return <User className="h-3 w-3 text-blue-400" />;
       case 'imported':
