@@ -60,6 +60,11 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
   // Handle spread input changes
   const handleSpreadChange = (value: string) => {
     setSpreadInput(value);
+    
+    // Clear any previous errors when user starts typing
+    if (calculatorState.error?.includes('spread') || calculatorState.error?.includes('Spread')) {
+      calculatorState.setInput({ ...calculatorState.input }); // Reset error
+    }
   };
 
   // Handle Enter key or blur to trigger calculation
@@ -82,6 +87,11 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
   const handleSpreadCommit = () => {
     const spreadValue = parseFloat(spreadInput);
     if (!isNaN(spreadValue)) {
+      // Validate spread range before committing
+      if (spreadValue < -1000 || spreadValue > 10000) {
+        // Input will be rejected by the hook, but we can provide immediate feedback
+        return;
+      }
       setSpread(spreadValue);
     }
     setFocusedField(null);
@@ -176,6 +186,8 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
               id="spread"
               type="number"
               step="1"
+              min="-1000"
+              max="10000"
               value={spreadInput}
               onChange={e => handleSpreadChange(e.target.value)}
               onBlur={handleSpreadCommit}
@@ -183,11 +195,20 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
               onFocus={() => setFocusedField('spread')}
               placeholder="Enter spread in bp..."
               disabled={isCalculating}
-              className="font-mono border-gray-600 bg-gray-800 text-white focus:border-green-500 pr-12"
+              className={`font-mono border-gray-600 bg-gray-800 text-white focus:border-green-500 pr-12 ${
+                calculatorState.error?.includes('spread') || calculatorState.error?.includes('Treasury') 
+                  ? 'border-red-500 focus:border-red-500' 
+                  : ''
+              }`}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">bp</span>
           </div>
-          <p className="text-xs text-gray-500">Enter spread and press Enter to calculate price</p>
+          <p className="text-xs text-gray-500">
+            {calculatorState.error?.includes('Treasury') 
+              ? <span className="text-yellow-400">Treasury curve data loading...</span>
+              : 'Enter spread (-1000 to 10000 bp) and press Enter to calculate price'
+            }
+          </p>
         </div>
 
         {/* Settlement Date */}

@@ -224,6 +224,13 @@ export class MemStorage implements IStorage {
       const buildTime = Date.now() - startTime;
       console.error('Bond build error:', error);
       
+      // For calculation errors, still throw to prevent showing incorrect data
+      // The frontend will handle the error appropriately
+      if (error instanceof Error && error.message.includes('calculation failed')) {
+        throw error;
+      }
+      
+      // For other errors (like validation), return error status
       return {
         bond: bond as any,
         cashFlows: [],
@@ -372,6 +379,17 @@ export class MemStorage implements IStorage {
     const targetSpread = (bond as any).targetSpread;
     const settlementDate = new Date((bond as any).settlementDate || new Date());
     
+    console.log('📥 Backend received:', {
+      marketPrice,
+      targetYield,
+      targetSpread,
+      issuer: bond.issuer,
+      maturityDate: bond.maturityDate
+    });
+    
+    // Debug logging
+    console.log(`🔍 Calculation inputs - Price: ${marketPrice}, Yield: ${targetYield}, Spread: ${targetSpread}`);
+    
     
     // Prepare treasury curve if available
     let treasuryCurve;
@@ -399,6 +417,7 @@ export class MemStorage implements IStorage {
       // Determine calculation mode and call appropriate method
       if (targetYield !== undefined && targetYield !== null) {
         // YTM → Price mode
+        console.log('🎯 YTM → Price mode. Target YTM:', targetYield);
         result = calculator.analyze({
           bond: calcBond,
           settlementDate,
@@ -407,34 +426,65 @@ export class MemStorage implements IStorage {
         });
       } else if (targetSpread !== undefined && targetSpread !== null) {
         // Spread → Price mode (requires Treasury curve)
+        console.log(`📊 Calculating price from spread: ${targetSpread} bps`);
+        
         if (!treasuryCurve) {
-          throw new Error('Treasury curve data required for spread-based calculations');
+          console.error('❌ Treasury curve data not available for spread calculation');
+          throw new Error('Treasury curve data required for spread-based calculations. Please wait for curve data to load.');
         }
         
-        // First, estimate average life to get the right treasury tenor
-        // Use a reasonable initial guess for YTM
-        const initialYtm = 0.05 + (targetSpread / 10000);
-        const tempResult = calculator.analyze({
-          bond: calcBond,
-          settlementDate,
-          yield: initialYtm,
-          treasuryCurve
-        });
-        
-        const avgLife = tempResult.analytics.averageLife;
-        const treasuryYield = this.interpolateTreasuryYield(avgLife, treasuryCurve);
-        const targetYieldFromSpread = treasuryYield + (targetSpread / 100);
-        
-        result = calculator.analyze({
-          bond: calcBond,
-          settlementDate,
-          yield: targetYieldFromSpread / 100, // Convert to decimal
-          treasuryCurve
-        });
+        try {
+          // First, estimate average life to get the right treasury tenor
+          // Use a reasonable initial guess for YTM based on current market conditions
+          const initialYtm = 0.05 + (targetSpread / 10000);
+          console.log(`📊 Initial YTM guess: ${(initialYtm * 100).toFixed(3)}%`);
+          
+          const tempResult = calculator.analyze({
+            bond: calcBond,
+            settlementDate,
+            yield: initialYtm,
+            treasuryCurve
+          });
+          
+          const avgLife = tempResult.analytics.averageLife;
+          console.log(`📊 Calculated average life: ${avgLife.toFixed(2)} years`);
+          
+          const treasuryYield = this.interpolateTreasuryYield(avgLife, treasuryCurve);
+          console.log(`📊 Interpolated Treasury yield: ${treasuryYield.toFixed(3)}%`);
+          
+          const targetYieldFromSpread = treasuryYield + (targetSpread / 100);
+          console.log(`📊 Target yield (Treasury + Spread): ${targetYieldFromSpread.toFixed(3)}%`);
+          
+          // Validate the target yield is reasonable
+          if (targetYieldFromSpread < 0) {
+            console.error(`❌ Negative yield calculated: ${targetYieldFromSpread}%`);
+            throw new Error(`Invalid spread: results in negative yield (${targetYieldFromSpread.toFixed(2)}%)`);
+          }
+          
+          if (targetYieldFromSpread > 50) {
+            console.error(`❌ Extremely high yield calculated: ${targetYieldFromSpread}%`);
+            throw new Error(`Invalid spread: results in unrealistic yield (${targetYieldFromSpread.toFixed(2)}%)`);
+          }
+          
+          result = calculator.analyze({
+            bond: calcBond,
+            settlementDate,
+            yield: targetYieldFromSpread / 100, // Convert to decimal
+            treasuryCurve
+          });
+          
+          console.log(`✅ Spread calculation successful - Price: ${result.price.clean.toFixed(4)}`);
+          
+        } catch (spreadError) {
+          console.error('❌ Spread calculation failed:', spreadError);
+          throw new Error(`Spread calculation failed: ${spreadError instanceof Error ? spreadError.message : 'Unknown error'}`);
+        }
       } else {
         // Price → YTM mode (default)
+        console.log('🎯 Price → YTM mode. Market Price:', marketPrice);
         // IMPORTANT: Don't default to 100 if no price is provided - this breaks the calculator
         if (!marketPrice && !targetYield && !targetSpread) {
+          console.error('❌ No valid input provided!');
           throw new Error('At least one of price, yield, or spread must be provided');
         }
         
@@ -478,8 +528,9 @@ export class MemStorage implements IStorage {
       console.error('❌ Bond that failed:', bond.issuer, bond.couponRate, bond.maturityDate);
       console.error('❌ Inputs were - Price:', marketPrice, 'Yield:', targetYield, 'Spread:', targetSpread);
       
-      // Return default analytics instead of throwing to prevent UI from getting stuck
-      return this.getDefaultAnalytics();
+      // Don't return default analytics for calculation errors - propagate the error
+      // This prevents the UI from showing incorrect par value (1000) when calculations fail
+      throw error;
     }
   }
 

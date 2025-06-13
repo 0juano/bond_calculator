@@ -72,6 +72,14 @@ export function useCalculatorState(
           console.log('⚠️ Calculator State: No predefined cash flows available');
         }
         
+        // Debug current state
+        console.log('🔍 Current input state:', {
+          price: input.price,
+          yieldValue: input.yieldValue,
+          spread: input.spread,
+          lockedField: input.lockedField
+        });
+        
         // Build enhanced request with calculator inputs
         const calculationRequest = {
           issuer: bond.issuer,
@@ -108,17 +116,17 @@ export function useCalculatorState(
           }),
           // Override with user inputs based on locked field
           // Only send the input that's currently being edited
-          ...(input.lockedField === 'PRICE' && input.price && { 
+          ...(input.lockedField === 'PRICE' && input.price !== undefined && { 
             marketPrice: input.price
           }),
-          ...(input.lockedField === 'YIELD' && input.yieldValue && { 
+          ...(input.lockedField === 'YIELD' && input.yieldValue !== undefined && { 
             targetYield: input.yieldValue 
           }),
-          ...(input.lockedField === 'SPREAD' && input.spread && { 
+          ...(input.lockedField === 'SPREAD' && input.spread !== undefined && { 
             targetSpread: input.spread 
           }),
           // If no field is locked but we have a price, send it
-          ...(!input.lockedField && input.price && { 
+          ...(!input.lockedField && input.price !== undefined && { 
             marketPrice: input.price
           }),
           // Fallback: if nothing is provided, use a reasonable default
@@ -127,6 +135,13 @@ export function useCalculatorState(
           }),
         };
 
+        console.log('📤 Sending calculation request:', {
+          lockedField: input.lockedField,
+          hasMarketPrice: 'marketPrice' in calculationRequest,
+          hasTargetYield: 'targetYield' in calculationRequest,
+          hasTargetSpread: 'targetSpread' in calculationRequest,
+          targetSpread: calculationRequest.targetSpread,
+        });
         
         const response = await fetch('/api/bonds/calculate', {
           method: 'POST',
@@ -135,21 +150,47 @@ export function useCalculatorState(
         });
 
         if (!response.ok) {
-          // Fallback to regular build endpoint
-          const buildResponse = await fetch('/api/bonds/build', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(calculationRequest),
-          });
+          const errorData = await response.text();
+          let errorMessage = `Calculation failed: ${response.statusText}`;
           
-          if (buildResponse.ok) {
-            const result = await buildResponse.json();
-            setBondResult(result);
-          } else {
-            throw new Error(`Calculation failed: ${buildResponse.statusText}`);
+          try {
+            const errorJson = JSON.parse(errorData);
+            errorMessage = errorJson.error || errorMessage;
+          } catch {
+            // If not JSON, use the text as is
+            if (errorData) errorMessage = errorData;
           }
+          
+          // Special handling for spread calculation errors
+          if (errorMessage.includes('Treasury curve') || errorMessage.includes('spread')) {
+            setError('Treasury curve data is required for spread calculations. Please wait a moment and try again.');
+            // Don't update bond result - keep previous valid state
+            return;
+          }
+          
+          throw new Error(errorMessage);
         } else {
           const result = await response.json();
+          console.log('📥 Frontend received result:', {
+            hasAnalytics: !!result.analytics,
+            price: result.analytics?.cleanPrice,
+            ytm: result.analytics?.yieldToMaturity,
+            spread: result.analytics?.spread
+          });
+          
+          // Validate the result before updating state
+          if (!result.analytics || typeof result.analytics.cleanPrice !== 'number') {
+            throw new Error('Invalid calculation result received');
+          }
+          
+          // Update the input state with the calculated values
+          setInputState(prev => ({
+            ...prev,
+            price: result.analytics.cleanPrice,
+            yieldValue: result.analytics.yieldToMaturity,
+            spread: result.analytics.spread,
+          }));
+          
           setBondResult(prev => ({
             bond: bond,
             cashFlows: prev?.cashFlows || result.cashFlows || [],
@@ -159,6 +200,8 @@ export function useCalculatorState(
           }));
         }
       } catch (err) {
+        console.error('❌ Frontend calculation error:', err);
+        console.error('❌ Input state at error:', input);
         setError(err instanceof Error ? err.message : 'Calculation failed');
       } finally {
         setIsCalculating(false);
@@ -190,6 +233,21 @@ export function useCalculatorState(
   }, [setInput]);
 
   const setSpread = useCallback((spread: number) => {
+    console.log('🎯 setSpread called with:', spread);
+    
+    // Validate spread input
+    if (isNaN(spread)) {
+      setError('Invalid spread value');
+      return;
+    }
+    
+    // Reasonable spread limits (-1000 to 10000 basis points)
+    if (spread < -1000 || spread > 10000) {
+      setError('Spread must be between -1000 and 10000 basis points');
+      return;
+    }
+    
+    console.log('🎯 Setting input with spread:', spread, 'and lockedField: SPREAD');
     setInput({ 
       spread, 
       lockedField: 'SPREAD' 
