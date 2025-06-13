@@ -77,14 +77,17 @@ bond_calculator/
 │   ├── src/
 │   │   ├── components/        # React components
 │   │   │   ├── ui/           # shadcn/ui components
+│   │   │   ├── calculator/   # Bond calculator components
 │   │   │   ├── bond-form.tsx # Main bond input form
 │   │   │   ├── cash-flow-table.tsx # Payment schedule display
 │   │   │   ├── analytics-panel.tsx # Bond metrics display
 │   │   │   └── golden-bonds.tsx    # Template selector
 │   │   ├── pages/            # Application pages
 │   │   │   ├── bond-builder.tsx    # Main application page
+│   │   │   ├── bond-calculator.tsx # Interactive calculator
 │   │   │   └── not-found.tsx       # 404 page
 │   │   ├── hooks/            # Custom React hooks
+│   │   │   └── useCalculatorState.ts # Three-way calculator logic
 │   │   ├── lib/              # Utility functions
 │   │   └── main.tsx          # Application entry point
 │   └── index.html            # HTML template
@@ -95,7 +98,14 @@ bond_calculator/
 │   ├── storage-temp.ts      # Temporary storage (no DB)
 │   └── vite.ts              # Vite development integration
 ├── shared/                  # Shared types and schemas
-│   └── schema.ts            # Zod schemas and TypeScript types
+│   ├── schema.ts            # Zod schemas and TypeScript types
+│   └── bond-calculator-production.ts # Robust calculation engine
+├── docs/                    # Documentation ✨ NEW
+│   ├── bond-json-specification.md  # Bond JSON format spec v1.1
+│   └── bloomberg-reference-data.md # Market validation data
+├── saved_bonds/             # JSON bond repository
+│   ├── user_created/        # User-created bonds
+│   └── imported/            # Imported bond files
 ├── package.json             # Dependencies and scripts
 ├── vite.config.ts          # Vite configuration
 ├── tailwind.config.ts      # Tailwind CSS configuration
@@ -344,9 +354,15 @@ DATABASE_URL=postgresql://...    # Optional database connection
 
 ## 🎮 Interactive Bond Calculator
 
+### Three-Way Calculator ✨ **NEW**
+- **Bidirectional Calculations**: Price ↔ YTM ↔ Spread all work as both inputs and outputs
+- **Intelligent Field Locking**: Edit any field and the other two automatically calculate
+- **No Infinite Loops**: Smart dependency management prevents continuous recalculations
+- **Bloomberg Validation**: Results match professional terminal accuracy
+
 ### Calculator Features
 - **Bond Search & Selection**: Intelligent search across saved bonds and golden templates
-- **Real-time Price/Yield Calculations**: Interactive pricing with field locking
+- **Real-time Price/Yield/Spread Calculations**: Interactive pricing with three-way functionality
 - **Risk Metrics Dashboard**: Duration, convexity, DV01, and scenario analysis
 - **Settlement Controls**: Date picker with accrued interest calculations
 - **Responsive Design**: Mobile-optimized with Bloomberg terminal aesthetics
@@ -357,20 +373,27 @@ DATABASE_URL=postgresql://...    # Optional database connection
 - **Performance Optimized**: Limits results to 10 bonds for fast rendering
 - **Type-safe**: Full TypeScript coverage with proper interfaces
 
+### Validation & Testing
+- **Bloomberg Reference Data**: Real market data for Argentina sovereign bonds (GD29, GD30, GD38, etc.)
+- **Professional Accuracy**: Calculator results match Bloomberg terminal values
+- **Expected Results**: GD38 at 72.25 → YTM 10.88%, spread 660bp, duration 5.01
+
 ## 🏗️ Development Guidelines
 
 ### Adding New Bond Templates
-Follow the conventions in `docs/ADDING_BONDS.md`:
+Follow the conventions in `docs/ADDING_BONDS.md` and the comprehensive Bond JSON Specification v1.1 in `docs/bond-json-specification.md`:
 - **Coupon rates**: Always percentage format (5.0 for 5%, not 0.05)
 - **Face value**: Use 1000 unless special case (sovereign bonds)
 - **Dates**: ISO format (YYYY-MM-DD)
 - **Boolean flags**: Explicitly set all (`isAmortizing`, `isCallable`, `isPuttable`, `isVariableCoupon`)
+- **JSON Format**: Follow the v1.1 specification for consistent bond data structure
 
 ### Code Standards
 - Use TypeScript with strict type checking
 - Follow existing patterns in neighboring components
 - Implement precision-safe math with `decimal.js` for calculations
 - Always run `npm run check` before committing
+- Test calculator results against Bloomberg reference data in `docs/bloomberg-reference-data.md`
 
 ## 🔮 Future Enhancements
 
@@ -407,8 +430,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📝 Changelog
 
-### [Unreleased]
-- **NEW: Real-time Treasury Data Integration**
+### [Latest] - June 2025 ✨
+- **MAJOR: Three-Way Bond Calculator**
+  - Price ↔ YTM ↔ Spread bidirectional calculations
+  - Intelligent field locking prevents infinite recalculation loops
+  - Bloomberg-validated accuracy with professional terminal results
+- **BUG FIX: Price Conversion Logic**
+  - Fixed critical price interpretation bug where inputs were misunderstood
+  - Calculator now correctly treats price inputs as percentage of face value
+  - Eliminates impossible YTM calculations (66%+ yields)
+- **NEW: Bloomberg Reference Data Integration**
+  - Added real market data for Argentina sovereign bonds validation
+  - Professional accuracy benchmarks for GD29, GD30, GD38, GD46, GD35, GD41
+  - Calculator results now match Bloomberg terminal values
+- **NEW: Bond JSON Specification v1.1**
+  - Comprehensive specification for all bond types (not just sovereigns)
+  - Universal JSON format for vanilla, corporate, municipal, and complex bonds
+  - Complete validation rules and field definitions
+
+### [Previous] - Treasury Integration
+- **Real-time Treasury Data Integration**
   - FRED API integration for live US Treasury yield curve
   - Complete 11-tenor curve (1M to 30Y) with 30-minute caching
   - Environment variable configuration with `.env` support
