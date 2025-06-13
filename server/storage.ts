@@ -418,6 +418,13 @@ export class MemStorage implements IStorage {
       if (targetYield !== undefined && targetYield !== null) {
         // YTM → Price mode
         console.log('🎯 YTM → Price mode. Target YTM:', targetYield);
+        
+        // Validate yield input
+        if (isNaN(targetYield) || targetYield < -10 || targetYield > 50) {
+          console.error(`❌ Invalid yield input: ${targetYield}%`);
+          throw new Error(`Invalid yield: ${targetYield}%. Yield must be between -10% and 50%`);
+        }
+        
         result = calculator.analyze({
           bond: calcBond,
           settlementDate,
@@ -488,6 +495,14 @@ export class MemStorage implements IStorage {
           throw new Error('At least one of price, yield, or spread must be provided');
         }
         
+        // Validate price input
+        if (marketPrice !== undefined && marketPrice !== null) {
+          if (isNaN(marketPrice) || marketPrice <= 0 || marketPrice > 1000) {
+            console.error(`❌ Invalid price input: ${marketPrice}`);
+            throw new Error(`Invalid price: ${marketPrice}. Price must be between 0 and 1000 (as percentage of face value)`);
+          }
+        }
+        
         // User enters price as percentage of face value (e.g., 80 = 80% of par)
         // Calculator expects this same percentage format
         const priceAsPercentage = marketPrice;
@@ -503,12 +518,24 @@ export class MemStorage implements IStorage {
       }
       
       
+      // Validate calculation results to catch unrealistic values
+      if (result.yields.ytm > 50) {
+        console.error(`❌ Unrealistic YTM calculated: ${result.yields.ytm.toFixed(2)}%`);
+        console.error(`❌ This suggests a price conversion error. Bond: ${bond.issuer}, Price: ${marketPrice}`);
+        throw new Error(`Calculation error: YTM of ${result.yields.ytm.toFixed(2)}% is unrealistic. Check price input format.`);
+      }
+      
+      if (result.yields.ytm < -10) {
+        console.error(`❌ Negative YTM calculated: ${result.yields.ytm.toFixed(2)}%`);
+        throw new Error(`Calculation error: Negative YTM of ${result.yields.ytm.toFixed(2)}% suggests invalid inputs.`);
+      }
+      
       // Convert back to legacy format
       const totalCoupons = cashFlows
         .filter(cf => new Date(cf.date) > settlementDate)
         .reduce((sum, cf) => sum + cf.couponPayment, 0);
       
-      return {
+      const analytics = {
         yieldToMaturity: result.yields.ytm,
         yieldToWorst: result.yields.ytw,
         duration: result.risk.modifiedDuration,
@@ -526,6 +553,10 @@ export class MemStorage implements IStorage {
         currentYield: result.yields.current,
         spread: result.spreads ? result.spreads.treasury : undefined // Keep in bps
       };
+      
+      console.log(`✅ Calculation successful - YTM: ${analytics.yieldToMaturity.toFixed(3)}%, Duration: ${analytics.duration.toFixed(2)}, Spread: ${analytics.spread?.toFixed(0) || 'N/A'} bp`);
+      
+      return analytics;
       
     } catch (error) {
       console.error('❌ Calculator failed:', error);

@@ -3,30 +3,38 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
 
-interface GoldenBondsProps {
+interface SavedBondsProps {
   onLoadBond: (bondId: string) => void;
 }
 
-interface GoldenBondInfo {
-  name: string;
-  description: string;
-  maturity: string;
+interface SavedBondInfo {
+  metadata: {
+    id: string;
+    name: string;
+  };
+  bondInfo: {
+    issuer: string;
+    couponRate: number;
+    maturityDate: string;
+    isin?: string;
+  };
+  category?: string;
 }
 
-export default function GoldenBonds({ onLoadBond }: GoldenBondsProps) {
-  const { data: goldenBonds, isLoading } = useQuery<Record<string, GoldenBondInfo>>({
-    queryKey: ["/api/bonds/golden"],
+export default function SavedBonds({ onLoadBond }: SavedBondsProps) {
+  const { data: savedBondsData, isLoading } = useQuery<{bonds: SavedBondInfo[]}>({
+    queryKey: ["/api/bonds/saved"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/bonds/golden");
+      const response = await apiRequest("GET", "/api/bonds/saved");
       return response.json();
     },
-    staleTime: Infinity,
+    staleTime: 30000, // 30 seconds
   });
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h2 className="section-header">GOLDEN_BONDS.exe</h2>
+        <h2 className="section-header">SAVED_BONDS.exe</h2>
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-12 w-full bg-muted" />
@@ -36,17 +44,18 @@ export default function GoldenBonds({ onLoadBond }: GoldenBondsProps) {
     );
   }
 
-  const bondDisplayData = goldenBonds 
-    ? Object.entries(goldenBonds).map(([id, bond]) => ({
-        id,
-        name: bond.name,
-        desc: bond.description,
+  const bondDisplayData = savedBondsData?.bonds 
+    ? savedBondsData.bonds.map((bond) => ({
+        id: bond.metadata.id,
+        name: bond.metadata.name,
+        desc: `${bond.bondInfo.issuer} ${bond.bondInfo.couponRate}% ${bond.bondInfo.maturityDate}`,
+        isin: bond.bondInfo.isin,
       }))
     : [];
 
   return (
     <div className="space-y-4">
-      <h2 className="section-header">GOLDEN_BONDS.exe</h2>
+      <h2 className="section-header">SAVED_BONDS.exe</h2>
       <div className="space-y-2">
         {bondDisplayData.map((bond) => (
           <Button
@@ -62,6 +71,11 @@ export default function GoldenBonds({ onLoadBond }: GoldenBondsProps) {
               <div className="terminal-text-muted text-xs mt-1">
                 {bond.desc}
               </div>
+              {bond.isin && (
+                <div className="terminal-text-muted text-xs mt-1">
+                  ISIN: {bond.isin}
+                </div>
+              )}
             </div>
           </Button>
         ))}

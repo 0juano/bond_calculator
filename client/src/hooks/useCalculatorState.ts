@@ -75,6 +75,13 @@ export function useCalculatorState(
 
     calculationCount.current += 1;
     const currentCallNumber = calculationCount.current;
+    
+    // Circuit breaker - prevent infinite loops
+    if (calculationCount.current > 10) {
+      console.warn('🔄 Too many calculations, pausing to prevent infinite loop');
+      setError('Too many calculations detected. Please refresh the page if the calculator becomes unresponsive.');
+      return;
+    }
 
     const calculateAnalytics = async () => {
       setIsCalculating(true);
@@ -178,16 +185,32 @@ export function useCalculatorState(
             const updates: Partial<CalculatorInput> = {};
             
             // Only update fields that weren't locked (i.e., weren't the input)
+            // Also check if the value has actually changed to avoid unnecessary updates
             if (prev.lockedField !== 'PRICE') {
-              updates.price = result.analytics.cleanPrice;
+              const newPrice = result.analytics.cleanPrice;
+              if (Math.abs((prev.price || 0) - newPrice) > 0.0001) {
+                updates.price = newPrice;
+              }
             }
             if (prev.lockedField !== 'YIELD') {
-              updates.yieldValue = result.analytics.yieldToMaturity;
+              const newYield = result.analytics.yieldToMaturity;
+              if (Math.abs((prev.yieldValue || 0) - newYield) > 0.001) {
+                updates.yieldValue = newYield;
+              }
             }
             if (prev.lockedField !== 'SPREAD') {
-              updates.spread = result.analytics.spread;
+              const newSpread = result.analytics.spread;
+              if (newSpread !== undefined && Math.abs((prev.spread || 0) - newSpread) > 0.1) {
+                updates.spread = newSpread;
+              }
             }
             
+            // Only update if there are actual changes
+            if (Object.keys(updates).length === 0) {
+              return prev;
+            }
+            
+            console.log('🔄 Updating calculator state:', updates);
             return { ...prev, ...updates };
           });
           
@@ -270,6 +293,9 @@ export function useCalculatorState(
   }, [setInput]);
 
   const resetToMarket = useCallback(() => {
+    // Reset calculation counter when user manually resets
+    calculationCount.current = 0;
+    
     // Reset to the last calculated values
     setInput({
       price: bondResult?.analytics?.cleanPrice || input.price || 100,

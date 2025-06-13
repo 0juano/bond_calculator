@@ -86,8 +86,8 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
     };
   }, [chartData]);
 
-  // Temporary flag to hide analytics sections
-  const showAnalytics = false;
+  // Enable analytics display for universal bond calculator
+  const showAnalytics = true;
 
   if (!analytics) {
     return (
@@ -136,7 +136,44 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
       {/* 1. Cash Flow Schedule */}
       <CashFlowTable cashFlows={cashFlows || []} isLoading={!cashFlows} bond={bond} />
 
-      {/* 2. Payment Timeline Chart */}
+      {/* 2. Headline Analytics */}
+      {showAnalytics && analytics && (
+        <div className="terminal-panel p-4">
+          <h3 className="section-header">[HEADLINE_ANALYTICS]</h3>
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">YTM:</span>
+                <span className="terminal-text-green">{formatPercent(analytics.yieldToMaturity)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">DURATION:</span>
+                <span className="terminal-text-green">{safeToFixed(analytics.duration, 2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">CONVEXITY:</span>
+                <span className="terminal-text-green">{safeToFixed(analytics.convexity, 2)}</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">SPREAD:</span>
+                <span className="terminal-text-green">{analytics.spread ? `${safeToFixed(analytics.spread, 0)} bp` : 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">CLEAN_PRICE:</span>
+                <span className="terminal-text-green">{formatCurrency(analytics.cleanPrice || analytics.presentValue)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="terminal-text-muted">ACCRUED:</span>
+                <span className="terminal-text-green">{formatCurrency(analytics.accruedInterest)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Payment Timeline Chart */}
       <div className="terminal-panel p-4">
         <h3 className="section-header">[PAYMENT_TIMELINE]</h3>
         <div className="terminal-chart h-64">
@@ -164,7 +201,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
         </div>
       </div>
 
-      {/* 3. Export Options (User Downloads) */}
+      {/* 4. Export Options (User Downloads) */}
       <div className="border-t border-border pt-4">
         <h3 className="section-header">[EXPORT_OPTIONS]</h3>
         <div className="flex space-x-2 mb-4">
@@ -202,7 +239,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
         )}
       </div>
 
-      {/* 4. Build Status */}
+      {/* 5. Build Status */}
       <div className="terminal-panel p-4 mt-4">
         <h3 className="section-header">[BUILD_STATUS]</h3>
         <div className="space-y-2 text-xs">

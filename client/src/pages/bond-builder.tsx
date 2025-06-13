@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import BondForm from "@/components/bond-form";
 import CashFlowTable from "@/components/cash-flow-table";
 import AnalyticsPanel from "@/components/analytics-panel";
-import GoldenBonds from "@/components/golden-bonds";
+import SavedBonds from "@/components/golden-bonds";
 import { BondResult, InsertBond, ValidationResult } from "@shared/schema";
 import { BondJsonUtils } from "@shared/bond-definition";
 import { useToast } from "@/hooks/use-toast";
@@ -130,18 +130,49 @@ export default function BondBuilder() {
     setBondData(prev => ({ ...prev, ...updates }));
   };
 
-  const handleLoadGoldenBond = async (bondId: string) => {
+  const handleLoadSavedBond = async (bondId: string) => {
     try {
-      const response = await apiRequest("GET", `/api/bonds/golden/${bondId}`);
-      const goldenBond = await response.json() as InsertBond;
-      setBondData(goldenBond);
+      // First get the list of saved bonds to find the filename
+      const listResponse = await apiRequest("GET", "/api/bonds/saved");
+      const savedBondsData = await listResponse.json();
+      const bond = savedBondsData.bonds.find((b: any) => b.metadata.id === bondId);
+      
+      if (!bond) {
+        throw new Error("Bond not found");
+      }
+      
+      // Convert bond format to legacy format for the form
+      const legacyBond = {
+        issuer: bond.bondInfo.issuer,
+        cusip: bond.bondInfo.cusip || "",
+        isin: bond.bondInfo.isin || "",
+        faceValue: bond.bondInfo.faceValue,
+        couponRate: bond.bondInfo.couponRate,
+        issueDate: bond.bondInfo.issueDate,
+        maturityDate: bond.bondInfo.maturityDate,
+        firstCouponDate: bond.bondInfo.firstCouponDate,
+        paymentFrequency: bond.bondInfo.paymentFrequency,
+        dayCountConvention: bond.bondInfo.dayCountConvention,
+        currency: bond.bondInfo.currency,
+        isAmortizing: bond.features.isAmortizing,
+        isCallable: bond.features.isCallable,
+        isPuttable: bond.features.isPuttable,
+        isVariableCoupon: bond.features.isVariableCoupon,
+        settlementDays: bond.bondInfo.settlementDays,
+        amortizationSchedule: bond.schedules?.amortizationSchedule || [],
+        callSchedule: bond.schedules?.callSchedule || [],
+        putSchedule: bond.schedules?.putSchedule || [],
+        couponRateChanges: bond.schedules?.couponRateChanges || [],
+      };
+      
+      setBondData(legacyBond);
       toast({
-        title: "Golden Bond Loaded",
-        description: `Loaded ${bondId} configuration`,
+        title: "Saved Bond Loaded",
+        description: `Loaded ${bond.metadata.name}`,
       });
     } catch (error) {
       toast({
-        title: "Failed to Load Golden Bond",
+        title: "Failed to Load Saved Bond",
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
@@ -364,7 +395,7 @@ export default function BondBuilder() {
       <div className="flex min-h-[calc(100vh-80px)]">
         {/* Sidebar */}
         <aside className="w-80 bg-card border-r border-border p-4 overflow-y-auto terminal-scrollbar">
-          <GoldenBonds onLoadBond={handleLoadGoldenBond} />
+          <SavedBonds onLoadBond={handleLoadSavedBond} />
           
           {/* System Status */}
           <div className="mt-6">
