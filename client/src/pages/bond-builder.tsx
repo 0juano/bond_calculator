@@ -70,10 +70,15 @@ export default function BondBuilder() {
   // Build bond mutation
   const buildMutation = useMutation({
     mutationFn: async (bond: InsertBond) => {
+      console.log('🔨 API request starting...');
       const response = await apiRequest("POST", "/api/bonds/build", bond);
-      return await response.json() as BondResult;
+      console.log('🔨 API response received:', response.status);
+      const result = await response.json() as BondResult;
+      console.log('🔨 API result:', result);
+      return result;
     },
     onSuccess: (result) => {
+      console.log('🔨 Build SUCCESS:', result);
       setBuildResult(result);
       setValidationErrors({});
       toast({
@@ -82,6 +87,7 @@ export default function BondBuilder() {
       });
     },
     onError: (error: Error) => {
+      console.log('🔨 Build ERROR:', error);
       toast({
         title: "Build Failed",
         description: error.message,
@@ -115,7 +121,12 @@ export default function BondBuilder() {
   }, [bondData]);
 
   const handleBuildBond = () => {
+    console.log('🔨 BUILD_BOND clicked');
+    console.log('🔨 Validation errors:', validationErrors);
+    console.log('🔨 Bond data:', bondData);
+    
     if (Object.keys(validationErrors).length > 0) {
+      console.log('🔨 BUILD blocked due to validation errors');
       toast({
         title: "Validation Errors",
         description: "Please fix validation errors before building",
@@ -123,7 +134,17 @@ export default function BondBuilder() {
       });
       return;
     }
-    buildMutation.mutate(bondData as InsertBond);
+    
+    // Provide default market price of 100 (par value) for bond building
+    // This allows the calculator to generate meaningful analytics and cash flows
+    const bondWithMarketData = {
+      ...bondData,
+      marketPrice: 100, // Default to par value for building
+      settlementDate: new Date().toISOString().split('T')[0] // Use today as settlement date
+    };
+    
+    console.log('🔨 Calling buildMutation.mutate with:', bondWithMarketData);
+    buildMutation.mutate(bondWithMarketData as InsertBond);
   };
 
   const handleBondDataChange = (updates: Partial<InsertBond>) => {
@@ -132,16 +153,23 @@ export default function BondBuilder() {
 
   const handleLoadSavedBond = async (bondId: string) => {
     try {
+      console.log('🔍 Loading bond with ID:', bondId);
+      
       // First get the list of saved bonds to find the filename
       const listResponse = await apiRequest("GET", "/api/bonds/saved");
       const savedBondsData = await listResponse.json();
+      console.log('🔍 Available bonds:', savedBondsData.bonds.map((b: any) => ({ id: b.metadata.id, name: b.metadata.name })));
+      
       const bond = savedBondsData.bonds.find((b: any) => b.metadata.id === bondId);
+      console.log('🔍 Found bond:', bond ? bond.metadata.name : 'NOT FOUND');
       
       if (!bond) {
         throw new Error("Bond not found");
       }
       
       // Convert bond format to legacy format for the form
+      console.log('🔍 Bond features from JSON:', bond.features);
+      
       const legacyBond = {
         issuer: bond.bondInfo.issuer,
         cusip: bond.bondInfo.cusip || "",
@@ -150,22 +178,32 @@ export default function BondBuilder() {
         couponRate: bond.bondInfo.couponRate,
         issueDate: bond.bondInfo.issueDate,
         maturityDate: bond.bondInfo.maturityDate,
-        firstCouponDate: bond.bondInfo.firstCouponDate,
+        firstCouponDate: bond.bondInfo.firstCouponDate || "",
         paymentFrequency: bond.bondInfo.paymentFrequency,
         dayCountConvention: bond.bondInfo.dayCountConvention,
         currency: bond.bondInfo.currency,
-        isAmortizing: bond.features.isAmortizing,
-        isCallable: bond.features.isCallable,
-        isPuttable: bond.features.isPuttable,
-        isVariableCoupon: bond.features.isVariableCoupon,
-        settlementDays: bond.bondInfo.settlementDays,
+        isAmortizing: bond.features?.isAmortizing || false,
+        isCallable: bond.features?.isCallable || false,
+        isPuttable: bond.features?.isPuttable || false,
+        isVariableCoupon: bond.features?.isVariableCoupon || false,
+        settlementDays: bond.bondInfo.settlementDays || 2,
         amortizationSchedule: bond.schedules?.amortizationSchedule || [],
         callSchedule: bond.schedules?.callSchedule || [],
         putSchedule: bond.schedules?.putSchedule || [],
         couponRateChanges: bond.schedules?.couponRateChanges || [],
+        predefinedCashFlows: bond.cashFlowSchedule || [],
       };
       
+      console.log('🔍 Legacy bond flags:', {
+        isAmortizing: legacyBond.isAmortizing,
+        isCallable: legacyBond.isCallable,
+        isPuttable: legacyBond.isPuttable,
+        isVariableCoupon: legacyBond.isVariableCoupon
+      });
+      
+      console.log('🔍 Setting bond data:', legacyBond);
       setBondData(legacyBond);
+      
       toast({
         title: "Saved Bond Loaded",
         description: `Loaded ${bond.metadata.name}`,
@@ -481,6 +519,7 @@ title={buildResult ? "Save bond to repository for later use in calculator" : "Sa
             {/* Bond Form */}
             <div className="w-1/2 p-6 border-r border-border overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
               <BondForm
+                key={`${bondData.issuer}-${bondData.maturityDate}-${bondData.couponRate}`}
                 bondData={bondData}
                 validationErrors={validationErrors}
                 onDataChange={handleBondDataChange}

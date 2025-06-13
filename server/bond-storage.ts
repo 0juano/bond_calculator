@@ -204,12 +204,18 @@ export class BondStorageService {
     category: string;
     metadata: CleanBondDefinition['metadata'];
     bondInfo: CleanBondDefinition['bondInfo'];
+    features: CleanBondDefinition['features'];
+    schedules: CleanBondDefinition['schedules'];
+    cashFlowSchedule: CleanBondDefinition['cashFlowSchedule'];
   }>> {
     const results: Array<{
       filename: string;
       category: string;
       metadata: CleanBondDefinition['metadata'];
       bondInfo: CleanBondDefinition['bondInfo'];
+      features: CleanBondDefinition['features'];
+      schedules: CleanBondDefinition['schedules'];
+      cashFlowSchedule: CleanBondDefinition['cashFlowSchedule'];
     }> = [];
     
     const categories = ['user_created', 'golden_bonds', 'imported'];
@@ -225,7 +231,10 @@ export class BondStorageService {
               filename,
               category,
               metadata: bond.metadata,
-              bondInfo: bond.bondInfo
+              bondInfo: bond.bondInfo,
+              features: bond.features,
+              schedules: bond.schedules,
+              cashFlowSchedule: bond.cashFlowSchedule
             });
           }
         }

@@ -98,8 +98,10 @@ export default function BondCalculator() {
             callSchedule: bondDefinition.schedules?.callSchedule || [],
             putSchedule: bondDefinition.schedules?.putSchedule || [],
             couponRateChanges: bondDefinition.schedules?.couponRateChanges || [],
-            // PRESERVE PREDEFINED CASH FLOWS - This is the fix for wrong YTM calculations
-            predefinedCashFlows: bondDefinition.cashFlowSchedule || [],
+            // PRESERVE PREDEFINED CASH FLOWS - Only include if they exist and have content
+            ...(bondDefinition.cashFlowSchedule && bondDefinition.cashFlowSchedule.length > 0 && {
+              predefinedCashFlows: bondDefinition.cashFlowSchedule
+            }),
           };
           
           // Create legacy bond for display
@@ -131,14 +133,28 @@ export default function BondCalculator() {
           setBond(legacyBond);
           
           // CRITICAL: Store predefined cash flows for JSON-first architecture
-          console.log('🔥 Bond Loading: Setting predefined cash flows', bondDefinition.cashFlowSchedule?.length || 0, 'flows');
-          setPredefinedCashFlows(bondDefinition.cashFlowSchedule || []);
+          const hasCashFlows = bondDefinition.cashFlowSchedule && bondDefinition.cashFlowSchedule.length > 0;
+          console.log('🔥 Bond Loading: Cash flows available?', hasCashFlows, 'count:', bondDefinition.cashFlowSchedule?.length || 0);
+          setPredefinedCashFlows(hasCashFlows ? bondDefinition.cashFlowSchedule : undefined);
           
-          // Build the bond to get analytics
+          // Build the bond to get analytics with default market price
+          const buildRequest = {
+            ...apiBond,
+            marketPrice: 100, // Default to par value for immediate analytics
+            settlementDate: new Date().toISOString().split('T')[0]
+          };
+          
+          console.log('🔥 Building bond with request:', {
+            issuer: buildRequest.issuer,
+            hasPredefinedCashFlows: !!buildRequest.predefinedCashFlows,
+            cashFlowCount: buildRequest.predefinedCashFlows?.length || 0,
+            marketPrice: buildRequest.marketPrice
+          });
+          
           const buildResponse = await fetch('/api/bonds/build', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(apiBond),
+            body: JSON.stringify(buildRequest),
           });
           
           if (buildResponse.ok) {

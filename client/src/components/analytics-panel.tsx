@@ -133,45 +133,16 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
 
   return (
     <div className="space-y-6">
+      {/* Bond Title Section */}
+      {bond && (
+        <div className="text-lg font-bold terminal-text-green mb-4">
+          {bond.issuer || 'UNKNOWN ISSUER'} {bond.couponRate}% {bond.maturityDate?.substring(0, 4) || ''}
+        </div>
+      )}
+
       {/* 1. Cash Flow Schedule */}
       <CashFlowTable cashFlows={cashFlows || []} isLoading={!cashFlows} bond={bond} />
 
-      {/* 2. Headline Analytics */}
-      {showAnalytics && analytics && (
-        <div className="terminal-panel p-4">
-          <h3 className="section-header">[HEADLINE_ANALYTICS]</h3>
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="terminal-text-muted">YTM:</span>
-                <span className="terminal-text-green">{formatPercent(analytics.yieldToMaturity)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="terminal-text-muted">DURATION:</span>
-                <span className="terminal-text-green">{safeToFixed(analytics.duration, 2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="terminal-text-muted">CONVEXITY:</span>
-                <span className="terminal-text-green">{safeToFixed(analytics.convexity, 2)}</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="terminal-text-muted">SPREAD:</span>
-                <span className="terminal-text-green">{analytics.spread ? `${safeToFixed(analytics.spread, 0)} bp` : 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="terminal-text-muted">CLEAN_PRICE:</span>
-                <span className="terminal-text-green">{formatCurrency(analytics.cleanPrice || analytics.presentValue)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="terminal-text-muted">ACCRUED:</span>
-                <span className="terminal-text-green">{formatCurrency(analytics.accruedInterest)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 3. Payment Timeline Chart */}
       <div className="terminal-panel p-4">

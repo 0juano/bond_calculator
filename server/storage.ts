@@ -97,6 +97,7 @@ export class MemStorage implements IStorage {
     // Amortization schedule validation
     if (bond.amortizationSchedule && bond.amortizationSchedule.length > 0) {
       let totalAmortization = 0;
+      console.log(`🔍 Validating amortization schedule with ${bond.amortizationSchedule.length} entries`);
       for (const amort of bond.amortizationSchedule) {
         const amortDate = new Date(amort.date);
         if (amortDate <= issueDate || amortDate > maturityDate) {
@@ -104,9 +105,11 @@ export class MemStorage implements IStorage {
           break;
         }
         totalAmortization += amort.principalPercent;
+        console.log(`🔍 Adding ${amort.principalPercent}%, running total: ${totalAmortization}%`);
       }
       
-      if (totalAmortization > 100) {
+      console.log(`🔍 Final amortization total: ${totalAmortization}% (${totalAmortization > 100.01 ? 'INVALID' : 'VALID'})`);
+      if (totalAmortization > 100.01) {
         errors.amortizationSchedule = "Total amortization cannot exceed 100%";
       }
 
@@ -166,6 +169,12 @@ export class MemStorage implements IStorage {
     const startTime = Date.now();
     
     try {
+      console.log(`🔍 buildBond received bond with predefinedCashFlows:`, (bond as any).predefinedCashFlows?.length || 'NONE');
+      console.log(`🔍 Bond issuer: ${bond.issuer}, features:`, {
+        isAmortizing: bond.isAmortizing,
+        isVariableCoupon: bond.isVariableCoupon
+      });
+      
       // Enhanced validation
       const validation = await this.validateBond(bond);
       if (!validation.isValid) {
@@ -176,12 +185,10 @@ export class MemStorage implements IStorage {
       let cashFlows: CashFlowResult[];
       try {
         if (bond.predefinedCashFlows && bond.predefinedCashFlows.length > 0) {
-          console.log(`🔄 Using predefined cash flows from JSON bond definition: ${bond.predefinedCashFlows.length} flows`);
+          console.log(`🔄 Using predefined cash flows: ${bond.predefinedCashFlows.length} flows`);
           
           // Validate predefined cash flows
           const totalPrincipal = bond.predefinedCashFlows.reduce((sum, cf) => sum + cf.principalPayment, 0);
-          console.log(`🔄 Total principal in cash flows: ${totalPrincipal}`);
-          console.log(`🔄 Expected face value: ${bond.faceValue}`);
           
           if (Math.abs(totalPrincipal - bond.faceValue) > 0.01) {
             console.warn(`⚠️ WARNING: Total principal (${totalPrincipal}) doesn't match face value (${bond.faceValue})`);
@@ -198,6 +205,7 @@ export class MemStorage implements IStorage {
         } else {
           console.log('🔄 Generating cash flows from bond parameters');
           cashFlows = this.generateCashFlows(bond);
+          console.log(`🔄 Cash flow generation result: ${cashFlows.length} flows`);
         }
         
         if (cashFlows.length === 0) {
@@ -207,8 +215,17 @@ export class MemStorage implements IStorage {
         throw new Error(`Cash flow processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       
-      // Calculate analytics using the robust calculator
-      const analytics = await this.calculateBondAnalytics(bond, cashFlows);
+      // Calculate analytics only if market inputs are provided
+      let analytics: BondAnalytics;
+      const hasMarketInputs = (bond as any).marketPrice || (bond as any).targetYield || (bond as any).targetSpread;
+      
+      if (hasMarketInputs) {
+        console.log('🔢 Market inputs provided, calculating full analytics');
+        analytics = await this.calculateBondAnalytics(bond, cashFlows);
+      } else {
+        console.log('📋 No market inputs provided, returning default analytics');
+        analytics = this.getDefaultAnalytics();
+      }
       
       const buildTime = Date.now() - startTime;
       
@@ -242,97 +259,119 @@ export class MemStorage implements IStorage {
   }
 
   private generateCashFlows(bond: InsertBond): CashFlowResult[] {
+    console.log(`🔧 generateCashFlows starting for ${bond.issuer}`);
+    
+    // Check if bond has predefined cash flows (from saved bond JSON)
+    if ((bond as any).predefinedCashFlows && (bond as any).predefinedCashFlows.length > 0) {
+      console.log(`✅ Using predefined cash flows: ${(bond as any).predefinedCashFlows.length} flows`);
+      return (bond as any).predefinedCashFlows.map((cf: any) => ({
+        date: cf.date,
+        couponPayment: cf.couponPayment,
+        principalPayment: cf.principalPayment,
+        totalPayment: cf.totalPayment,
+        remainingNotional: cf.remainingNotional,
+        paymentType: cf.paymentType,
+      }));
+    }
+    
     const flows: CashFlowResult[] = [];
     const issueDate = new Date(bond.issueDate);
     const maturityDate = new Date(bond.maturityDate);
+    const periodsPerYear = bond.paymentFrequency;
+    const monthsBetweenPayments = 12 / periodsPerYear;
     
-    // Determine first coupon date
-    const firstCouponDate = bond.firstCouponDate 
-      ? new Date(bond.firstCouponDate)
-      : this.calculateNextCouponDate(issueDate, bond.paymentFrequency);
-
-    // Generate regular coupon payments
-    let currentDate = new Date(firstCouponDate);
-    let remainingNotional = bond.faceValue;
-
+    console.log(`📊 Bond: ${bond.issuer} | Issue: ${bond.issueDate} | Maturity: ${bond.maturityDate}`);
+    console.log(`📊 Coupon: ${bond.couponRate}% | Frequency: ${periodsPerYear}x/year | Face: $${bond.faceValue}`);
+    console.log(`📊 Features: Amortizing=${bond.isAmortizing}, Variable=${bond.isVariableCoupon}`);
+    
     // Handle amortization schedule
     const amortizationMap = new Map<string, number>();
-    if (bond.amortizationSchedule) {
+    if (bond.isAmortizing && bond.amortizationSchedule) {
       for (const amort of bond.amortizationSchedule) {
         amortizationMap.set(amort.date, amort.principalPercent);
       }
+      console.log(`📊 Amortization schedule has ${bond.amortizationSchedule.length} entries`);
     }
 
     // Handle coupon rate changes
     const couponRateMap = new Map<string, number>();
-    if (bond.couponRateChanges) {
+    if (bond.isVariableCoupon && bond.couponRateChanges) {
       for (const change of bond.couponRateChanges) {
         couponRateMap.set(change.effectiveDate, change.newCouponRate);
       }
+      console.log(`📊 Coupon rate changes: ${bond.couponRateChanges.length} entries`);
     }
 
-    // Track current coupon rate
+    // Generate payment schedule
+    let paymentDate = new Date(issueDate);
+    paymentDate.setMonth(paymentDate.getMonth() + monthsBetweenPayments); // First coupon date
+    
+    let paymentNumber = 0;
+    let remainingNotional = bond.faceValue;
     let currentCouponRate = bond.couponRate;
-
-    // Generate payments until maturity
-    let paymentCount = 0;
-    while (currentDate <= maturityDate && paymentCount < 50) { // Safety limit
-      const dateStr = currentDate.toISOString().split('T')[0];
-      const isMaturity = currentDate.getTime() === maturityDate.getTime();
+    const maxPayments = 100;
+    
+    while (paymentDate <= maturityDate && paymentNumber < maxPayments) {
+      paymentNumber++;
       
-      // Check for coupon rate change on this date
+      const daysDifference = Math.abs((maturityDate.getTime() - paymentDate.getTime()) / (1000 * 60 * 60 * 24));
+      const isLastPayment = daysDifference <= 15;
+      
+      const finalDate = isLastPayment ? maturityDate : paymentDate;
+      const dateStr = finalDate.toISOString().split('T')[0];
+      
+      // Check for coupon rate change
       if (couponRateMap.has(dateStr)) {
         currentCouponRate = couponRateMap.get(dateStr)!;
+        console.log(`📊 Coupon rate changed to ${currentCouponRate}% on ${dateStr}`);
       }
       
-      // Check for amortization on this date
+      // Check for amortization
       const amortPercent = amortizationMap.get(dateStr) || 0;
       const amortAmount = (bond.faceValue * amortPercent) / 100;
       
-      // Determine payment type and amounts
-      let couponPayment = 0;
+      // Calculate payments
+      const couponPayment = (remainingNotional * currentCouponRate / 100) / periodsPerYear;
       let principalPayment = 0;
       let paymentType = "COUPON";
-
-      if (isMaturity) {
-        // Final payment includes remaining principal
-        couponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
+      
+      if (isLastPayment) {
         principalPayment = remainingNotional;
         paymentType = "MATURITY";
       } else if (amortAmount > 0) {
-        // Amortization payment: coupon on CURRENT remaining notional + scheduled amortization
-        couponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
         principalPayment = amortAmount;
         paymentType = "AMORTIZATION";
-      } else {
-        // Regular coupon payment: coupon on CURRENT remaining notional
-        couponPayment = (remainingNotional * currentCouponRate / 100) / bond.paymentFrequency;
-        principalPayment = 0;
-        paymentType = "COUPON";
       }
-
-      const totalPayment = couponPayment + principalPayment;
       
-      // Update remaining notional AFTER calculating payment but BEFORE recording the flow
+      const totalPayment = couponPayment + principalPayment;
       remainingNotional -= principalPayment;
-
+      
       flows.push({
         date: dateStr,
-        couponPayment,
-        principalPayment,
-        totalPayment,
-        remainingNotional: Math.max(0, remainingNotional),
+        couponPayment: Number(couponPayment.toFixed(3)),
+        principalPayment: Number(principalPayment.toFixed(3)),
+        totalPayment: Number(totalPayment.toFixed(3)),
+        remainingNotional: Math.max(0, Number(remainingNotional.toFixed(3))),
         paymentType,
       });
-
-      if (isMaturity) break;
-
-      // Calculate next payment date
-      currentDate = this.calculateNextCouponDate(currentDate, bond.paymentFrequency);
-      paymentCount++;
+      
+      console.log(`💰 Payment ${paymentNumber}: ${dateStr} | Coupon: $${couponPayment.toFixed(2)} | Principal: $${principalPayment.toFixed(2)} | Total: $${totalPayment.toFixed(2)} | ${paymentType}`);
+      
+      if (isLastPayment) break;
+      
+      paymentDate.setMonth(paymentDate.getMonth() + monthsBetweenPayments);
     }
-
+    
+    console.log(`✅ Generated ${flows.length} cash flows for ${bond.issuer}`);
     return flows;
+  }
+
+  // Legacy functions kept for compatibility
+  private calculateFirstCouponDate(issueDate: Date, frequency: number): Date {
+    const firstDate = new Date(issueDate);
+    const monthsToAdd = 12 / frequency;
+    firstDate.setMonth(firstDate.getMonth() + monthsToAdd);
+    return firstDate;
   }
 
   private calculateNextCouponDate(currentDate: Date, frequency: number): Date {
