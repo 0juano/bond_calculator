@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { BondDefinition, BondAnalytics, BondResult } from "@shared/schema";
 
 export interface CalculatorInput {
@@ -35,6 +35,7 @@ export function useCalculatorState(
   initialBondResult?: BondResult,
   predefinedCashFlows?: any[] // Add support for predefined cash flows
 ): CalculatorState {
+  const calculationCount = useRef(0);
   const [input, setInputState] = useState<CalculatorInput>({
     price: initialBondResult?.analytics?.cleanPrice || undefined,
     yieldValue: initialBondResult?.analytics?.yieldToMaturity || undefined,
@@ -60,25 +61,26 @@ export function useCalculatorState(
   useEffect(() => {
     if (!bond) return;
 
+    // Check if we need to calculate based on locked field
+    const hasInputValue = (
+      (input.lockedField === 'PRICE' && input.price !== undefined) ||
+      (input.lockedField === 'YIELD' && input.yieldValue !== undefined) ||
+      (input.lockedField === 'SPREAD' && input.spread !== undefined) ||
+      (!input.lockedField && input.price !== undefined)
+    );
+
+    if (!hasInputValue) {
+      return;
+    }
+
+    calculationCount.current += 1;
+    const currentCallNumber = calculationCount.current;
+
     const calculateAnalytics = async () => {
       setIsCalculating(true);
       setError(undefined);
 
       try {
-        // Debug logging for predefined cash flows
-        if (predefinedCashFlows && predefinedCashFlows.length > 0) {
-          console.log('🔥 Calculator State: Using predefined cash flows', predefinedCashFlows.length, 'flows');
-        } else {
-          console.log('⚠️ Calculator State: No predefined cash flows available');
-        }
-        
-        // Debug current state
-        console.log('🔍 Current input state:', {
-          price: input.price,
-          yieldValue: input.yieldValue,
-          spread: input.spread,
-          lockedField: input.lockedField
-        });
         
         // Build enhanced request with calculator inputs
         const calculationRequest = {
@@ -135,13 +137,6 @@ export function useCalculatorState(
           }),
         };
 
-        console.log('📤 Sending calculation request:', {
-          lockedField: input.lockedField,
-          hasMarketPrice: 'marketPrice' in calculationRequest,
-          hasTargetYield: 'targetYield' in calculationRequest,
-          hasTargetSpread: 'targetSpread' in calculationRequest,
-          targetSpread: calculationRequest.targetSpread,
-        });
         
         const response = await fetch('/api/bonds/calculate', {
           method: 'POST',
@@ -171,12 +166,6 @@ export function useCalculatorState(
           throw new Error(errorMessage);
         } else {
           const result = await response.json();
-          console.log('📥 Frontend received result:', {
-            hasAnalytics: !!result.analytics,
-            price: result.analytics?.cleanPrice,
-            ytm: result.analytics?.yieldToMaturity,
-            spread: result.analytics?.spread
-          });
           
           // Validate the result before updating state
           if (!result.analytics || typeof result.analytics.cleanPrice !== 'number') {
@@ -184,12 +173,23 @@ export function useCalculatorState(
           }
           
           // Update the input state with the calculated values
-          setInputState(prev => ({
-            ...prev,
-            price: result.analytics.cleanPrice,
-            yieldValue: result.analytics.yieldToMaturity,
-            spread: result.analytics.spread,
-          }));
+          // ONLY update the fields that weren't the input to avoid infinite loops
+          setInputState(prev => {
+            const updates: Partial<CalculatorInput> = {};
+            
+            // Only update fields that weren't locked (i.e., weren't the input)
+            if (prev.lockedField !== 'PRICE') {
+              updates.price = result.analytics.cleanPrice;
+            }
+            if (prev.lockedField !== 'YIELD') {
+              updates.yieldValue = result.analytics.yieldToMaturity;
+            }
+            if (prev.lockedField !== 'SPREAD') {
+              updates.spread = result.analytics.spread;
+            }
+            
+            return { ...prev, ...updates };
+          });
           
           setBondResult(prev => ({
             bond: bond,
@@ -200,8 +200,6 @@ export function useCalculatorState(
           }));
         }
       } catch (err) {
-        console.error('❌ Frontend calculation error:', err);
-        console.error('❌ Input state at error:', input);
         setError(err instanceof Error ? err.message : 'Calculation failed');
       } finally {
         setIsCalculating(false);
@@ -211,7 +209,15 @@ export function useCalculatorState(
     // Debounce calculations to avoid excessive API calls
     const timeoutId = setTimeout(calculateAnalytics, 300);
     return () => clearTimeout(timeoutId);
-  }, [bond, input.price, input.yieldValue, input.spread, input.settlementDate, predefinedCashFlows]);
+  }, [
+    bond, 
+    input.settlementDate, 
+    predefinedCashFlows,
+    input.lockedField,
+    input.price,
+    input.yieldValue,
+    input.spread
+  ]);
 
   // Action handlers
   const setInput = useCallback((partial: Partial<CalculatorInput>) => {
@@ -233,8 +239,6 @@ export function useCalculatorState(
   }, [setInput]);
 
   const setSpread = useCallback((spread: number) => {
-    console.log('🎯 setSpread called with:', spread);
-    
     // Validate spread input
     if (isNaN(spread)) {
       setError('Invalid spread value');
@@ -247,7 +251,6 @@ export function useCalculatorState(
       return;
     }
     
-    console.log('🎯 Setting input with spread:', spread, 'and lockedField: SPREAD');
     setInput({ 
       spread, 
       lockedField: 'SPREAD' 
