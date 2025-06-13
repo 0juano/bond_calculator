@@ -488,7 +488,11 @@ export class MemStorage implements IStorage {
           throw new Error('At least one of price, yield, or spread must be provided');
         }
         
-        const priceAsPercentage = marketPrice > 200 ? (marketPrice / bond.faceValue) * 100 : marketPrice;
+        // User enters price as percentage of face value (e.g., 80 = 80% of par)
+        // Calculator expects this same percentage format
+        const priceAsPercentage = marketPrice;
+        
+        console.log(`🔍 Price input: ${marketPrice} (${priceAsPercentage.toFixed(2)}% of face value)`);
         
         result = calculator.analyze({
           bond: calcBond,
