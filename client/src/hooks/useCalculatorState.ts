@@ -9,6 +9,7 @@ export interface CalculatorInput {
   priceFormat: 'DECIMAL' | 'FRACTIONAL';
   yieldPrecision: number;
   lockedField?: 'PRICE' | 'YIELD' | 'SPREAD';
+  calculationId?: string; // Track which calculation triggered updates
 }
 
 export interface CalculatorState {
@@ -36,14 +37,25 @@ export function useCalculatorState(
   predefinedCashFlows?: any[] // Add support for predefined cash flows
 ): CalculatorState {
   const calculationCount = useRef(0);
+  const lastCalculationId = useRef<string>('');
   const [input, setInputState] = useState<CalculatorInput>({
-    price: initialBondResult?.analytics?.cleanPrice || undefined,
+    price: initialBondResult?.analytics?.cleanPrice || 100, // Default to par if no initial result
     yieldValue: initialBondResult?.analytics?.yieldToMaturity || undefined,
     spread: initialBondResult?.analytics?.spread || undefined,
     settlementDate: new Date().toISOString().split('T')[0],
     priceFormat: 'DECIMAL',
     yieldPrecision: 3,
-    lockedField: 'PRICE' // Default to price mode
+    lockedField: 'PRICE', // Default to price mode
+    calculationId: undefined
+  });
+  
+  // DEBUG: Log initialization
+  console.log('🔍 CALCULATOR STATE: Initializing with:', {
+    bondIssuer: bond?.issuer,
+    hasPredefinedCashFlows: !!predefinedCashFlows,
+    cashFlowCount: predefinedCashFlows?.length || 0,
+    initialPrice: input.price,
+    hasInitialBondResult: !!initialBondResult
   });
 
   const [bondResult, setBondResult] = useState<BondResult | undefined>(initialBondResult);
@@ -73,6 +85,15 @@ export function useCalculatorState(
       return;
     }
 
+    // Generate unique calculation ID
+    const calculationId = `calc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Skip if this is a result of our own calculation update
+    if (input.calculationId && input.calculationId === lastCalculationId.current) {
+      console.log('🔄 Skipping calculation - triggered by own update');
+      return;
+    }
+    
     calculationCount.current += 1;
     const currentCallNumber = calculationCount.current;
     
@@ -82,6 +103,9 @@ export function useCalculatorState(
       setError('Too many calculations detected. Please refresh the page if the calculator becomes unresponsive.');
       return;
     }
+    
+    // Store this calculation ID
+    lastCalculationId.current = calculationId;
 
     const calculateAnalytics = async () => {
       setIsCalculating(true);
@@ -144,6 +168,18 @@ export function useCalculatorState(
           }),
         };
 
+        console.log('🔍 CALCULATOR STATE: About to send calculation request:', {
+          bondIssuer: calculationRequest.issuer,
+          hasPredefinedCashFlows: !!calculationRequest.predefinedCashFlows,
+          cashFlowCount: calculationRequest.predefinedCashFlows?.length || 0,
+          marketPrice: calculationRequest.marketPrice,
+          targetYield: calculationRequest.targetYield,
+          targetSpread: calculationRequest.targetSpread,
+          lockedField: input.lockedField,
+          settlementDate: calculationRequest.settlementDate,
+          calculationCount: currentCallNumber
+        });
+
         
         const response = await fetch('/api/bonds/calculate', {
           method: 'POST',
@@ -174,8 +210,18 @@ export function useCalculatorState(
         } else {
           const result = await response.json();
           
+          console.log('🔍 CALCULATOR STATE: Received calculation result:', {
+            status: result.status,
+            ytm: result.analytics?.yieldToMaturity,
+            duration: result.analytics?.duration,
+            cleanPrice: result.analytics?.cleanPrice,
+            spread: result.analytics?.spread,
+            hasAnalytics: !!result.analytics
+          });
+          
           // Validate the result before updating state
           if (!result.analytics || typeof result.analytics.cleanPrice !== 'number') {
+            console.error('🔍 CALCULATOR STATE: Invalid result structure:', result);
             throw new Error('Invalid calculation result received');
           }
           
@@ -185,32 +231,48 @@ export function useCalculatorState(
             const updates: Partial<CalculatorInput> = {};
             
             // Only update fields that weren't locked (i.e., weren't the input)
-            // Also check if the value has actually changed to avoid unnecessary updates
+            // Use more reasonable thresholds for meaningful changes
             if (prev.lockedField !== 'PRICE') {
               const newPrice = result.analytics.cleanPrice;
-              if (Math.abs((prev.price || 0) - newPrice) > 0.0001) {
+              // Use 0.01 threshold (1 cent per $100 face value)
+              if (Math.abs((prev.price || 0) - newPrice) > 0.01) {
                 updates.price = newPrice;
               }
             }
             if (prev.lockedField !== 'YIELD') {
               const newYield = result.analytics.yieldToMaturity;
-              if (Math.abs((prev.yieldValue || 0) - newYield) > 0.001) {
+              // Use 0.01% threshold for yield changes
+              if (Math.abs((prev.yieldValue || 0) - newYield) > 0.01) {
                 updates.yieldValue = newYield;
               }
             }
             if (prev.lockedField !== 'SPREAD') {
               const newSpread = result.analytics.spread;
-              if (newSpread !== undefined && Math.abs((prev.spread || 0) - newSpread) > 0.1) {
+              // Use 1bp threshold for spread changes
+              if (newSpread !== undefined && Math.abs((prev.spread || 0) - newSpread) > 1) {
                 updates.spread = newSpread;
               }
             }
             
-            // Only update if there are actual changes
-            if (Object.keys(updates).length === 0) {
+            // Add the calculationId to track this update
+            updates.calculationId = calculationId;
+            
+            // Only update if there are actual meaningful changes
+            if (Object.keys(updates).length === 1 && updates.calculationId) {
+              console.log('🔍 CALCULATOR STATE: No meaningful updates needed - values within threshold');
               return prev;
             }
             
-            console.log('🔄 Updating calculator state:', updates);
+            console.log('🔄 CALCULATOR STATE: Updating input state:', {
+              updates,
+              calculationId,
+              lockedField: prev.lockedField,
+              before: {
+                price: prev.price,
+                yieldValue: prev.yieldValue,
+                spread: prev.spread
+              }
+            });
             return { ...prev, ...updates };
           });
           
@@ -239,7 +301,8 @@ export function useCalculatorState(
     input.lockedField,
     input.price,
     input.yieldValue,
-    input.spread
+    input.spread,
+    input.calculationId
   ]);
 
   // Action handlers
@@ -248,36 +311,75 @@ export function useCalculatorState(
   }, []);
 
   const setPrice = useCallback((price: number) => {
+    // Reset calculation counter when user manually enters a value
+    calculationCount.current = 0;
+    
+    // Validate price input
+    if (isNaN(price)) {
+      setError('Invalid price value');
+      return;
+    }
+    
+    // Reasonable price limits (5 to 200 as percentage of face value)
+    if (price < 5 || price > 200) {
+      setError('Price must be between 5 and 200 (as % of face value)');
+      return;
+    }
+    
     setInput({ 
       price,
-      lockedField: 'PRICE'
+      lockedField: 'PRICE',
+      calculationId: undefined // Clear calculationId for user input
     });
+    setError(undefined); // Clear any previous errors
   }, [setInput]);
 
   const setYieldValue = useCallback((yieldValue: number) => {
+    // Reset calculation counter when user manually enters a value
+    calculationCount.current = 0;
+    
+    // Validate yield input
+    if (isNaN(yieldValue)) {
+      setError('Invalid yield value');
+      return;
+    }
+    
+    // Reasonable yield limits (-5% to 50%)
+    if (yieldValue < -5 || yieldValue > 50) {
+      setError('Yield must be between -5% and 50%');
+      return;
+    }
+    
     setInput({ 
       yieldValue, 
-      lockedField: 'YIELD' 
+      lockedField: 'YIELD',
+      calculationId: undefined // Clear calculationId for user input
     });
+    setError(undefined); // Clear any previous errors
   }, [setInput]);
 
   const setSpread = useCallback((spread: number) => {
+    // Reset calculation counter when user manually enters a value
+    calculationCount.current = 0;
+    
     // Validate spread input
     if (isNaN(spread)) {
       setError('Invalid spread value');
       return;
     }
     
-    // Reasonable spread limits (-1000 to 10000 basis points)
-    if (spread < -1000 || spread > 10000) {
-      setError('Spread must be between -1000 and 10000 basis points');
+    // Reasonable spread limits (-1000 to 5000 basis points)
+    if (spread < -1000 || spread > 5000) {
+      setError('Spread must be between -1000 and 5000 basis points');
       return;
     }
     
     setInput({ 
       spread, 
-      lockedField: 'SPREAD' 
+      lockedField: 'SPREAD',
+      calculationId: undefined // Clear calculationId for user input
     });
+    setError(undefined); // Clear any previous errors
   }, [setInput]);
 
   const setSettlementDate = useCallback((date: string) => {
@@ -302,7 +404,9 @@ export function useCalculatorState(
       yieldValue: bondResult?.analytics?.yieldToMaturity || input.yieldValue,
       spread: bondResult?.analytics?.spread || input.spread,
       lockedField: 'PRICE',
+      calculationId: undefined // Clear calculationId on reset
     });
+    setError(undefined); // Clear any errors
   }, [bondResult?.analytics, input, setInput]);
 
   const runScenario = useCallback((shockBp: number) => {

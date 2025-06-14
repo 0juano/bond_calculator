@@ -391,13 +391,28 @@ export class MemStorage implements IStorage {
     console.log('🚀 Using production bond calculator engine');
     
     const calculator = new BondCalculatorPro();
+    const settlementDate = new Date((bond as any).settlementDate || new Date());
+    
+    // CRITICAL: Filter cash flows to only include future payments from settlement date
+    // This is essential for bonds with historical cash flows (like Argentina bonds from 2020)
+    const futureCashFlows = cashFlows.filter(cf => {
+      const cfDate = new Date(cf.date);
+      return cfDate > settlementDate;
+    });
+    
+    console.log(`💰 Cash flow filtering: Total ${cashFlows.length} → Future ${futureCashFlows.length} (settlement: ${settlementDate.toISOString().split('T')[0]})`);
+    
+    if (futureCashFlows.length === 0) {
+      console.error(`❌ No future cash flows available. Settlement: ${settlementDate.toISOString().split('T')[0]}, Latest cash flow: ${cashFlows[cashFlows.length - 1]?.date || 'none'}`);
+      throw new Error(`No future cash flows available after settlement date ${settlementDate.toISOString().split('T')[0]}. Bond may have matured or settlement date needs adjustment.`);
+    }
     
     // Convert to calculator format
     const calcBond: CalcBond = {
       faceValue: bond.faceValue,
       currency: bond.currency || 'USD',
       dayCountConvention: bond.dayCountConvention as any || '30/360',
-      cashFlows: cashFlows.map(cf => ({
+      cashFlows: futureCashFlows.map(cf => ({
         date: cf.date,
         coupon: cf.couponPayment,
         principal: cf.principalPayment,
@@ -416,7 +431,6 @@ export class MemStorage implements IStorage {
     const marketPrice = (bond as any).marketPrice;
     const targetYield = (bond as any).targetYield;
     const targetSpread = (bond as any).targetSpread;
-    const settlementDate = new Date((bond as any).settlementDate || new Date());
     
     console.log('📥 Backend received:', {
       marketPrice,
@@ -536,9 +550,9 @@ export class MemStorage implements IStorage {
         
         // Validate price input
         if (marketPrice !== undefined && marketPrice !== null) {
-          if (isNaN(marketPrice) || marketPrice <= 0 || marketPrice > 1000) {
+          if (isNaN(marketPrice) || marketPrice < 5 || marketPrice > 200) {
             console.error(`❌ Invalid price input: ${marketPrice}`);
-            throw new Error(`Invalid price: ${marketPrice}. Price must be between 0 and 1000 (as percentage of face value)`);
+            throw new Error(`Invalid price: ${marketPrice}. Price must be between 5 and 200 (as percentage of face value)`);
           }
         }
         
@@ -548,12 +562,21 @@ export class MemStorage implements IStorage {
         
         console.log(`🔍 Price input: ${marketPrice} (${priceAsPercentage.toFixed(2)}% of face value)`);
         
-        result = calculator.analyze({
+        const analyzeInputs = {
           bond: calcBond,
           settlementDate,
           price: priceAsPercentage,
           treasuryCurve
+        };
+        
+        console.log('🔍 CALLING CALCULATOR ANALYZE with:', {
+          bondCashFlowCount: calcBond.cashFlows.length,
+          price: analyzeInputs.price,
+          settlementDate: analyzeInputs.settlementDate.toISOString().split('T')[0],
+          hasTreasuryCurve: !!analyzeInputs.treasuryCurve
         });
+        
+        result = calculator.analyze(analyzeInputs);
       }
       
       
@@ -569,31 +592,44 @@ export class MemStorage implements IStorage {
         throw new Error(`Calculation error: Negative YTM of ${result.yields.ytm.toFixed(2)}% suggests invalid inputs.`);
       }
       
+      // DEBUG: Log calculator result before conversion
+      console.log('🔍 RAW CALCULATOR RESULT:', {
+        yields: result.yields,
+        risk: result.risk,
+        price: result.price,
+        analytics: result.analytics,
+        spreads: result.spreads
+      });
+      
       // Convert back to legacy format
-      const totalCoupons = cashFlows
-        .filter(cf => new Date(cf.date) > settlementDate)
+      const totalCoupons = futureCashFlows
         .reduce((sum, cf) => sum + cf.couponPayment, 0);
       
       const analytics = {
-        yieldToMaturity: result.yields.ytm,
-        yieldToWorst: result.yields.ytw,
-        duration: result.risk.modifiedDuration,
-        macaulayDuration: result.risk.macaulayDuration,
-        averageLife: result.analytics.averageLife,
-        convexity: result.risk.convexity,
+        yieldToMaturity: result.yields?.ytm || 0,
+        yieldToWorst: result.yields?.ytw || 0,
+        duration: result.risk?.modifiedDuration || 0,
+        macaulayDuration: result.risk?.macaulayDuration || 0,
+        averageLife: result.analytics?.averageLife || 0,
+        convexity: result.risk?.convexity || 0,
         totalCoupons,
-        presentValue: result.price.clean,
-        marketPrice: result.price.dirtyDollar,
-        cleanPrice: result.price.cleanDollar,
-        dirtyPrice: result.price.dirtyDollar,
-        accruedInterest: result.price.accruedInterest,
-        daysToNextCoupon: result.analytics.daysToNextPayment,
-        dollarDuration: result.risk.dv01,
-        currentYield: result.yields.current,
+        presentValue: result.price?.clean || 0,
+        marketPrice: result.price?.dirtyDollar || 0,
+        cleanPrice: result.price?.cleanDollar || 0,
+        dirtyPrice: result.price?.dirtyDollar || 0,
+        accruedInterest: result.price?.accruedInterest || 0,
+        daysToNextCoupon: result.analytics?.daysToNextPayment || 0,
+        dollarDuration: result.risk?.dv01 || 0,
+        currentYield: result.yields?.current || 0,
         spread: result.spreads ? result.spreads.treasury : undefined // Keep in bps
       };
       
-      console.log(`✅ Calculation successful - YTM: ${analytics.yieldToMaturity.toFixed(3)}%, Duration: ${analytics.duration.toFixed(2)}, Spread: ${analytics.spread?.toFixed(0) || 'N/A'} bp`);
+      console.log(`✅ FINAL ANALYTICS:`, {
+        ytm: analytics.yieldToMaturity,
+        duration: analytics.duration,
+        cleanPrice: analytics.cleanPrice,
+        spread: analytics.spread
+      });
       
       return analytics;
       

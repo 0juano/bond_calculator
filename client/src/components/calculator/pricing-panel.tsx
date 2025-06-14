@@ -15,86 +15,64 @@ interface PricingPanelProps {
  * Simple pricing panel - enter price and hit Enter to calculate yield and spread
  */
 export function PricingPanel({ calculatorState, className }: PricingPanelProps) {
-  const { input, analytics, isCalculating, setPrice, setYieldValue, setSpread, setSettlementDate, resetToMarket } = calculatorState;
+  const { input, analytics, isCalculating, error, setPrice, setYieldValue, setSpread, setSettlementDate, resetToMarket } = calculatorState;
   
-  // Local input state for price, yield, and spread
-  const [priceInput, setPriceInput] = useState<string>('');
-  const [yieldInput, setYieldInput] = useState<string>('');
-  const [spreadInput, setSpreadInput] = useState<string>('');
-  const [focusedField, setFocusedField] = useState<'price' | 'yield' | 'spread' | null>(null);
+  // Track which field is being edited to show proper formatting
+  const [editingField, setEditingField] = useState<'price' | 'yield' | 'spread' | null>(null);
+  const [tempValues, setTempValues] = useState<{ price?: string; yield?: string; spread?: string }>({});
 
-  // Sync price input with calculator state when not focused
-  useEffect(() => {
-    if (focusedField !== 'price') {
-      const currentPrice = input.price ?? analytics?.marketPrice ?? 100;
-      setPriceInput(currentPrice.toFixed(4));
-    }
-  }, [input.price, analytics?.marketPrice, focusedField]);
-
-  // Sync yield input with calculator state when not focused
-  useEffect(() => {
-    if (focusedField !== 'yield') {
-      const currentYield = input.yieldValue ?? analytics?.yieldToMaturity ?? 0;
-      setYieldInput(currentYield.toFixed(3));
-    }
-  }, [input.yieldValue, analytics?.yieldToMaturity, focusedField]);
-
-  // Sync spread input with calculator state when not focused
-  useEffect(() => {
-    if (focusedField !== 'spread') {
-      const currentSpread = input.spread ?? analytics?.spread ?? 0;
-      setSpreadInput(currentSpread.toFixed(0));
-    }
-  }, [input.spread, analytics?.spread, focusedField]);
-
-  // Handle price input changes
-  const handlePriceChange = (value: string) => {
-    setPriceInput(value);
-  };
-
-  // Handle yield input changes
-  const handleYieldChange = (value: string) => {
-    setYieldInput(value);
-  };
-
-  // Handle spread input changes
-  const handleSpreadChange = (value: string) => {
-    setSpreadInput(value);
+  // Get display values
+  const displayPrice = editingField === 'price' && tempValues.price !== undefined 
+    ? tempValues.price 
+    : (input.price ?? 100).toFixed(4);
     
-    // Clear any previous errors when user starts typing
-    if (calculatorState.error?.includes('spread') || calculatorState.error?.includes('Spread')) {
-      calculatorState.setInput({ ...calculatorState.input }); // Reset error
-    }
+  const displayYield = editingField === 'yield' && tempValues.yield !== undefined
+    ? tempValues.yield
+    : (input.yieldValue ?? 0).toFixed(3);
+    
+  const displaySpread = editingField === 'spread' && tempValues.spread !== undefined
+    ? tempValues.spread
+    : (input.spread ?? 0).toFixed(0);
+
+  // Handle input changes while editing
+  const handlePriceChange = (value: string) => {
+    setTempValues(prev => ({ ...prev, price: value }));
+  };
+
+  const handleYieldChange = (value: string) => {
+    setTempValues(prev => ({ ...prev, yield: value }));
+  };
+
+  const handleSpreadChange = (value: string) => {
+    setTempValues(prev => ({ ...prev, spread: value }));
   };
 
   // Handle Enter key or blur to trigger calculation
   const handlePriceCommit = () => {
-    const price = parseFloat(priceInput);
+    const price = parseFloat(tempValues.price || displayPrice);
     if (!isNaN(price) && price > 0) {
       setPrice(price);
     }
-    setFocusedField(null);
+    setEditingField(null);
+    setTempValues(prev => ({ ...prev, price: undefined }));
   };
 
   const handleYieldCommit = () => {
-    const yieldValue = parseFloat(yieldInput);
-    if (!isNaN(yieldValue) && yieldValue >= 0) {
+    const yieldValue = parseFloat(tempValues.yield || displayYield);
+    if (!isNaN(yieldValue)) {
       setYieldValue(yieldValue);
     }
-    setFocusedField(null);
+    setEditingField(null);
+    setTempValues(prev => ({ ...prev, yield: undefined }));
   };
 
   const handleSpreadCommit = () => {
-    const spreadValue = parseFloat(spreadInput);
+    const spreadValue = parseFloat(tempValues.spread || displaySpread);
     if (!isNaN(spreadValue)) {
-      // Validate spread range before committing
-      if (spreadValue < -1000 || spreadValue > 10000) {
-        // Input will be rejected by the hook, but we can provide immediate feedback
-        return;
-      }
       setSpread(spreadValue);
     }
-    setFocusedField(null);
+    setEditingField(null);
+    setTempValues(prev => ({ ...prev, spread: undefined }));
   };
 
   // Keyboard handlers for Enter key
@@ -141,16 +119,21 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
             type="number"
             step="0.0001"
             min="0"
-            value={priceInput}
+            value={displayPrice}
             onChange={e => handlePriceChange(e.target.value)}
             onBlur={handlePriceCommit}
             onKeyDown={handlePriceKeyDown}
-            onFocus={() => setFocusedField('price')}
+            onFocus={() => setEditingField('price')}
             placeholder="Enter bond price..."
             disabled={isCalculating}
             className="font-mono border-gray-600 bg-gray-800 text-white focus:border-green-500"
           />
-          <p className="text-xs text-gray-500">Enter bond price and press Enter to calculate</p>
+          <p className="text-xs text-gray-500">
+            {error?.includes('Price') 
+              ? <span className="text-red-400">{error}</span>
+              : 'Enter bond price (5-200) and press Enter to calculate'
+            }
+          </p>
         </div>
 
         {/* Yield to Maturity - Editable */}
@@ -164,16 +147,21 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
             step="0.001"
             min="0"
             max="100"
-            value={yieldInput}
+            value={displayYield}
             onChange={e => handleYieldChange(e.target.value)}
             onBlur={handleYieldCommit}
             onKeyDown={handleYieldKeyDown}
-            onFocus={() => setFocusedField('yield')}
+            onFocus={() => setEditingField('yield')}
             placeholder="Enter yield %..."
             disabled={isCalculating}
             className="font-mono border-gray-600 bg-gray-800 text-white focus:border-green-500"
           />
-          <p className="text-xs text-gray-500">Enter yield and press Enter to calculate price</p>
+          <p className="text-xs text-gray-500">
+            {error?.includes('Yield') || error?.includes('yield')
+              ? <span className="text-red-400">{error}</span>
+              : 'Enter yield (-5% to 50%) and press Enter to calculate price'
+            }
+          </p>
         </div>
 
         {/* Spread to Treasury - Editable */}
@@ -187,16 +175,16 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
               type="number"
               step="1"
               min="-1000"
-              max="10000"
-              value={spreadInput}
+              max="5000"
+              value={displaySpread}
               onChange={e => handleSpreadChange(e.target.value)}
               onBlur={handleSpreadCommit}
               onKeyDown={handleSpreadKeyDown}
-              onFocus={() => setFocusedField('spread')}
+              onFocus={() => setEditingField('spread')}
               placeholder="Enter spread in bp..."
               disabled={isCalculating}
               className={`font-mono border-gray-600 bg-gray-800 text-white focus:border-green-500 pr-12 ${
-                calculatorState.error?.includes('spread') || calculatorState.error?.includes('Treasury') 
+                error?.includes('spread') || error?.includes('Treasury') || error?.includes('Spread')
                   ? 'border-red-500 focus:border-red-500' 
                   : ''
               }`}
@@ -204,9 +192,11 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">bp</span>
           </div>
           <p className="text-xs text-gray-500">
-            {calculatorState.error?.includes('Treasury') 
+            {error?.includes('Treasury') 
               ? <span className="text-yellow-400">Treasury curve data loading...</span>
-              : 'Enter spread (-1000 to 10000 bp) and press Enter to calculate price'
+              : error?.includes('Spread')
+              ? <span className="text-red-400">{error}</span>
+              : 'Enter spread (-1000 to 5000 bp) and press Enter to calculate price'
             }
           </p>
         </div>
@@ -244,6 +234,13 @@ export function PricingPanel({ calculatorState, className }: PricingPanelProps) 
           <div className="flex items-center justify-center py-2 text-sm text-yellow-400">
             <div className="animate-spin h-4 w-4 border-2 border-yellow-400 border-t-transparent rounded-full mr-2"></div>
             Calculating...
+          </div>
+        )}
+        
+        {/* General Error Display */}
+        {error && !error.includes('Price') && !error.includes('Yield') && !error.includes('yield') && !error.includes('Spread') && !error.includes('spread') && !error.includes('Treasury') && (
+          <div className="p-3 bg-red-900/20 border border-red-600 rounded text-sm text-red-400">
+            {error}
           </div>
         )}
       </CardContent>
