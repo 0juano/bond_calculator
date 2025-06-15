@@ -303,8 +303,15 @@ export class MemStorage implements IStorage {
     }
 
     // Generate payment schedule
-    let paymentDate = new Date(issueDate);
-    paymentDate.setMonth(paymentDate.getMonth() + monthsBetweenPayments); // First coupon date
+    let paymentDate: Date;
+    if (bond.firstCouponDate) {
+      paymentDate = new Date(bond.firstCouponDate);
+      console.log(`📅 Using provided firstCouponDate: ${bond.firstCouponDate}`);
+    } else {
+      paymentDate = new Date(issueDate);
+      paymentDate.setMonth(paymentDate.getMonth() + monthsBetweenPayments);
+      console.log(`📅 Calculated first coupon date from issue date: ${paymentDate.toISOString().split('T')[0]}`);
+    }
     
     let paymentNumber = 0;
     let remainingNotional = bond.faceValue;
@@ -315,7 +322,16 @@ export class MemStorage implements IStorage {
       paymentNumber++;
       
       const daysDifference = Math.abs((maturityDate.getTime() - paymentDate.getTime()) / (1000 * 60 * 60 * 24));
-      const isLastPayment = daysDifference <= 15;
+      
+      // More generous final payment detection: if this is the last payment we'll generate
+      // (either within 200 days of maturity OR next payment would exceed maturity)
+      const nextPaymentDate = new Date(paymentDate);
+      nextPaymentDate.setMonth(nextPaymentDate.getMonth() + monthsBetweenPayments);
+      const isLastPaymentBySchedule = nextPaymentDate > maturityDate;
+      const isLastPaymentByProximity = daysDifference <= 200;
+      const isLastPayment = isLastPaymentBySchedule || isLastPaymentByProximity;
+      
+      console.log(`🔍 Payment ${paymentNumber}: ${paymentDate.toISOString().split('T')[0]} | Days to maturity: ${daysDifference.toFixed(0)} | BySchedule: ${isLastPaymentBySchedule} | ByProximity: ${isLastPaymentByProximity} | Is last: ${isLastPayment} | Remaining: $${remainingNotional.toFixed(2)}`);
       
       const finalDate = isLastPayment ? maturityDate : paymentDate;
       const dateStr = finalDate.toISOString().split('T')[0];
@@ -326,8 +342,43 @@ export class MemStorage implements IStorage {
         console.log(`📊 Coupon rate changed to ${currentCouponRate}% on ${dateStr}`);
       }
       
-      // Check for amortization
-      const amortPercent = amortizationMap.get(dateStr) || 0;
+      // Check for amortization - handle date mismatches by finding nearest amortization date
+      let amortPercent = amortizationMap.get(dateStr) || 0;
+      
+      // Flexible amortization date matching - find nearest payment date to amortization schedule
+      if (amortPercent === 0 && bond.isAmortizing && bond.amortizationSchedule) {
+        const paymentDateObj = new Date(finalDate);
+        const paymentYear = paymentDateObj.getFullYear();
+        
+        console.log(`🔍 Checking amortization for payment ${dateStr} (year: ${paymentYear})`);
+        console.log(`🔍 Amortization schedule: ${JSON.stringify(bond.amortizationSchedule.map(a => ({date: a.date, percent: a.principalPercent})))}`);
+        
+        // Look for amortization in the same year
+        for (const amort of bond.amortizationSchedule) {
+          const amortDateObj = new Date(amort.date);
+          const amortYear = amortDateObj.getFullYear();
+          
+          console.log(`🔍 Comparing payment year ${paymentYear} with amort year ${amortYear} (${amort.date})`);
+          
+          // If same year, apply amortization to the later payment in that year
+          if (amortYear === paymentYear) {
+            // Calculate days difference 
+            const daysDiff = Math.abs(paymentDateObj.getTime() - amortDateObj.getTime()) / (1000 * 60 * 60 * 24);
+            
+            console.log(`✅ YEAR MATCH! Found amort in same year: ${amort.date} | Days diff: ${daysDiff.toFixed(0)} | Percent: ${amort.principalPercent}%`);
+            
+            // Apply if within 6 months (180 days) 
+            if (daysDiff <= 180) {
+              amortPercent = amort.principalPercent;
+              console.log(`📊 APPLYING amortization ${amortPercent}% on ${dateStr} (${daysDiff.toFixed(0)} days from ${amort.date})`);
+              break;
+            } else {
+              console.log(`❌ Days diff ${daysDiff.toFixed(0)} > 180, not applying`);
+            }
+          }
+        }
+      }
+      
       const amortAmount = (bond.faceValue * amortPercent) / 100;
       
       // Calculate payments
@@ -338,9 +389,11 @@ export class MemStorage implements IStorage {
       if (isLastPayment) {
         principalPayment = remainingNotional;
         paymentType = "MATURITY";
+        console.log(`🎯 FINAL PAYMENT: Adding principal payment of $${principalPayment.toFixed(2)} at maturity`);
       } else if (amortAmount > 0) {
         principalPayment = amortAmount;
         paymentType = "AMORTIZATION";
+        console.log(`💰 AMORTIZATION: Adding principal payment of $${principalPayment.toFixed(2)}`);
       }
       
       const totalPayment = couponPayment + principalPayment;
@@ -357,9 +410,35 @@ export class MemStorage implements IStorage {
       
       console.log(`💰 Payment ${paymentNumber}: ${dateStr} | Coupon: $${couponPayment.toFixed(2)} | Principal: $${principalPayment.toFixed(2)} | Total: $${totalPayment.toFixed(2)} | ${paymentType}`);
       
-      if (isLastPayment) break;
+      if (isLastPayment) {
+        console.log(`🏁 Loop terminating: isLastPayment = true`);
+        break;
+      }
       
       paymentDate.setMonth(paymentDate.getMonth() + monthsBetweenPayments);
+    }
+    
+    console.log(`🏁 Cash flow generation completed. Total payments: ${paymentNumber}, Remaining principal: $${remainingNotional.toFixed(2)}`);
+    
+    // CRITICAL FIX: If any principal remains, add a final payment at maturity
+    if (Math.abs(remainingNotional) > 0.01) {
+      console.log(`🔧 FIXING: Adding final payment at maturity for remaining principal $${remainingNotional.toFixed(2)}`);
+      
+      const finalCouponPayment = (remainingNotional * bond.couponRate / 100) / periodsPerYear;
+      const finalPrincipalPayment = remainingNotional;
+      const finalTotalPayment = finalCouponPayment + finalPrincipalPayment;
+      
+      flows.push({
+        date: maturityDate.toISOString().split('T')[0],
+        couponPayment: Number(finalCouponPayment.toFixed(3)),
+        principalPayment: Number(finalPrincipalPayment.toFixed(3)),
+        totalPayment: Number(finalTotalPayment.toFixed(3)),
+        remainingNotional: 0,
+        paymentType: "MATURITY",
+      });
+      
+      console.log(`🎯 FINAL PAYMENT ADDED: ${maturityDate.toISOString().split('T')[0]} | Coupon: $${finalCouponPayment.toFixed(2)} | Principal: $${finalPrincipalPayment.toFixed(2)} | Total: $${finalTotalPayment.toFixed(2)} | MATURITY`);
+      remainingNotional = 0;
     }
     
     console.log(`✅ Generated ${flows.length} cash flows for ${bond.issuer}`);
@@ -393,7 +472,33 @@ export class MemStorage implements IStorage {
     const calculator = new BondCalculatorPro();
     const settlementDate = new Date((bond as any).settlementDate || new Date());
     
-    // CRITICAL: Filter cash flows to only include future payments from settlement date
+    // CRITICAL FIX: Calculate actual outstanding principal at settlement date
+    // For amortizing bonds, the outstanding principal matters for price interpretation
+    let currentOutstanding = bond.faceValue;
+    
+    // Find the outstanding principal at settlement date by looking at cash flow history
+    for (const cf of cashFlows) {
+      const cfDate = new Date(cf.date);
+      if (cfDate <= settlementDate) {
+        // This payment occurred before or on settlement date
+        currentOutstanding = cf.remainingNotional;
+      } else {
+        // Future payment - stop here
+        break;
+      }
+    }
+    
+    console.log(`🔍 OUTSTANDING PRINCIPAL CALCULATION:`, {
+      originalFaceValue: bond.faceValue,
+      currentOutstanding: currentOutstanding,
+      settlementDate: settlementDate.toISOString().split('T')[0],
+      outstandingRatio: currentOutstanding / bond.faceValue,
+      note: currentOutstanding < bond.faceValue ? 
+        `Using actual outstanding principal after amortization` : 
+        `No amortization yet - using full face value`
+    });
+    
+    // Filter cash flows to only include future payments from settlement date
     // This is essential for bonds with historical cash flows (like Argentina bonds from 2020)
     const futureCashFlows = cashFlows.filter(cf => {
       const cfDate = new Date(cf.date);
@@ -407,9 +512,9 @@ export class MemStorage implements IStorage {
       throw new Error(`No future cash flows available after settlement date ${settlementDate.toISOString().split('T')[0]}. Bond may have matured or settlement date needs adjustment.`);
     }
     
-    // Convert to calculator format
+    // Convert to calculator format with corrected outstanding notional
     const calcBond: CalcBond = {
-      faceValue: bond.faceValue,
+      faceValue: currentOutstanding, // Use current outstanding instead of original face value
       currency: bond.currency || 'USD',
       dayCountConvention: bond.dayCountConvention as any || '30/360',
       cashFlows: futureCashFlows.map(cf => ({
@@ -556,16 +661,16 @@ export class MemStorage implements IStorage {
           }
         }
         
-        // User enters price as percentage of face value (e.g., 80 = 80% of par)
-        // Calculator expects this same percentage format
-        const priceAsPercentage = marketPrice;
+        // CRITICAL: For amortizing bonds, interpret price as percentage of outstanding principal
+        const effectivePrice = (marketPrice / 100) * currentOutstanding;
         
-        console.log(`🔍 Price input: ${marketPrice} (${priceAsPercentage.toFixed(2)}% of face value)`);
+        console.log(`🔍 Price input: ${marketPrice} (${marketPrice.toFixed(2)}% of ${currentOutstanding < bond.faceValue ? 'outstanding principal' : 'face value'})`);
+        console.log(`🔍 Effective dollar price: $${effectivePrice} (${marketPrice}% of $${currentOutstanding})`);
         
         const analyzeInputs = {
           bond: calcBond,
           settlementDate,
-          price: priceAsPercentage,
+          price: marketPrice,
           treasuryCurve
         };
         
@@ -601,6 +706,16 @@ export class MemStorage implements IStorage {
         spreads: result.spreads
       });
       
+      // DEBUG: Check price field structure
+      console.log('🔍 PRICE FIELD DETAILED:', {
+        clean: result.price?.clean,
+        dirty: result.price?.dirty, 
+        cleanDollar: result.price?.cleanDollar,
+        dirtyDollar: result.price?.dirtyDollar,
+        accruedInterest: result.price?.accruedInterest
+      });
+      
+      
       // Convert back to legacy format
       const totalCoupons = futureCashFlows
         .reduce((sum, cf) => sum + cf.couponPayment, 0);
@@ -613,10 +728,11 @@ export class MemStorage implements IStorage {
         averageLife: result.analytics?.averageLife || 0,
         convexity: result.risk?.convexity || 0,
         totalCoupons,
-        presentValue: result.price?.clean || 0,
-        marketPrice: result.price?.dirtyDollar || 0,
-        cleanPrice: result.price?.cleanDollar || 0,
-        dirtyPrice: result.price?.dirtyDollar || 0,
+        presentValue: result.price?.clean || 0, // This is already a percentage
+        // CRITICAL FIX: Convert dollar amounts back to percentages for frontend
+        marketPrice: result.price?.dirty || 0, // Use dirty percentage, not dirtyDollar
+        cleanPrice: result.price?.clean || 0,  // Use clean percentage, not cleanDollar
+        dirtyPrice: result.price?.dirty || 0,  // Use dirty percentage, not dirtyDollar
         accruedInterest: result.price?.accruedInterest || 0,
         daysToNextCoupon: result.analytics?.daysToNextPayment || 0,
         dollarDuration: result.risk?.dv01 || 0,

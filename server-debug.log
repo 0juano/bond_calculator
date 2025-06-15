@@ -1,0 +1,552 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+🚀 Pre-loading UST curve data on startup...
+Fetching UST yield curve from FRED API...
+3:48:11 PM [express] serving on port 3000
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 415,
+    "heapUsed": 72,
+    "heapTotal": 110,
+    "external": 5
+  },
+  "uptime": 1
+}
+✓ UST curve fetched from FRED: 2025-06-12 (11 tenors)
+✅ UST curve data pre-loaded successfully
+   Date: 2025-06-12
+   Tenors: 11 points
+   1M: 4.180% | 10Y: 4.360% | 30Y: 4.840%
+📊 Calculate request received with predefinedCashFlows? false
+📊 Number of predefined cash flows: 0
+📊 Parsed bond data has predefinedCashFlows? false
+🔍 buildBond received bond with predefinedCashFlows: NONE
+🔍 Bond issuer: SIMPLE TEST BOND, features: { isAmortizing: false, isVariableCoupon: false }
+🔄 Generating cash flows from bond parameters
+🔧 generateCashFlows starting for SIMPLE TEST BOND
+📊 Bond: SIMPLE TEST BOND | Issue: 2020-01-01 | Maturity: 2038-01-01
+📊 Coupon: 1% | Frequency: 2x/year | Face: $1000
+📊 Features: Amortizing=false, Variable=false
+📅 Calculated first coupon date from issue date: 2020-07-02
+🔍 Payment 1: 2020-07-02 | Days to maturity: 6392 | Is last: false | Remaining notional: $1000.00
+💰 Payment 1: 2020-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 2: 2021-01-02 | Days to maturity: 6208 | Is last: false | Remaining notional: $1000.00
+💰 Payment 2: 2021-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 3: 2021-07-02 | Days to maturity: 6027 | Is last: false | Remaining notional: $1000.00
+💰 Payment 3: 2021-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 4: 2022-01-02 | Days to maturity: 5843 | Is last: false | Remaining notional: $1000.00
+💰 Payment 4: 2022-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 5: 2022-07-02 | Days to maturity: 5662 | Is last: false | Remaining notional: $1000.00
+💰 Payment 5: 2022-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 6: 2023-01-02 | Days to maturity: 5478 | Is last: false | Remaining notional: $1000.00
+💰 Payment 6: 2023-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 7: 2023-07-02 | Days to maturity: 5297 | Is last: false | Remaining notional: $1000.00
+💰 Payment 7: 2023-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 8: 2024-01-02 | Days to maturity: 5113 | Is last: false | Remaining notional: $1000.00
+💰 Payment 8: 2024-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 9: 2024-07-02 | Days to maturity: 4931 | Is last: false | Remaining notional: $1000.00
+💰 Payment 9: 2024-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 10: 2025-01-02 | Days to maturity: 4747 | Is last: false | Remaining notional: $1000.00
+💰 Payment 10: 2025-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 11: 2025-07-02 | Days to maturity: 4566 | Is last: false | Remaining notional: $1000.00
+💰 Payment 11: 2025-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 12: 2026-01-02 | Days to maturity: 4382 | Is last: false | Remaining notional: $1000.00
+💰 Payment 12: 2026-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 13: 2026-07-02 | Days to maturity: 4201 | Is last: false | Remaining notional: $1000.00
+💰 Payment 13: 2026-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 14: 2027-01-02 | Days to maturity: 4017 | Is last: false | Remaining notional: $1000.00
+💰 Payment 14: 2027-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 15: 2027-07-02 | Days to maturity: 3836 | Is last: false | Remaining notional: $1000.00
+💰 Payment 15: 2027-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 16: 2028-01-02 | Days to maturity: 3652 | Is last: false | Remaining notional: $1000.00
+💰 Payment 16: 2028-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 17: 2028-07-02 | Days to maturity: 3470 | Is last: false | Remaining notional: $1000.00
+💰 Payment 17: 2028-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 18: 2029-01-02 | Days to maturity: 3286 | Is last: false | Remaining notional: $1000.00
+💰 Payment 18: 2029-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 19: 2029-07-02 | Days to maturity: 3105 | Is last: false | Remaining notional: $1000.00
+💰 Payment 19: 2029-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 20: 2030-01-02 | Days to maturity: 2921 | Is last: false | Remaining notional: $1000.00
+💰 Payment 20: 2030-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 21: 2030-07-02 | Days to maturity: 2740 | Is last: false | Remaining notional: $1000.00
+💰 Payment 21: 2030-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 22: 2031-01-02 | Days to maturity: 2556 | Is last: false | Remaining notional: $1000.00
+💰 Payment 22: 2031-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 23: 2031-07-02 | Days to maturity: 2375 | Is last: false | Remaining notional: $1000.00
+💰 Payment 23: 2031-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 24: 2032-01-02 | Days to maturity: 2191 | Is last: false | Remaining notional: $1000.00
+💰 Payment 24: 2032-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 25: 2032-07-02 | Days to maturity: 2009 | Is last: false | Remaining notional: $1000.00
+💰 Payment 25: 2032-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 26: 2033-01-02 | Days to maturity: 1825 | Is last: false | Remaining notional: $1000.00
+💰 Payment 26: 2033-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 27: 2033-07-02 | Days to maturity: 1644 | Is last: false | Remaining notional: $1000.00
+💰 Payment 27: 2033-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 28: 2034-01-02 | Days to maturity: 1460 | Is last: false | Remaining notional: $1000.00
+💰 Payment 28: 2034-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 29: 2034-07-02 | Days to maturity: 1279 | Is last: false | Remaining notional: $1000.00
+💰 Payment 29: 2034-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 30: 2035-01-02 | Days to maturity: 1095 | Is last: false | Remaining notional: $1000.00
+💰 Payment 30: 2035-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 31: 2035-07-02 | Days to maturity: 914 | Is last: false | Remaining notional: $1000.00
+💰 Payment 31: 2035-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 32: 2036-01-02 | Days to maturity: 730 | Is last: false | Remaining notional: $1000.00
+💰 Payment 32: 2036-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 33: 2036-07-02 | Days to maturity: 548 | Is last: false | Remaining notional: $1000.00
+💰 Payment 33: 2036-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 34: 2037-01-02 | Days to maturity: 364 | Is last: false | Remaining notional: $1000.00
+💰 Payment 34: 2037-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 35: 2037-07-02 | Days to maturity: 183 | Is last: false | Remaining notional: $1000.00
+💰 Payment 35: 2037-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🏁 Cash flow generation completed. Total payments: 35, Remaining principal: $1000.00
+❌ CRITICAL ERROR: Remaining principal $1000.00 not repaid! This will cause negative YTM.
+✅ Generated 35 cash flows for SIMPLE TEST BOND
+🔄 Cash flow generation result: 35 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+💰 Cash flow filtering: Total 35 → Future 25 (settlement: 2025-06-13)
+📥 Backend received: {
+  marketPrice: 80,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'SIMPLE TEST BOND',
+  maturityDate: '2038-01-01'
+}
+🔍 Calculation inputs - Price: 80, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 80
+🔍 Price input: 80 (80.00% of face value)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 25,
+  price: 80,
+  settlementDate: '2025-06-13',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 1000,
+  currentOutstanding: 1000,
+  settlementDate: '2025-06-13',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 800
+  - Cash Flows: 25
+  - Total CF Amount: 125
+⚠️ WARNING: Target price (800) exceeds total cash flows (125)
+  This will result in negative yield
+  🔧 Trying Newton-Raphson algorithm...
+💡 Initial YTM Guess:
+  - Total CFs: 125
+  - Target Price: 800
+  - Total Return: 0.1563
+  - Average Time: 6.05 years
+  - Raw Annualized: -26.41%
+  - Clamped Guess: -26.41%
+    Iteration 0: yield = -21.866%, error = 586.643249
+    Iteration 5: yield = -21.815%, error = 0.027566
+    Iteration 10: yield = -21.815%, error = -0.000047
+    ⚠️ Yield oscillating, stopping at -21.815%
+  ❌ Newton-Raphson failed to converge
+  🔧 Trying Brent algorithm...
+  ✅ Brent converged: YTM = -7.678%
+🔄 Z-Spread Calculation:
+  - Target Price: 800
+  - Cash Flows: 25
+  - Z-Spread final: -100 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: { ytm: -7.677689452489806, ytw: -7.677689452489806, current: 1.25 },
+  risk: {
+    modifiedDuration: 7.663519367587276,
+    macaulayDuration: 7.075138149412514,
+    effectiveDuration: 7.663521068913546,
+    convexity: 81.55025661594662,
+    dv01: 0.6130815494069821
+  },
+  price: {
+    clean: 80,
+    dirty: 80,
+    cleanDollar: 800,
+    dirtyDollar: 800,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 0,
+    totalCashFlows: 125,
+    daysToNextPayment: 19,
+    nextPaymentDate: '2025-07-02',
+    nextPaymentAmount: 5
+  },
+  spreads: { treasury: -1185.7689452489803, zSpread: -99.99999999999974 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 80,
+  dirty: 80,
+  cleanDollar: 800,
+  dirtyDollar: 800,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: -7.677689452489806,
+  duration: 7.663519367587276,
+  cleanPrice: 80,
+  spread: -1185.7689452489803
+}
+3:48:20 PM [express] POST /api/bonds/calculate 200 in 256ms :: {"analytics":{"yieldToMaturity":-7.67…
+📊 Calculate request received with predefinedCashFlows? false
+📊 Number of predefined cash flows: 0
+📊 Parsed bond data has predefinedCashFlows? false
+🔍 buildBond received bond with predefinedCashFlows: NONE
+🔍 Bond issuer: SIMPLE TEST BOND, features: { isAmortizing: false, isVariableCoupon: false }
+🔄 Generating cash flows from bond parameters
+🔧 generateCashFlows starting for SIMPLE TEST BOND
+📊 Bond: SIMPLE TEST BOND | Issue: 2020-01-01 | Maturity: 2038-01-01
+📊 Coupon: 1% | Frequency: 2x/year | Face: $1000
+📊 Features: Amortizing=false, Variable=false
+📅 Calculated first coupon date from issue date: 2020-07-02
+🔍 Payment 1: 2020-07-02 | Days to maturity: 6392 | Is last: false | Remaining notional: $1000.00
+💰 Payment 1: 2020-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 2: 2021-01-02 | Days to maturity: 6208 | Is last: false | Remaining notional: $1000.00
+💰 Payment 2: 2021-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 3: 2021-07-02 | Days to maturity: 6027 | Is last: false | Remaining notional: $1000.00
+💰 Payment 3: 2021-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 4: 2022-01-02 | Days to maturity: 5843 | Is last: false | Remaining notional: $1000.00
+💰 Payment 4: 2022-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 5: 2022-07-02 | Days to maturity: 5662 | Is last: false | Remaining notional: $1000.00
+💰 Payment 5: 2022-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 6: 2023-01-02 | Days to maturity: 5478 | Is last: false | Remaining notional: $1000.00
+💰 Payment 6: 2023-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 7: 2023-07-02 | Days to maturity: 5297 | Is last: false | Remaining notional: $1000.00
+💰 Payment 7: 2023-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 8: 2024-01-02 | Days to maturity: 5113 | Is last: false | Remaining notional: $1000.00
+💰 Payment 8: 2024-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 9: 2024-07-02 | Days to maturity: 4931 | Is last: false | Remaining notional: $1000.00
+💰 Payment 9: 2024-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 10: 2025-01-02 | Days to maturity: 4747 | Is last: false | Remaining notional: $1000.00
+💰 Payment 10: 2025-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 11: 2025-07-02 | Days to maturity: 4566 | Is last: false | Remaining notional: $1000.00
+💰 Payment 11: 2025-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 12: 2026-01-02 | Days to maturity: 4382 | Is last: false | Remaining notional: $1000.00
+💰 Payment 12: 2026-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 13: 2026-07-02 | Days to maturity: 4201 | Is last: false | Remaining notional: $1000.00
+💰 Payment 13: 2026-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 14: 2027-01-02 | Days to maturity: 4017 | Is last: false | Remaining notional: $1000.00
+💰 Payment 14: 2027-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 15: 2027-07-02 | Days to maturity: 3836 | Is last: false | Remaining notional: $1000.00
+💰 Payment 15: 2027-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 16: 2028-01-02 | Days to maturity: 3652 | Is last: false | Remaining notional: $1000.00
+💰 Payment 16: 2028-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 17: 2028-07-02 | Days to maturity: 3470 | Is last: false | Remaining notional: $1000.00
+💰 Payment 17: 2028-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 18: 2029-01-02 | Days to maturity: 3286 | Is last: false | Remaining notional: $1000.00
+💰 Payment 18: 2029-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 19: 2029-07-02 | Days to maturity: 3105 | Is last: false | Remaining notional: $1000.00
+💰 Payment 19: 2029-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 20: 2030-01-02 | Days to maturity: 2921 | Is last: false | Remaining notional: $1000.00
+💰 Payment 20: 2030-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 21: 2030-07-02 | Days to maturity: 2740 | Is last: false | Remaining notional: $1000.00
+💰 Payment 21: 2030-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 22: 2031-01-02 | Days to maturity: 2556 | Is last: false | Remaining notional: $1000.00
+💰 Payment 22: 2031-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 23: 2031-07-02 | Days to maturity: 2375 | Is last: false | Remaining notional: $1000.00
+💰 Payment 23: 2031-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 24: 2032-01-02 | Days to maturity: 2191 | Is last: false | Remaining notional: $1000.00
+💰 Payment 24: 2032-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 25: 2032-07-02 | Days to maturity: 2009 | Is last: false | Remaining notional: $1000.00
+💰 Payment 25: 2032-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 26: 2033-01-02 | Days to maturity: 1825 | Is last: false | Remaining notional: $1000.00
+💰 Payment 26: 2033-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 27: 2033-07-02 | Days to maturity: 1644 | Is last: false | Remaining notional: $1000.00
+💰 Payment 27: 2033-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 28: 2034-01-02 | Days to maturity: 1460 | Is last: false | Remaining notional: $1000.00
+💰 Payment 28: 2034-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 29: 2034-07-02 | Days to maturity: 1279 | Is last: false | Remaining notional: $1000.00
+💰 Payment 29: 2034-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 30: 2035-01-02 | Days to maturity: 1095 | Is last: false | Remaining notional: $1000.00
+💰 Payment 30: 2035-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 31: 2035-07-02 | Days to maturity: 914 | Is last: false | Remaining notional: $1000.00
+💰 Payment 31: 2035-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 32: 2036-01-02 | Days to maturity: 730 | Is last: false | Remaining notional: $1000.00
+💰 Payment 32: 2036-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 33: 2036-07-02 | Days to maturity: 548 | Is last: false | Remaining notional: $1000.00
+💰 Payment 33: 2036-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 34: 2037-01-02 | Days to maturity: 364 | Is last: false | Remaining notional: $1000.00
+💰 Payment 34: 2037-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 35: 2037-07-02 | Days to maturity: 183 | Is last: false | Remaining notional: $1000.00
+💰 Payment 35: 2037-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🏁 Cash flow generation completed. Total payments: 35, Remaining principal: $1000.00
+❌ CRITICAL ERROR: Remaining principal $1000.00 not repaid! This will cause negative YTM.
+✅ Generated 35 cash flows for SIMPLE TEST BOND
+🔄 Cash flow generation result: 35 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+💰 Cash flow filtering: Total 35 → Future 25 (settlement: 2025-06-13)
+📥 Backend received: {
+  marketPrice: 80,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'SIMPLE TEST BOND',
+  maturityDate: '2038-01-01'
+}
+🔍 Calculation inputs - Price: 80, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 80
+🔍 Price input: 80 (80.00% of face value)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 25,
+  price: 80,
+  settlementDate: '2025-06-13',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 1000,
+  currentOutstanding: 1000,
+  settlementDate: '2025-06-13',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 800
+  - Cash Flows: 25
+  - Total CF Amount: 125
+⚠️ WARNING: Target price (800) exceeds total cash flows (125)
+  This will result in negative yield
+  🔧 Trying Newton-Raphson algorithm...
+💡 Initial YTM Guess:
+  - Total CFs: 125
+  - Target Price: 800
+  - Total Return: 0.1563
+  - Average Time: 6.05 years
+  - Raw Annualized: -26.41%
+  - Clamped Guess: -26.41%
+    Iteration 0: yield = -21.866%, error = 586.643249
+    Iteration 5: yield = -21.815%, error = 0.027566
+    Iteration 10: yield = -21.815%, error = -0.000047
+    ⚠️ Yield oscillating, stopping at -21.815%
+  ❌ Newton-Raphson failed to converge
+  🔧 Trying Brent algorithm...
+  ✅ Brent converged: YTM = -7.678%
+🔄 Z-Spread Calculation:
+  - Target Price: 800
+  - Cash Flows: 25
+  - Z-Spread final: -100 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: { ytm: -7.677689452489806, ytw: -7.677689452489806, current: 1.25 },
+  risk: {
+    modifiedDuration: 7.663519367587276,
+    macaulayDuration: 7.075138149412514,
+    effectiveDuration: 7.663521068913546,
+    convexity: 81.55025661594662,
+    dv01: 0.6130815494069821
+  },
+  price: {
+    clean: 80,
+    dirty: 80,
+    cleanDollar: 800,
+    dirtyDollar: 800,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 0,
+    totalCashFlows: 125,
+    daysToNextPayment: 19,
+    nextPaymentDate: '2025-07-02',
+    nextPaymentAmount: 5
+  },
+  spreads: { treasury: -1185.7689452489803, zSpread: -99.99999999999974 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 80,
+  dirty: 80,
+  cleanDollar: 800,
+  dirtyDollar: 800,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: -7.677689452489806,
+  duration: 7.663519367587276,
+  cleanPrice: 80,
+  spread: -1185.7689452489803
+}
+3:48:42 PM [express] POST /api/bonds/calculate 200 in 239ms :: {"analytics":{"yieldToMaturity":-7.67…
+📊 Calculate request received with predefinedCashFlows? false
+📊 Number of predefined cash flows: 0
+📊 Parsed bond data has predefinedCashFlows? false
+🔍 buildBond received bond with predefinedCashFlows: NONE
+🔍 Bond issuer: SIMPLE TEST BOND, features: { isAmortizing: false, isVariableCoupon: false }
+🔄 Generating cash flows from bond parameters
+🔧 generateCashFlows starting for SIMPLE TEST BOND
+📊 Bond: SIMPLE TEST BOND | Issue: 2020-01-01 | Maturity: 2038-01-01
+📊 Coupon: 1% | Frequency: 2x/year | Face: $1000
+📊 Features: Amortizing=false, Variable=false
+📅 Calculated first coupon date from issue date: 2020-07-02
+🔍 Payment 1: 2020-07-02 | Days to maturity: 6392 | Is last: false | Remaining notional: $1000.00
+💰 Payment 1: 2020-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 2: 2021-01-02 | Days to maturity: 6208 | Is last: false | Remaining notional: $1000.00
+💰 Payment 2: 2021-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 3: 2021-07-02 | Days to maturity: 6027 | Is last: false | Remaining notional: $1000.00
+💰 Payment 3: 2021-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 4: 2022-01-02 | Days to maturity: 5843 | Is last: false | Remaining notional: $1000.00
+💰 Payment 4: 2022-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 5: 2022-07-02 | Days to maturity: 5662 | Is last: false | Remaining notional: $1000.00
+💰 Payment 5: 2022-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 6: 2023-01-02 | Days to maturity: 5478 | Is last: false | Remaining notional: $1000.00
+💰 Payment 6: 2023-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 7: 2023-07-02 | Days to maturity: 5297 | Is last: false | Remaining notional: $1000.00
+💰 Payment 7: 2023-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 8: 2024-01-02 | Days to maturity: 5113 | Is last: false | Remaining notional: $1000.00
+💰 Payment 8: 2024-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 9: 2024-07-02 | Days to maturity: 4931 | Is last: false | Remaining notional: $1000.00
+💰 Payment 9: 2024-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 10: 2025-01-02 | Days to maturity: 4747 | Is last: false | Remaining notional: $1000.00
+💰 Payment 10: 2025-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 11: 2025-07-02 | Days to maturity: 4566 | Is last: false | Remaining notional: $1000.00
+💰 Payment 11: 2025-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 12: 2026-01-02 | Days to maturity: 4382 | Is last: false | Remaining notional: $1000.00
+💰 Payment 12: 2026-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 13: 2026-07-02 | Days to maturity: 4201 | Is last: false | Remaining notional: $1000.00
+💰 Payment 13: 2026-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 14: 2027-01-02 | Days to maturity: 4017 | Is last: false | Remaining notional: $1000.00
+💰 Payment 14: 2027-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 15: 2027-07-02 | Days to maturity: 3836 | Is last: false | Remaining notional: $1000.00
+💰 Payment 15: 2027-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 16: 2028-01-02 | Days to maturity: 3652 | Is last: false | Remaining notional: $1000.00
+💰 Payment 16: 2028-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 17: 2028-07-02 | Days to maturity: 3470 | Is last: false | Remaining notional: $1000.00
+💰 Payment 17: 2028-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 18: 2029-01-02 | Days to maturity: 3286 | Is last: false | Remaining notional: $1000.00
+💰 Payment 18: 2029-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 19: 2029-07-02 | Days to maturity: 3105 | Is last: false | Remaining notional: $1000.00
+💰 Payment 19: 2029-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 20: 2030-01-02 | Days to maturity: 2921 | Is last: false | Remaining notional: $1000.00
+💰 Payment 20: 2030-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 21: 2030-07-02 | Days to maturity: 2740 | Is last: false | Remaining notional: $1000.00
+💰 Payment 21: 2030-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 22: 2031-01-02 | Days to maturity: 2556 | Is last: false | Remaining notional: $1000.00
+💰 Payment 22: 2031-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 23: 2031-07-02 | Days to maturity: 2375 | Is last: false | Remaining notional: $1000.00
+💰 Payment 23: 2031-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 24: 2032-01-02 | Days to maturity: 2191 | Is last: false | Remaining notional: $1000.00
+💰 Payment 24: 2032-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 25: 2032-07-02 | Days to maturity: 2009 | Is last: false | Remaining notional: $1000.00
+💰 Payment 25: 2032-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 26: 2033-01-02 | Days to maturity: 1825 | Is last: false | Remaining notional: $1000.00
+💰 Payment 26: 2033-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 27: 2033-07-02 | Days to maturity: 1644 | Is last: false | Remaining notional: $1000.00
+💰 Payment 27: 2033-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 28: 2034-01-02 | Days to maturity: 1460 | Is last: false | Remaining notional: $1000.00
+💰 Payment 28: 2034-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 29: 2034-07-02 | Days to maturity: 1279 | Is last: false | Remaining notional: $1000.00
+💰 Payment 29: 2034-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 30: 2035-01-02 | Days to maturity: 1095 | Is last: false | Remaining notional: $1000.00
+💰 Payment 30: 2035-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 31: 2035-07-02 | Days to maturity: 914 | Is last: false | Remaining notional: $1000.00
+💰 Payment 31: 2035-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 32: 2036-01-02 | Days to maturity: 730 | Is last: false | Remaining notional: $1000.00
+💰 Payment 32: 2036-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 33: 2036-07-02 | Days to maturity: 548 | Is last: false | Remaining notional: $1000.00
+💰 Payment 33: 2036-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 34: 2037-01-02 | Days to maturity: 364 | Is last: false | Remaining notional: $1000.00
+💰 Payment 34: 2037-01-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🔍 Payment 35: 2037-07-02 | Days to maturity: 183 | Is last: false | Remaining notional: $1000.00
+💰 Payment 35: 2037-07-02 | Coupon: $5.00 | Principal: $0.00 | Total: $5.00 | COUPON
+🏁 Cash flow generation completed. Total payments: 35, Remaining principal: $1000.00
+❌ CRITICAL ERROR: Remaining principal $1000.00 not repaid! This will cause negative YTM.
+✅ Generated 35 cash flows for SIMPLE TEST BOND
+🔄 Cash flow generation result: 35 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+💰 Cash flow filtering: Total 35 → Future 25 (settlement: 2025-06-13)
+📥 Backend received: {
+  marketPrice: 80,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'SIMPLE TEST BOND',
+  maturityDate: '2038-01-01'
+}
+🔍 Calculation inputs - Price: 80, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 80
+🔍 Price input: 80 (80.00% of face value)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 25,
+  price: 80,
+  settlementDate: '2025-06-13',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 1000,
+  currentOutstanding: 1000,
+  settlementDate: '2025-06-13',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 800
+  - Cash Flows: 25
+  - Total CF Amount: 125
+⚠️ WARNING: Target price (800) exceeds total cash flows (125)
+  This will result in negative yield
+  🔧 Trying Newton-Raphson algorithm...
+💡 Initial YTM Guess:
+  - Total CFs: 125
+  - Target Price: 800
+  - Total Return: 0.1563
+  - Average Time: 6.05 years
+  - Raw Annualized: -26.41%
+  - Clamped Guess: -26.41%
+    Iteration 0: yield = -21.866%, error = 586.643249
+    Iteration 5: yield = -21.815%, error = 0.027566
+    Iteration 10: yield = -21.815%, error = -0.000047
+    ⚠️ Yield oscillating, stopping at -21.815%
+  ❌ Newton-Raphson failed to converge
+  🔧 Trying Brent algorithm...
+  ✅ Brent converged: YTM = -7.678%
+🔄 Z-Spread Calculation:
+  - Target Price: 800
+  - Cash Flows: 25
+  - Z-Spread final: -100 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: { ytm: -7.677689452489806, ytw: -7.677689452489806, current: 1.25 },
+  risk: {
+    modifiedDuration: 7.663519367587276,
+    macaulayDuration: 7.075138149412514,
+    effectiveDuration: 7.663521068913546,
+    convexity: 81.55025661594662,
+    dv01: 0.6130815494069821
+  },
+  price: {
+    clean: 80,
+    dirty: 80,
+    cleanDollar: 800,
+    dirtyDollar: 800,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 0,
+    totalCashFlows: 125,
+    daysToNextPayment: 19,
+    nextPaymentDate: '2025-07-02',
+    nextPaymentAmount: 5
+  },
+  spreads: { treasury: -1185.7689452489803, zSpread: -99.99999999999974 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 80,
+  dirty: 80,
+  cleanDollar: 800,
+  dirtyDollar: 800,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: -7.677689452489806,
+  duration: 7.663519367587276,
+  cleanPrice: 80,
+  spread: -1185.7689452489803
+}
+3:49:04 PM [express] POST /api/bonds/calculate 200 in 222ms :: {"analytics":{"yieldToMaturity":-7.67…
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 268,
+    "heapUsed": 72,
+    "heapTotal": 94,
+    "external": 5
+  },
+  "uptime": 61
+}

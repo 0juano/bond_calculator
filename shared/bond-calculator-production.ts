@@ -160,6 +160,12 @@ export class BondCalculatorPro {
     
     // For amortizing bonds, determine current outstanding notional
     const currentOutstanding = this.getCurrentOutstanding(bond, settlementDate);
+    console.log(`🔍 OUTSTANDING PRINCIPAL DEBUG:`, {
+      faceValue: bond.faceValue,
+      currentOutstanding,
+      settlementDate: settlementDate.toISOString().split('T')[0],
+      outstandingRatio: currentOutstanding / bond.faceValue
+    });
     const accruedPercent = (accruedInterest / currentOutstanding) * 100;
     
     // Determine price and yield
@@ -410,10 +416,19 @@ export class BondCalculatorPro {
     let yield_ = new Decimal(this.getInitialGuess(cashFlows, targetPrice, settlementDate));
     let iterations = 0;
     let lastYield = yield_.toNumber();
+    let oscillationCount = 0;
+    let bestYield = yield_;
+    let bestError = new Decimal(Infinity);
     
     while (iterations < this.MAX_ITERATIONS) {
       const { pv, duration } = this.getPVAndDuration(cashFlows, yield_, settlementDate);
       const error = pv.minus(targetPrice);
+      
+      // Track best result so far
+      if (error.abs().lt(bestError)) {
+        bestError = error.abs();
+        bestYield = yield_;
+      }
       
       if (error.abs().lt(this.PRECISION)) {
         return {
@@ -426,36 +441,72 @@ export class BondCalculatorPro {
       
       const derivative = duration.mul(pv).neg();
       if (derivative.abs().lt(1e-10)) {
-        return { yield: 0, converged: false, iterations, precision: 0 };
+        break;
       }
       
       let adjustment = error.div(derivative);
       
-      // Dampening
-      const maxAdj = yield_.abs().mul(0.5).plus(0.1);
+      // Adaptive dampening based on iteration and error size
+      let dampening = 1.0;
+      if (iterations > 5) dampening = 0.7;
+      if (iterations > 15) dampening = 0.5;
+      if (error.abs().gt(targetPrice * 0.1)) dampening = 0.3;
+      
+      adjustment = adjustment.mul(dampening);
+      
+      // Limit adjustment size relative to current yield
+      const maxAdj = yield_.abs().mul(0.3).plus(0.05);
       if (adjustment.abs().gt(maxAdj)) {
         adjustment = adjustment.gt(0) ? maxAdj : maxAdj.neg();
       }
       
-      yield_ = yield_.minus(adjustment);
+      const newYield = yield_.minus(adjustment);
       
-      // Bounds
-      if (yield_.lt(-0.99)) yield_ = new Decimal(-0.99);
-      if (yield_.gt(5)) yield_ = new Decimal(5);
+      // Enhanced bounds for complex bonds
+      if (newYield.lt(-0.99)) {
+        yield_ = new Decimal(-0.99);
+      } else if (newYield.gt(1.0)) {
+        yield_ = new Decimal(1.0);
+      } else {
+        yield_ = newYield;
+      }
       
       // Log progress every 5 iterations
       if (iterations % 5 === 0) {
         console.log(`    Iteration ${iterations}: yield = ${(yield_.toNumber() * 100).toFixed(3)}%, error = ${error.toFixed(6)}`);
       }
       
-      // Check for oscillation
-      if (Math.abs(yield_.toNumber() - lastYield) < 1e-8 && iterations > 10) {
-        console.log(`    ⚠️ Yield oscillating, stopping at ${(yield_.toNumber() * 100).toFixed(3)}%`);
-        break;
+      // Enhanced oscillation detection
+      if (Math.abs(yield_.toNumber() - lastYield) < 1e-6 && iterations > 8) {
+        oscillationCount++;
+        if (oscillationCount >= 3) {
+          console.log(`    ⚠️ Yield oscillating, using best result: ${(bestYield.toNumber() * 100).toFixed(3)}%`);
+          if (bestError.lt(this.PRECISION * 10)) {
+            return {
+              yield: bestYield.toNumber(),
+              converged: true,
+              iterations,
+              precision: bestError.toNumber()
+            };
+          }
+          break;
+        }
+      } else {
+        oscillationCount = 0;
       }
-      lastYield = yield_.toNumber();
       
+      lastYield = yield_.toNumber();
       iterations++;
+    }
+    
+    // Return best result if close enough
+    if (bestError.lt(this.PRECISION * 10)) {
+      return {
+        yield: bestYield.toNumber(),
+        converged: true,
+        iterations,
+        precision: bestError.toNumber()
+      };
     }
     
     return { yield: 0, converged: false, iterations, precision: 0 };
@@ -511,7 +562,7 @@ export class BondCalculatorPro {
     targetPrice: number,
     settlementDate: Date
   ): { yield: number; converged: boolean; iterations: number; precision: number } {
-    let lower = -0.99, upper = 5.0;
+    let lower = -0.99, upper = 1.0;
     let iterations = 0;
     
     // Find initial bracket
@@ -519,13 +570,19 @@ export class BondCalculatorPro {
     if (bracket) {
       lower = bracket.lower;
       upper = bracket.upper;
+    } else {
+      console.log(`⚠️ Bisection: No bracket found, using default bounds`);
+      return { yield: 0, converged: false, iterations, precision: 0 };
     }
     
-    while (iterations < this.MAX_ITERATIONS) {
+    console.log(`🔧 Bisection starting with bracket [${(lower * 100).toFixed(2)}%, ${(upper * 100).toFixed(2)}%]`);
+    
+    while (iterations < this.MAX_ITERATIONS && (upper - lower) > this.PRECISION) {
       const mid = (lower + upper) / 2;
       const fMid = this.calculatePresentValue(cashFlows, mid, settlementDate) - targetPrice;
       
       if (Math.abs(fMid) < this.PRECISION) {
+        console.log(`✅ Bisection converged at ${(mid * 100).toFixed(3)}%`);
         return { yield: mid, converged: true, iterations, precision: Math.abs(fMid) };
       }
       
@@ -537,12 +594,19 @@ export class BondCalculatorPro {
         lower = mid;
       }
       
+      // Log progress periodically
+      if (iterations % 10 === 0) {
+        console.log(`    Bisection iteration ${iterations}: bracket [${(lower * 100).toFixed(2)}%, ${(upper * 100).toFixed(2)}%]`);
+      }
+      
       iterations++;
     }
     
     const final = (lower + upper) / 2;
     const error = Math.abs(this.calculatePresentValue(cashFlows, final, settlementDate) - targetPrice);
-    return { yield: final, converged: true, iterations, precision: error };
+    console.log(`✅ Bisection final result: ${(final * 100).toFixed(3)}% (error: ${error.toFixed(6)})`);
+    
+    return { yield: final, converged: error < this.PRECISION * 5, iterations, precision: error };
   }
   
   private findBracket(
@@ -550,7 +614,24 @@ export class BondCalculatorPro {
     targetPrice: number,
     settlementDate: Date
   ): { lower: number; upper: number; fLower: number; fUpper: number } | null {
-    const testPoints = [-0.99, -0.5, -0.2, 0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0];
+    // Enhanced bracket finding for complex bonds
+    const initialGuess = this.getInitialGuess(cashFlows, targetPrice, settlementDate);
+    
+    // Create test points around the initial guess for better bracketing
+    const basePoints = [-0.99, -0.5, -0.2, 0, 0.02, 0.05, 0.08, 0.12, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0];
+    
+    // Add points around the initial guess
+    const guessPoints = [
+      initialGuess - 0.1,
+      initialGuess - 0.05,
+      initialGuess,
+      initialGuess + 0.05,
+      initialGuess + 0.1
+    ].filter(p => p >= -0.99 && p <= 1.0);
+    
+    const testPoints = [...new Set([...basePoints, ...guessPoints])].sort((a, b) => a - b);
+    
+    console.log(`🔍 Bracket search: testing ${testPoints.length} points around guess ${(initialGuess * 100).toFixed(2)}%`);
     
     for (let i = 0; i < testPoints.length - 1; i++) {
       const y1 = testPoints[i];
@@ -559,10 +640,28 @@ export class BondCalculatorPro {
       const f2 = this.calculatePresentValue(cashFlows, y2, settlementDate) - targetPrice;
       
       if (f1 * f2 < 0) {
+        console.log(`✅ Found bracket: [${(y1 * 100).toFixed(2)}%, ${(y2 * 100).toFixed(2)}%]`);
         return { lower: y1, upper: y2, fLower: f1, fUpper: f2 };
       }
     }
     
+    // If no bracket found, try expanding the search
+    console.log(`⚠️ No bracket found in standard range, expanding search...`);
+    const expandedPoints = [-0.99, -0.8, -0.6, -0.4, -0.2, 0, 0.01, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0];
+    
+    for (let i = 0; i < expandedPoints.length - 1; i++) {
+      const y1 = expandedPoints[i];
+      const y2 = expandedPoints[i + 1];
+      const f1 = this.calculatePresentValue(cashFlows, y1, settlementDate) - targetPrice;
+      const f2 = this.calculatePresentValue(cashFlows, y2, settlementDate) - targetPrice;
+      
+      if (f1 * f2 < 0) {
+        console.log(`✅ Found expanded bracket: [${(y1 * 100).toFixed(2)}%, ${(y2 * 100).toFixed(2)}%]`);
+        return { lower: y1, upper: y2, fLower: f1, fUpper: f2 };
+      }
+    }
+    
+    console.log(`❌ No bracket found even in expanded range`);
     return null;
   }
   
@@ -571,30 +670,83 @@ export class BondCalculatorPro {
     price: number,
     settlementDate: Date
   ): number {
+    // Enhanced initial guess for complex bonds
+    // Use a combination of approaches for robustness
+    
     let totalCF = 0;
     let weightedTime = 0;
+    let finalPayment = 0;
     
     for (const cf of cashFlows) {
       totalCF += cf.amount;
       const years = this.yearsBetween(settlementDate, cf.date);
       weightedTime += cf.amount * years;
+      
+      // Track final payment (likely contains principal)
+      if (years > 0 && cf.amount > finalPayment) {
+        finalPayment = cf.amount;
+      }
     }
     
     const avgTime = weightedTime / totalCF;
     const totalReturn = totalCF / price;
-    const annualizedReturn = Math.pow(totalReturn, 1 / avgTime) - 1;
     
-    const guess = Math.max(-0.5, Math.min(0.5, annualizedReturn));
+    // Approach 1: Simple annualized return
+    const simpleGuess = Math.pow(totalReturn, 1 / avgTime) - 1;
     
-    console.log(`💡 Initial YTM Guess:`);
+    // Approach 2: Current yield adjusted for time
+    const totalCoupons = totalCF - finalPayment;
+    const annualCoupon = totalCoupons / avgTime;
+    const currentYieldGuess = (annualCoupon / price) + ((price - finalPayment) / (price * avgTime));
+    
+    // Approach 3: IRR approximation for complex cash flows
+    const irrGuess = this.approximateIRR(cashFlows, price, settlementDate);
+    
+    // Use the median of the three approaches for robustness
+    const guesses = [simpleGuess, currentYieldGuess, irrGuess].sort((a, b) => a - b);
+    let guess = guesses[1]; // median
+    
+    // Clamp to reasonable bounds
+    guess = Math.max(-0.99, Math.min(2.0, guess));
+    
+    console.log(`💡 Enhanced Initial YTM Guess:`);
     console.log(`  - Total CFs: ${totalCF}`);
     console.log(`  - Target Price: ${price}`);
     console.log(`  - Total Return: ${totalReturn.toFixed(4)}`);
     console.log(`  - Average Time: ${avgTime.toFixed(2)} years`);
-    console.log(`  - Raw Annualized: ${(annualizedReturn * 100).toFixed(2)}%`);
-    console.log(`  - Clamped Guess: ${(guess * 100).toFixed(2)}%`);
+    console.log(`  - Simple: ${(simpleGuess * 100).toFixed(2)}%, Current Yield: ${(currentYieldGuess * 100).toFixed(2)}%, IRR: ${(irrGuess * 100).toFixed(2)}%`);
+    console.log(`  - Final Guess: ${(guess * 100).toFixed(2)}%`);
     
     return guess;
+  }
+  
+  private approximateIRR(
+    cashFlows: Array<{ date: Date; amount: number }>,
+    initialInvestment: number,
+    settlementDate: Date
+  ): number {
+    // Newton's method IRR approximation for better initial guess
+    let rate = 0.1; // Start with 10%
+    
+    for (let i = 0; i < 10; i++) {
+      let npv = -initialInvestment;
+      let dnpv = 0;
+      
+      for (const cf of cashFlows) {
+        const years = this.yearsBetween(settlementDate, cf.date);
+        const factor = Math.pow(1 + rate, years);
+        npv += cf.amount / factor;
+        dnpv -= cf.amount * years / (factor * (1 + rate));
+      }
+      
+      if (Math.abs(npv) < 0.01 || Math.abs(dnpv) < 1e-10) break;
+      rate = rate - npv / dnpv;
+      
+      // Keep rate in reasonable bounds
+      rate = Math.max(-0.5, Math.min(1.0, rate));
+    }
+    
+    return rate;
   }
   
   private calculatePresentValue(

@@ -1,0 +1,22 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error [TransformError]: Transform failed with 1 error:
+/Users/juanotero/Documents/GitHub/bond_calculator/server/storage.ts:670:14: ERROR: The symbol "priceAsPercentage" has already been declared
+    at failureErrorWithLog (/Users/juanotero/Documents/GitHub/bond_calculator/node_modules/tsx/node_modules/esbuild/lib/main.js:1476:15)
+    at /Users/juanotero/Documents/GitHub/bond_calculator/node_modules/tsx/node_modules/esbuild/lib/main.js:755:50
+    at responseCallbacks.<computed> (/Users/juanotero/Documents/GitHub/bond_calculator/node_modules/tsx/node_modules/esbuild/lib/main.js:622:9)
+    at handleIncomingPacket (/Users/juanotero/Documents/GitHub/bond_calculator/node_modules/tsx/node_modules/esbuild/lib/main.js:677:12)
+    at Socket.readFromStdout (/Users/juanotero/Documents/GitHub/bond_calculator/node_modules/tsx/node_modules/esbuild/lib/main.js:600:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+
+Node.js v20.19.2

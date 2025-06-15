@@ -35,7 +35,7 @@ The root of the JSON is a single object containing five top-level keys.
 
 | Key | Type | Required | Description & Validation Rules |
 |-----|------|----------|-------------------------------|
-| `ticker` | String | No | The common market ticker symbol for the bond. Example: `GD29` |
+| `ticker` | String | No | The common market ticker symbol for the bond. Example: `GD29`. See section 7 for Argentina bond naming conventions |
 | `issuer` | String | Yes | The legal name of the issuing entity. Example: `REPUBLIC OF ARGENTINA`, `APPLE INC` |
 | `cusip` | String | No | The 9-character CUSIP identifier. Can be null if not available |
 | `isin` | String | No | The 12-character ISIN identifier. Must be a valid ISIN if provided |
@@ -132,7 +132,52 @@ This specification supports all major bond types:
 - **Step-Up Bonds**: Increasing coupon rates
 - **Zero Coupon Bonds**: No periodic interest payments
 
-## 6. Change Log
+## 6. Argentina Bond Naming Conventions
+
+Argentina sovereign bonds follow specific naming conventions based on their governing law:
+
+### 6.1 NY Law Bonds (ARGENT Series)
+
+Bonds governed by New York law use the `ARGENT` prefix:
+
+**Format:** `ARGENT [COUPON] [YEAR]`
+
+**Examples:**
+- `ARGENT 1 29` - 1% coupon, 2029 maturity
+- `ARGENT 0125 30` - 0.125% coupon, 2030 maturity  
+- `ARGENT 4125 35` - 4.125% coupon, 2035 maturity
+
+**Rules:**
+- Coupon rates use whole numbers when possible (1 for 1.00%)
+- Fractional rates use decimals without the dot (0125 for 0.125%)
+- Years use last two digits (29 for 2029, 30 for 2030)
+- Spaces separate prefix, coupon, and year
+
+### 6.2 Local Law Bonds (ARGBON Series)
+
+Bonds governed by Argentine local law use the `ARGBON` prefix:
+
+**Format:** `ARGBON [COUPON] [YEAR]`
+
+**Examples:**
+- `ARGBON 3 24` - 3% coupon, 2024 maturity
+- `ARGBON 2 26` - 2% coupon, 2026 maturity
+
+### 6.3 Implementation Notes
+
+- The `ticker` field should contain the appropriate ARGENT or ARGBON designation
+- The `name` field should follow the standard format: `REPUBLIC OF ARGENTINA [COUPON]% [MATURITY_DATE]`
+- Both fields serve different purposes: `ticker` for market identification, `name` for official documentation
+
+### 6.4 Ticker Examples by Bond Type
+
+| ISIN | Ticker | Name | Governing Law |
+|------|--------|------|---------------|
+| US040114HX11 | ARGENT 1 29 | REPUBLIC OF ARGENTINA 1.000% 2029-07-09 | New York |
+| US040114HS26 | ARGENT 0125 30 | REPUBLIC OF ARGENTINA 0.125% 2030-07-09 | New York |
+| ARARGE3209S6 | ARGBON 0375 30 | REPUBLIC OF ARGENTINA 0.375% 2030-07-09 | Argentine |
+
+## 7. Change Log
 
 ### Version 1.1 (Current)
 - Added `created` and `modified` timestamps to `metadata`
