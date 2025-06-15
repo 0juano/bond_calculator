@@ -11,25 +11,44 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function BondBuilder() {
   const [bondData, setBondData] = useState<Partial<InsertBond>>({
-    issuer: "",
-    cusip: "",
-    isin: "",
+    issuer: "REPUBLIC OF ARGENTINA",
+    cusip: "040114HS2",
+    isin: "US040114HS26",
     faceValue: 1000,
-    couponRate: 5.0,
-    issueDate: "2024-01-15",
-    maturityDate: "2029-01-15",
-    firstCouponDate: "2024-07-15",
+    couponRate: 0.125,
+    issueDate: "2020-09-04",
+    maturityDate: "2030-07-09",
+    firstCouponDate: "2021-07-09",
     paymentFrequency: 2,
     dayCountConvention: "30/360",
     currency: "USD",
-    isAmortizing: false,
+    isAmortizing: true,
     isCallable: false,
     isPuttable: false,
-    isVariableCoupon: false,
-    settlementDays: 3,
-    amortizationSchedule: [],
+    isVariableCoupon: true,
+    settlementDays: 2,
+    amortizationSchedule: [
+      { date: "2024-07-09", principalPercent: 4 },
+      { date: "2025-01-09", principalPercent: 8 },
+      { date: "2025-07-09", principalPercent: 8 },
+      { date: "2026-01-09", principalPercent: 8 },
+      { date: "2026-07-09", principalPercent: 8 },
+      { date: "2027-01-09", principalPercent: 8 },
+      { date: "2027-07-09", principalPercent: 8 },
+      { date: "2028-01-09", principalPercent: 8 },
+      { date: "2028-07-09", principalPercent: 8 },
+      { date: "2029-01-09", principalPercent: 8 },
+      { date: "2029-07-09", principalPercent: 8 },
+      { date: "2030-01-09", principalPercent: 8 },
+      { date: "2030-07-09", principalPercent: 8 }
+    ],
     callSchedule: [],
     putSchedule: [],
+    couponRateChanges: [
+      { effectiveDate: "2021-07-09", newCouponRate: 0.5 },
+      { effectiveDate: "2023-07-09", newCouponRate: 0.75 },
+      { effectiveDate: "2027-07-09", newCouponRate: 1.75 }
+    ],
   });
 
   const [buildResult, setBuildResult] = useState<BondResult | null>(null);
@@ -219,32 +238,51 @@ export default function BondBuilder() {
 
   const handleReset = () => {
     setBondData({
-      issuer: "",
-      cusip: "",
-      isin: "",
+      issuer: "REPUBLIC OF ARGENTINA",
+      cusip: "040114HS2",
+      isin: "US040114HS26",
       faceValue: 1000,
-      couponRate: 5.0,
-      issueDate: "2024-01-15",
-      maturityDate: "2029-01-15",
-      firstCouponDate: "2024-07-15",
+      couponRate: 0.125,
+      issueDate: "2020-09-04",
+      maturityDate: "2030-07-09",
+      firstCouponDate: "2021-07-09",
       paymentFrequency: 2,
       dayCountConvention: "30/360",
       currency: "USD",
-      isAmortizing: false,
+      isAmortizing: true,
       isCallable: false,
       isPuttable: false,
-      isVariableCoupon: false,
-      settlementDays: 3,
-      amortizationSchedule: [],
+      isVariableCoupon: true,
+      settlementDays: 2,
+      amortizationSchedule: [
+        { date: "2024-07-09", principalPercent: 4 },
+        { date: "2025-01-09", principalPercent: 8 },
+        { date: "2025-07-09", principalPercent: 8 },
+        { date: "2026-01-09", principalPercent: 8 },
+        { date: "2026-07-09", principalPercent: 8 },
+        { date: "2027-01-09", principalPercent: 8 },
+        { date: "2027-07-09", principalPercent: 8 },
+        { date: "2028-01-09", principalPercent: 8 },
+        { date: "2028-07-09", principalPercent: 8 },
+        { date: "2029-01-09", principalPercent: 8 },
+        { date: "2029-07-09", principalPercent: 8 },
+        { date: "2030-01-09", principalPercent: 8 },
+        { date: "2030-07-09", principalPercent: 8 }
+      ],
       callSchedule: [],
       putSchedule: [],
+      couponRateChanges: [
+        { effectiveDate: "2021-07-09", newCouponRate: 0.5 },
+        { effectiveDate: "2023-07-09", newCouponRate: 0.75 },
+        { effectiveDate: "2027-07-09", newCouponRate: 1.75 }
+      ],
     });
     setBuildResult(null);
     setValidationErrors({});
     localStorage.removeItem("bond_draft");
     toast({
       title: "Form Reset",
-      description: "All fields cleared and localStorage reset",
+      description: "Reset to GD30 Argentina default template",
     });
   };
 
@@ -415,6 +453,12 @@ export default function BondBuilder() {
                 className="form-button-secondary text-xs terminal-text-amber"
               >
                 RESET
+              </button>
+              <button
+                onClick={() => window.location.href = '/calculator/bond_1749832694227_8aefc56'}
+                className="form-button-secondary text-xs terminal-text-blue"
+              >
+                CALC
               </button>
             </div>
             <div className="flex items-center space-x-4 text-xs">

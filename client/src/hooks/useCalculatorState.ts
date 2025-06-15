@@ -69,6 +69,19 @@ export function useCalculatorState(
     }
   }, [initialBondResult, bondResult]);
 
+  // Update price when initial bond result becomes available
+  useEffect(() => {
+    if (initialBondResult?.analytics?.cleanPrice && input.price === 100) {
+      console.log('📊 Updating initial price from bond result:', initialBondResult.analytics.cleanPrice);
+      setInputState(prev => ({
+        ...prev,
+        price: initialBondResult.analytics.cleanPrice,
+        yieldValue: initialBondResult.analytics.yieldToMaturity,
+        spread: initialBondResult.analytics.spread,
+      }));
+    }
+  }, [initialBondResult]);
+
   // Debounced calculation effect
   useEffect(() => {
     if (!bond) return;

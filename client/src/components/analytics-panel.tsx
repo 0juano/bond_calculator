@@ -201,7 +201,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
         {bond && (
           <div className="pt-2 border-t border-border">
             <button 
-              onClick={() => window.location.href = `/calculator/golden:${bond.id || 'vanilla-5y'}`}
+              onClick={() => window.location.href = `/calculator/${bond.id ? `golden:${bond.id}` : 'bond_1749832694227_8aefc56'}`}
               className="px-4 py-2 text-sm bg-green-600 text-white border border-green-500 hover:bg-green-700 transition-colors rounded"
             >
               🧮 Open in Calculator

@@ -783,7 +783,7 @@ export class MemStorage implements IStorage {
   // All coupon rates and couponRateChanges are in percentage format (e.g., 5.0 for 5%)
   private getGoldenBondDisplayName(key: string): string {
     const names: Record<string, string> = {
-      "vanilla-5y": "5Y 5.00% Vanilla Bond",
+      "vanilla-5y": "GD30 Argentina 2030 (Default)",
       "amortizing-10y": "10Y 4.50% Amortizing",
       "callable-7y": "7Y 5.25% Callable",
       "puttable-3y": "3Y 3.75% Puttable",

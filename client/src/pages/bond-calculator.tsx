@@ -8,6 +8,7 @@ import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { PricingPanel } from "@/components/calculator/pricing-panel";
 import { RiskMetricsPanel } from "@/components/calculator/risk-metrics-panel";
 import { BondSearchSelector } from "@/components/calculator/bond-search-selector";
+import { ScenarioAnalysisPanel } from "@/components/calculator/scenario-analysis-panel";
 
 export default function BondCalculator() {
   const { bondId } = useParams<{ bondId?: string }>();
@@ -332,16 +333,14 @@ export default function BondCalculator() {
         )}
 
         {/* Scenario Analysis Panel */}
-        <Card className="bg-gray-900 border-green-600">
-          <CardHeader>
-            <CardTitle className="text-green-400">Scenario Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-gray-400">
-              Scenario analysis panel coming soon...
-            </div>
-          </CardContent>
-        </Card>
+        {calculatorState.input.price && (
+          <ScenarioAnalysisPanel 
+            bond={bond}
+            currentPrice={calculatorState.input.price}
+            settlementDate={calculatorState.input.settlementDate}
+            predefinedCashFlows={predefinedCashFlows}
+          />
+        )}
       </div>
     </div>
   );

@@ -629,7 +629,7 @@ export class BondCalculatorPro {
       initialGuess + 0.1
     ].filter(p => p >= -0.99 && p <= 1.0);
     
-    const testPoints = [...new Set([...basePoints, ...guessPoints])].sort((a, b) => a - b);
+    const testPoints = Array.from(new Set([...basePoints, ...guessPoints])).sort((a, b) => a - b);
     
     console.log(`🔍 Bracket search: testing ${testPoints.length} points around guess ${(initialGuess * 100).toFixed(2)}%`);
     
