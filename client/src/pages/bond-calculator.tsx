@@ -138,9 +138,30 @@ export default function BondCalculator() {
           setPredefinedCashFlows(hasCashFlows ? bondDefinition.cashFlowSchedule : undefined);
           
           // Build the bond to get analytics with default market price
+          // Use Bloomberg reference prices for Argentina bonds
+          const argentinaDefaultPrices: Record<string, number> = {
+            'GD29': 84.10,  // Argentina 2029
+            'GD30': 80.19,  // Argentina 2030
+            'GD38': 72.25,  // Argentina 2038
+            'GD46': 66.13,  // Argentina 2046
+            'GD35': 68.24,  // Argentina 2035
+            'GD41': 63.13,  // Argentina 2041
+          };
+          
+          // Determine default price based on bond ticker or filename
+          let defaultPrice = 100; // Default to par for non-Argentina bonds
+          
+          // Check if this is an Argentina bond by filename pattern
+          const filenameMatch = bondMetadata.filename.match(/^(GD\d{2})_/);
+          if (filenameMatch) {
+            const ticker = filenameMatch[1];
+            defaultPrice = argentinaDefaultPrices[ticker] || 100;
+            console.log(`📊 Using Bloomberg reference price for ${ticker}: ${defaultPrice}`);
+          }
+          
           const buildRequest = {
             ...apiBond,
-            marketPrice: 100, // Default to par value for immediate analytics
+            marketPrice: defaultPrice,
             settlementDate: new Date().toISOString().split('T')[0]
           };
           

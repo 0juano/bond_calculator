@@ -8934,3 +8934,1334 @@ Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
   spread: 60.42478891305869
 }
 11:00:11 AM [express] POST /api/bonds/calculate 200 in 51ms :: {"analytics":{"yieldToMaturity":5.4442…
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 183,
+    "heapUsed": 119,
+    "heapTotal": 141,
+    "external": 11
+  },
+  "uptime": 59939
+}
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 34
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 34
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 22 entries
+🔍 Adding 4.545%, running total: 4.545%
+🔍 Adding 4.545%, running total: 9.09%
+🔍 Adding 4.545%, running total: 13.635%
+🔍 Adding 4.545%, running total: 18.18%
+🔍 Adding 4.545%, running total: 22.725%
+🔍 Adding 4.545%, running total: 27.270000000000003%
+🔍 Adding 4.545%, running total: 31.815000000000005%
+🔍 Adding 4.545%, running total: 36.36000000000001%
+🔍 Adding 4.545%, running total: 40.90500000000001%
+🔍 Adding 4.545%, running total: 45.45000000000001%
+🔍 Adding 4.545%, running total: 49.99500000000001%
+🔍 Adding 4.545%, running total: 54.54000000000001%
+🔍 Adding 4.545%, running total: 59.085000000000015%
+🔍 Adding 4.545%, running total: 63.63000000000002%
+🔍 Adding 4.545%, running total: 68.17500000000001%
+🔍 Adding 4.545%, running total: 72.72000000000001%
+🔍 Adding 4.545%, running total: 77.26500000000001%
+🔍 Adding 4.545%, running total: 81.81000000000002%
+🔍 Adding 4.545%, running total: 86.35500000000002%
+🔍 Adding 4.545%, running total: 90.90000000000002%
+🔍 Adding 4.545%, running total: 95.44500000000002%
+🔍 Adding 4.545%, running total: 99.99000000000002%
+🔍 Final amortization total: 99.99000000000002% (VALID)
+🔄 Using predefined cash flows: 34 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 1000,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1,
+  note: 'No amortization yet - using full face value'
+}
+💰 Cash flow filtering: Total 34 → Future 26 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 100,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2038-01-09'
+}
+🔍 Calculation inputs - Price: 100, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 100
+🔍 Price input: 100 (100.00% of face value)
+🔍 Effective dollar price: $1000 (100% of $1000)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 26,
+  price: 100,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 1000,
+  currentOutstanding: 1000,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 1000
+  - Cash Flows: 26
+  - Total CF Amount: 1387.5
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 1387.5
+  - Target Price: 1000
+  - Total Return: 1.3875
+  - Average Time: 6.49 years
+  - Simple: 5.18%, Current Yield: 34.64%, IRR: 5.44%
+  - Final Guess: 5.44%
+    Iteration 0: yield = 5.444%, error = 0.002888
+    Iteration 5: yield = 5.444%, error = 0.000000
+  ✅ Newton-Raphson converged: YTM = 5.444%
+🔄 Z-Spread Calculation:
+  - Target Price: 1000
+  - Cash Flows: 26
+  - Z-Spread converged: 61 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: { ytm: 5.444247889130587, ytw: 5.444247889130587, current: 5 },
+  risk: {
+    modifiedDuration: 5.569608443259937,
+    macaulayDuration: 5.872831733364954,
+    effectiveDuration: 5.569609242525908,
+    convexity: 46.51792409336783,
+    dv01: 0.5569608443259938
+  },
+  price: {
+    clean: 100,
+    dirty: 100,
+    cleanDollar: 1000,
+    dirtyDollar: 1000,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 7.3172270499657746,
+    totalCashFlows: 1387.5,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 25
+  },
+  spreads: { treasury: 60.42478891305869, zSpread: 60.58349609374999 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 100,
+  dirty: 100,
+  cleanDollar: 1000,
+  dirtyDollar: 1000,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 5.444247889130587,
+  duration: 5.569608443259937,
+  cleanPrice: 100,
+  spread: 60.42478891305869
+}
+11:01:14 AM [express] POST /api/bonds/calculate 200 in 56ms :: {"analytics":{"yieldToMaturity":5.4442…
+11:01:17 AM [express] GET /api/bonds/saved 304 in 15ms :: {"bonds":[{"filename":"GD29_ARGENTINA_100pc…
+11:01:17 AM [express] GET /api/bonds/saved/GD30_ARGENTINA_075pct_20300709.json 304 in 2ms :: {"metada…
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 100,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 100, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 100
+🔍 Price input: 100 (100.00% of outstanding principal)
+🔍 Effective dollar price: $880 (100% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 100,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 880
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 880
+  - Total Return: 1.0352
+  - Average Time: 2.56 years
+  - Simple: 1.36%, Current Yield: 72.10%, IRR: 1.37%
+  - Final Guess: 1.37%
+    Iteration 0: yield = 1.373%, error = 0.002139
+  ✅ Newton-Raphson converged: YTM = 1.373%
+🔄 Z-Spread Calculation:
+  - Target Price: 880
+  - Cash Flows: 11
+  - Z-Spread final: -100 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 1.3733339490651717,
+    ytw: 1.3733339490651717,
+    current: 0.7159090909090909
+  },
+  risk: {
+    modifiedDuration: 2.4871377678796,
+    macaulayDuration: 2.5212944752059125,
+    effectiveDuration: 2.48713787422919,
+    convexity: 11.053235042653402,
+    dv01: 0.21886812357340482
+  },
+  price: {
+    clean: 100,
+    dirty: 100,
+    cleanDollar: 880,
+    dirtyDollar: 880,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: -346.6666050934828, zSpread: -99.99999999999974 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 100,
+  dirty: 100,
+  cleanDollar: 880,
+  dirtyDollar: 880,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 1.3733339490651717,
+  duration: 2.4871377678796,
+  cleanPrice: 100,
+  spread: -346.6666050934828
+}
+11:01:17 AM [express] POST /api/bonds/build 200 in 26ms :: {"bond":{"issuer":"REPUBLIC OF ARGENTINA",…
+11:01:17 AM [express] GET /api/bonds/saved 304 in 1ms :: {"bonds":[{"filename":"GD29_ARGENTINA_100pct…
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 100,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 100, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 100
+🔍 Price input: 100 (100.00% of outstanding principal)
+🔍 Effective dollar price: $880 (100% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 100,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 880
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 880
+  - Total Return: 1.0352
+  - Average Time: 2.56 years
+  - Simple: 1.36%, Current Yield: 72.10%, IRR: 1.37%
+  - Final Guess: 1.37%
+    Iteration 0: yield = 1.373%, error = 0.002139
+  ✅ Newton-Raphson converged: YTM = 1.373%
+🔄 Z-Spread Calculation:
+  - Target Price: 880
+  - Cash Flows: 11
+  - Z-Spread final: -100 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 1.3733339490651717,
+    ytw: 1.3733339490651717,
+    current: 0.7159090909090909
+  },
+  risk: {
+    modifiedDuration: 2.4871377678796,
+    macaulayDuration: 2.5212944752059125,
+    effectiveDuration: 2.48713787422919,
+    convexity: 11.053235042653402,
+    dv01: 0.21886812357340482
+  },
+  price: {
+    clean: 100,
+    dirty: 100,
+    cleanDollar: 880,
+    dirtyDollar: 880,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: -346.6666050934828, zSpread: -99.99999999999974 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 100,
+  dirty: 100,
+  cleanDollar: 880,
+  dirtyDollar: 880,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 1.3733339490651717,
+  duration: 2.4871377678796,
+  cleanPrice: 100,
+  spread: -346.6666050934828
+}
+11:01:17 AM [express] POST /api/bonds/calculate 200 in 27ms :: {"analytics":{"yieldToMaturity":1.3733…
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 80,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 80, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 80
+🔍 Price input: 80 (80.00% of outstanding principal)
+🔍 Effective dollar price: $704 (80% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 80,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 704
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 704
+  - Total Return: 1.2940
+  - Average Time: 2.56 years
+  - Simple: 10.61%, Current Yield: 80.34%, IRR: 11.22%
+  - Final Guess: 11.22%
+    Iteration 0: yield = 11.222%, error = 0.000240
+    Iteration 5: yield = 11.222%, error = 0.000000
+  ✅ Newton-Raphson converged: YTM = 11.222%
+🔄 Z-Spread Calculation:
+  - Target Price: 704
+  - Cash Flows: 11
+  - Z-Spread final: 500 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 11.22185186704223,
+    ytw: 11.22185186704223,
+    current: 0.8948863636363636
+  },
+  risk: {
+    modifiedDuration: 2.061483365971711,
+    macaulayDuration: 2.2928199755647727,
+    effectiveDuration: 2.0614834353642624,
+    convexity: 8.073564850611023,
+    dv01: 0.14512842896440847
+  },
+  price: {
+    clean: 80,
+    dirty: 80,
+    cleanDollar: 704,
+    dirtyDollar: 704,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 638.1851867042229, zSpread: 499.9999999999998 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 80,
+  dirty: 80,
+  cleanDollar: 704,
+  dirtyDollar: 704,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 11.22185186704223,
+  duration: 2.061483365971711,
+  cleanPrice: 80,
+  spread: 638.1851867042229
+}
+11:01:20 AM [express] POST /api/bonds/calculate 200 in 36ms :: {"analytics":{"yieldToMaturity":11.221…
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 82,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 82, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 82
+🔍 Price input: 82 (82.00% of outstanding principal)
+🔍 Effective dollar price: $721.5999999999999 (82% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 82,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 721.5999999999999
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 721.5999999999999
+  - Total Return: 1.2625
+  - Average Time: 2.56 years
+  - Simple: 9.55%, Current Yield: 79.34%, IRR: 10.04%
+  - Final Guess: 10.04%
+    Iteration 0: yield = 10.037%, error = 0.000418
+    Iteration 5: yield = 10.037%, error = 0.000000
+  ✅ Newton-Raphson converged: YTM = 10.037%
+🔄 Z-Spread Calculation:
+  - Target Price: 721.5999999999999
+  - Cash Flows: 11
+  - Z-Spread final: 500 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 10.037185081075203,
+    ytw: 10.037185081075203,
+    current: 0.8730598669623061
+  },
+  risk: {
+    modifiedDuration: 2.1074377316029724,
+    macaulayDuration: 2.3189651571923755,
+    effectiveDuration: 2.1074378045486015,
+    convexity: 8.376234271537474,
+    dv01: 0.15207270671247047
+  },
+  price: {
+    clean: 82,
+    dirty: 82,
+    cleanDollar: 721.5999999999999,
+    dirtyDollar: 721.5999999999999,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 519.7185081075203, zSpread: 499.9999999999998 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 82,
+  dirty: 82,
+  cleanDollar: 721.5999999999999,
+  dirtyDollar: 721.5999999999999,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 10.037185081075203,
+  duration: 2.1074377316029724,
+  cleanPrice: 82,
+  spread: 519.7185081075203
+}
+11:01:25 AM [express] POST /api/bonds/calculate 200 in 35ms :: {"analytics":{"yieldToMaturity":10.037…
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 172,
+    "heapUsed": 119,
+    "heapTotal": 129,
+    "external": 11
+  },
+  "uptime": 59999
+}
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 171,
+    "heapUsed": 119,
+    "heapTotal": 129,
+    "external": 11
+  },
+  "uptime": 60059
+}
+11:03:02 AM [vite] hmr update /src/pages/bond-calculator.tsx, /src/index.css?v=ml9r0luq60-9MZWIc3OQV
+11:03:02 AM [express] GET /api/bonds/saved 304 in 2ms :: {"bonds":[{"filename":"GD29_ARGENTINA_100pct…
+11:03:02 AM [express] GET /api/bonds/saved/GD30_ARGENTINA_075pct_20300709.json 304 in 0ms :: {"metada…
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 80.19,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 80.19, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 80.19
+🔍 Price input: 80.19 (80.19% of outstanding principal)
+🔍 Effective dollar price: $705.6719999999999 (80.19% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 80.19,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 705.6719999999999
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 705.6719999999999
+  - Total Return: 1.2910
+  - Average Time: 2.56 years
+  - Simple: 10.51%, Current Yield: 80.24%, IRR: 11.11%
+  - Final Guess: 11.11%
+    Iteration 0: yield = 11.107%, error = 0.000163
+    Iteration 5: yield = 11.107%, error = 0.000000
+  ✅ Newton-Raphson converged: YTM = 11.107%
+🔄 Z-Spread Calculation:
+  - Target Price: 705.6719999999999
+  - Cash Flows: 11
+  - Z-Spread final: 500 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 11.106902817967793,
+    ytw: 11.106902817967793,
+    current: 0.892766044281196
+  },
+  risk: {
+    modifiedDuration: 2.065884948499426,
+    macaulayDuration: 2.295340782060282,
+    effectiveDuration: 2.0658850182275996,
+    convexity: 8.102354155020903,
+    dv01: 0.1457837163377487
+  },
+  price: {
+    clean: 80.19,
+    dirty: 80.19,
+    cleanDollar: 705.6719999999999,
+    dirtyDollar: 705.6719999999999,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 626.6902817967793, zSpread: 499.9999999999998 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 80.19,
+  dirty: 80.19,
+  cleanDollar: 705.6719999999999,
+  dirtyDollar: 705.6719999999999,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 11.106902817967793,
+  duration: 2.065884948499426,
+  cleanPrice: 80.19,
+  spread: 626.6902817967793
+}
+11:03:02 AM [express] POST /api/bonds/build 200 in 15ms :: {"bond":{"issuer":"REPUBLIC OF ARGENTINA",…
+11:03:02 AM [express] GET /api/bonds/saved 304 in 1ms :: {"bonds":[{"filename":"GD29_ARGENTINA_100pct…
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 186,
+    "heapUsed": 127,
+    "heapTotal": 137,
+    "external": 11
+  },
+  "uptime": 60119
+}
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 186,
+    "heapUsed": 127,
+    "heapTotal": 137,
+    "external": 11
+  },
+  "uptime": 60179
+}
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 186,
+    "heapUsed": 127,
+    "heapTotal": 137,
+    "external": 11
+  },
+  "uptime": 60239
+}
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 186,
+    "heapUsed": 127,
+    "heapTotal": 137,
+    "external": 11
+  },
+  "uptime": 60299
+}
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: undefined,
+  targetYield: 10.037,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: undefined, Yield: 10.037, Spread: undefined
+🎯 YTM → Price mode. Target YTM: 10.037
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🔄 Z-Spread Calculation:
+  - Target Price: 721.6028145884466
+  - Cash Flows: 11
+  - Z-Spread final: 500 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: { ytm: 10.037, ytw: 10.037, current: 0.8730564616205237 },
+  risk: {
+    modifiedDuration: 2.1074450144494414,
+    macaulayDuration: 2.318969270549732,
+    effectiveDuration: 2.1074450873956407,
+    convexity: 8.37628260585784,
+    dv01: 0.15207382540171063
+  },
+  price: {
+    clean: 82.0003198395962,
+    dirty: 82.0003198395962,
+    cleanDollar: 721.6028145884466,
+    dirtyDollar: 721.6028145884466,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 519.7, zSpread: 499.9999999999998 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 82.0003198395962,
+  dirty: 82.0003198395962,
+  cleanDollar: 721.6028145884466,
+  dirtyDollar: 721.6028145884466,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 10.037,
+  duration: 2.1074450144494414,
+  cleanPrice: 82.0003198395962,
+  spread: 519.7
+}
+11:07:24 AM [express] POST /api/bonds/calculate 200 in 21ms :: {"analytics":{"yieldToMaturity":10.037…
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 82.82,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 82.82, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 82.82
+🔍 Price input: 82.82 (82.82% of outstanding principal)
+🔍 Effective dollar price: $728.8159999999999 (82.82% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 82.82,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 728.8159999999999
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 728.8159999999999
+  - Total Return: 1.2500
+  - Average Time: 2.56 years
+  - Simple: 9.12%, Current Yield: 78.94%, IRR: 9.57%
+  - Final Guess: 9.57%
+    Iteration 0: yield = 9.567%, error = 0.000004
+  ✅ Newton-Raphson converged: YTM = 9.567%
+🔄 Z-Spread Calculation:
+  - Target Price: 728.8159999999999
+  - Cash Flows: 11
+  - Z-Spread converged: 475 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 9.567102925356142,
+    ytw: 9.567102925356142,
+    current: 0.8644157098636693
+  },
+  risk: {
+    modifiedDuration: 2.1260409312508965,
+    macaulayDuration: 2.3294414553788703,
+    effectiveDuration: 2.126041005663878,
+    convexity: 8.500077858929371,
+    dv01: 0.15494926473505533
+  },
+  price: {
+    clean: 82.82,
+    dirty: 82.82,
+    cleanDollar: 728.8159999999999,
+    dirtyDollar: 728.8159999999999,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 472.71029253561426, zSpread: 474.65820312500006 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 82.82,
+  dirty: 82.82,
+  cleanDollar: 728.8159999999999,
+  dirtyDollar: 728.8159999999999,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 9.567102925356142,
+  duration: 2.1260409312508965,
+  cleanPrice: 82.82,
+  spread: 472.71029253561426
+}
+11:07:27 AM [express] POST /api/bonds/calculate 200 in 34ms :: {"analytics":{"yieldToMaturity":9.5671…
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 82,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 82, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 82
+🔍 Price input: 82 (82.00% of outstanding principal)
+🔍 Effective dollar price: $721.5999999999999 (82% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 82,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 721.5999999999999
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 721.5999999999999
+  - Total Return: 1.2625
+  - Average Time: 2.56 years
+  - Simple: 9.55%, Current Yield: 79.34%, IRR: 10.04%
+  - Final Guess: 10.04%
+    Iteration 0: yield = 10.037%, error = 0.000418
+    Iteration 5: yield = 10.037%, error = 0.000000
+  ✅ Newton-Raphson converged: YTM = 10.037%
+🔄 Z-Spread Calculation:
+  - Target Price: 721.5999999999999
+  - Cash Flows: 11
+  - Z-Spread final: 500 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 10.037185081075203,
+    ytw: 10.037185081075203,
+    current: 0.8730598669623061
+  },
+  risk: {
+    modifiedDuration: 2.1074377316029724,
+    macaulayDuration: 2.3189651571923755,
+    effectiveDuration: 2.1074378045486015,
+    convexity: 8.376234271537474,
+    dv01: 0.15207270671247047
+  },
+  price: {
+    clean: 82,
+    dirty: 82,
+    cleanDollar: 721.5999999999999,
+    dirtyDollar: 721.5999999999999,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 519.7185081075203, zSpread: 499.9999999999998 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 82,
+  dirty: 82,
+  cleanDollar: 721.5999999999999,
+  dirtyDollar: 721.5999999999999,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 10.037185081075203,
+  duration: 2.1074377316029724,
+  cleanPrice: 82,
+  spread: 519.7185081075203
+}
+11:07:42 AM [express] POST /api/bonds/calculate 200 in 38ms :: {"analytics":{"yieldToMaturity":10.037…
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 179,
+    "heapUsed": 125,
+    "heapTotal": 130,
+    "external": 11
+  },
+  "uptime": 60359
+}
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 82.82,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 82.82, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 82.82
+🔍 Price input: 82.82 (82.82% of outstanding principal)
+🔍 Effective dollar price: $728.8159999999999 (82.82% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 82.82,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 728.8159999999999
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 728.8159999999999
+  - Total Return: 1.2500
+  - Average Time: 2.56 years
+  - Simple: 9.12%, Current Yield: 78.94%, IRR: 9.57%
+  - Final Guess: 9.57%
+    Iteration 0: yield = 9.567%, error = 0.000004
+  ✅ Newton-Raphson converged: YTM = 9.567%
+🔄 Z-Spread Calculation:
+  - Target Price: 728.8159999999999
+  - Cash Flows: 11
+  - Z-Spread converged: 475 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 9.567102925356142,
+    ytw: 9.567102925356142,
+    current: 0.8644157098636693
+  },
+  risk: {
+    modifiedDuration: 2.1260409312508965,
+    macaulayDuration: 2.3294414553788703,
+    effectiveDuration: 2.126041005663878,
+    convexity: 8.500077858929371,
+    dv01: 0.15494926473505533
+  },
+  price: {
+    clean: 82.82,
+    dirty: 82.82,
+    cleanDollar: 728.8159999999999,
+    dirtyDollar: 728.8159999999999,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 472.71029253561426, zSpread: 474.65820312500006 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 82.82,
+  dirty: 82.82,
+  cleanDollar: 728.8159999999999,
+  dirtyDollar: 728.8159999999999,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 9.567102925356142,
+  duration: 2.1260409312508965,
+  cleanPrice: 82.82,
+  spread: 472.71029253561426
+}
+11:08:02 AM [express] POST /api/bonds/calculate 200 in 32ms :: {"analytics":{"yieldToMaturity":9.5671…
+📊 Calculate request received with predefinedCashFlows? true
+📊 Number of predefined cash flows: 19
+📊 Parsed bond data has predefinedCashFlows? true
+🔍 buildBond received bond with predefinedCashFlows: 19
+🔍 Bond issuer: REPUBLIC OF ARGENTINA, features: { isAmortizing: true, isVariableCoupon: true }
+🔍 Validating amortization schedule with 13 entries
+🔍 Adding 4%, running total: 4%
+🔍 Adding 8%, running total: 12%
+🔍 Adding 8%, running total: 20%
+🔍 Adding 8%, running total: 28%
+🔍 Adding 8%, running total: 36%
+🔍 Adding 8%, running total: 44%
+🔍 Adding 8%, running total: 52%
+🔍 Adding 8%, running total: 60%
+🔍 Adding 8%, running total: 68%
+🔍 Adding 8%, running total: 76%
+🔍 Adding 8%, running total: 84%
+🔍 Adding 8%, running total: 92%
+🔍 Adding 8%, running total: 100%
+🔍 Final amortization total: 100% (VALID)
+🔄 Using predefined cash flows: 19 flows
+🔢 Market inputs provided, calculating full analytics
+🚀 Using production bond calculator engine
+🔍 OUTSTANDING PRINCIPAL CALCULATION: {
+  originalFaceValue: 1000,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 0.88,
+  note: 'Using actual outstanding principal after amortization'
+}
+💰 Cash flow filtering: Total 19 → Future 11 (settlement: 2025-06-15)
+📥 Backend received: {
+  marketPrice: 81.18,
+  targetYield: undefined,
+  targetSpread: undefined,
+  issuer: 'REPUBLIC OF ARGENTINA',
+  maturityDate: '2030-07-09'
+}
+🔍 Calculation inputs - Price: 81.18, Yield: undefined, Spread: undefined
+🎯 Price → YTM mode. Market Price: 81.18
+🔍 Price input: 81.18 (81.18% of outstanding principal)
+🔍 Effective dollar price: $714.384 (81.18% of $880)
+🔍 CALLING CALCULATOR ANALYZE with: {
+  bondCashFlowCount: 11,
+  price: 81.18,
+  settlementDate: '2025-06-15',
+  hasTreasuryCurve: true
+}
+🔍 OUTSTANDING PRINCIPAL DEBUG: {
+  faceValue: 880,
+  currentOutstanding: 880,
+  settlementDate: '2025-06-15',
+  outstandingRatio: 1
+}
+🎯 YTM Solver Starting:
+  - Target Price: 714.384
+  - Cash Flows: 11
+  - Total CF Amount: 911
+  🔧 Trying Newton-Raphson algorithm...
+💡 Enhanced Initial YTM Guess:
+  - Total CFs: 911
+  - Target Price: 714.384
+  - Total Return: 1.2752
+  - Average Time: 2.56 years
+  - Simple: 9.98%, Current Yield: 79.74%, IRR: 10.52%
+  - Final Guess: 10.52%
+    Iteration 0: yield = 10.516%, error = 0.000008
+  ✅ Newton-Raphson converged: YTM = 10.516%
+🔄 Z-Spread Calculation:
+  - Target Price: 714.384
+  - Cash Flows: 11
+  - Z-Spread final: 500 bps
+🔍 RAW CALCULATOR RESULT: {
+  yields: {
+    ytm: 10.516217491922887,
+    ytw: 10.516217491922887,
+    current: 0.8818786534972787
+  },
+  risk: {
+    modifiedDuration: 2.088696957221897,
+    macaulayDuration: 2.308348871990527,
+    effectiveDuration: 2.088697028706414,
+    convexity: 8.252242023840466,
+    dv01: 0.14921316870880078
+  },
+  price: {
+    clean: 81.18,
+    dirty: 81.18,
+    cleanDollar: 714.384,
+    dirtyDollar: 714.384,
+    accruedInterest: 0
+  },
+  analytics: {
+    averageLife: 2.567108456225499,
+    totalCashFlows: 911,
+    daysToNextPayment: 24,
+    nextPaymentDate: '2025-07-09',
+    nextPaymentAmount: 83.3
+  },
+  spreads: { treasury: 567.6217491922888, zSpread: 499.9999999999998 }
+}
+🔍 PRICE FIELD DETAILED: {
+  clean: 81.18,
+  dirty: 81.18,
+  cleanDollar: 714.384,
+  dirtyDollar: 714.384,
+  accruedInterest: 0
+}
+✅ FINAL ANALYTICS: {
+  ytm: 10.516217491922887,
+  duration: 2.088696957221897,
+  cleanPrice: 81.18,
+  spread: 567.6217491922888
+}
+11:08:10 AM [express] POST /api/bonds/calculate 200 in 35ms :: {"analytics":{"yieldToMaturity":10.516…
+[36m[INFO][0m System performance metrics {
+  "memoryUsage": {
+    "rss": 180,
+    "heapUsed": 125,
+    "heapTotal": 132,
+    "external": 11
+  },
+  "uptime": 60419
+}
