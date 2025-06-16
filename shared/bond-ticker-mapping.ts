@@ -25,8 +25,8 @@ const ISIN_TO_DATA912: Record<string, string> = {
   'US040114HX11': 'GD29D', // Argentina 1% 2029
   'US040114HS26': 'GD30D', // Argentina 0.125% 2030
   'US040114HT09': 'GD35D', // Argentina 4.125% 2035
-  'US040114HV64': 'GD41D', // Argentina 0.125% 2041
-  'US040114HW47': 'GD46D', // Argentina 0.125% 2046
+  'US040114HV54': 'GD41D', // Argentina 4.875% 2041
+  'US040114HW38': 'GD46D', // Argentina 5% 2046
 };
 
 // Reverse ISIN mapping
