@@ -181,7 +181,8 @@ export class BondCalculatorPro {
       // Price given, calculate yield
       dirtyPrice = price;
       cleanPrice = dirtyPrice - accruedPercent;
-      const dirtyDollar = (dirtyPrice / 100) * currentOutstanding;
+      // Price should be interpreted as percentage of original face value
+      const dirtyDollar = (dirtyPrice / 100) * bond.faceValue;
       
       
       const ytmResult = this.calculateYTM(futureCFs, dirtyDollar, settlementDate);
@@ -196,7 +197,7 @@ export class BondCalculatorPro {
       // Yield given, calculate price
       ytm = inputYield;
       const dirtyDollar = this.calculatePresentValue(futureCFs, ytm, settlementDate);
-      dirtyPrice = (dirtyDollar / currentOutstanding) * 100;
+      dirtyPrice = (dirtyDollar / bond.faceValue) * 100;
       cleanPrice = dirtyPrice - accruedPercent;
       convergenceInfo = {
         algorithm: 'Direct PV',
@@ -237,15 +238,7 @@ export class BondCalculatorPro {
       };
     }
     
-    // Calculate Technical Value and Parity
-    const technicalValue = this.calculatePresentValue(futureCFs, ytm, settlementDate);
-    const parity = (technicalValue / currentOutstanding) * 100;
-    
-    console.log(`🔧 Technical Value Calculation:`, {
-      technicalValue: technicalValue.toFixed(2),
-      currentOutstanding: currentOutstanding.toFixed(2),
-      parity: parity.toFixed(4)
-    });
+    // Technical Value and Parity will be calculated in server storage layer
 
     // Build result
     return {
@@ -257,9 +250,9 @@ export class BondCalculatorPro {
         accruedInterest
       },
       yields: {
-        ytm: ytm * 100,
-        ytw: ytm * 100, // TODO: Handle callable bonds
-        current: currentYield * 100
+        ytm: ytm,
+        ytw: ytm, // TODO: Handle callable bonds
+        current: currentYield
       },
       risk: {
         modifiedDuration: durations.modified,
@@ -274,9 +267,7 @@ export class BondCalculatorPro {
         totalCashFlows: futureCFs.reduce((sum, cf) => sum + cf.amount, 0),
         daysToNextPayment: nextPayment.days,
         nextPaymentDate: nextPayment.date,
-        nextPaymentAmount: nextPayment.amount,
-        technicalValue,
-        parity
+        nextPaymentAmount: nextPayment.amount
       },
       metadata: {
         calculationDate: new Date().toISOString(),

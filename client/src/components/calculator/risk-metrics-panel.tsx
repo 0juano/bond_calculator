@@ -13,6 +13,9 @@ interface RiskMetricsPanelProps {
  * Shows duration, convexity, and other risk measures in a clean grid
  */
 export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMetricsPanelProps) {
+  // Debug: Log analytics to console
+  console.log('🔍 RiskMetricsPanel analytics:', analytics);
+  
   // Helper function to format percentage values
   const formatPercent = (value?: number, decimals = 3) => {
     if (value === undefined || value === null) return 'N/A';
@@ -145,24 +148,24 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             )}
 
             {/* Technical Value */}
-            {analytics?.technicalValue !== undefined && (
+            {analytics && typeof analytics.technicalValue === 'number' && (
               <div className="space-y-1">
                 <p className="text-xs text-gray-400">Technical Value</p>
                 <p className="text-lg font-mono text-green-400">
-                  ${formatNumber(analytics.technicalValue, 2)}
+                  {formatNumber(analytics.technicalValue, 2)}%
                 </p>
-                <p className="text-xs text-gray-500">Present value at YTM</p>
+                <p className="text-xs text-gray-500">Principal + accrued interest</p>
               </div>
             )}
 
             {/* Parity */}
-            {analytics?.parity !== undefined && (
+            {analytics && typeof analytics.parity === 'number' && (
               <div className="space-y-1">
                 <p className="text-xs text-gray-400">Parity</p>
                 <p className="text-lg font-mono text-green-400">
                   {formatNumber(analytics.parity, 4)}%
                 </p>
-                <p className="text-xs text-gray-500">Technical Value vs Outstanding</p>
+                <p className="text-xs text-gray-500">Clean price % of technical value</p>
               </div>
             )}
           </div>

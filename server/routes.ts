@@ -6,6 +6,8 @@ import { z } from "zod";
 import { fetchUSTCurve, type USTCurveData } from "./ust-curve";
 import { BondStorageService } from "./bond-storage";
 import { BondJsonUtils } from "../shared/bond-definition";
+import { getLatestPrice, getAllPrices, getCacheStatus } from "./data912-service";
+import { getData912Symbol, getBloombergReferencePrice, isData912Supported } from "../shared/bond-ticker-mapping";
 
 // In-memory cache for UST curve data
 let ustCurveCache: { data: USTCurveData; timestamp: number } | null = null;
@@ -68,6 +70,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Duplicate test error:", error);
       res.status(500).json({ error: error instanceof Error ? error.message : "Test failed" });
+    }
+  });
+
+  // Get live bond price from data912.com
+  app.get("/api/bonds/live-price/:symbol", async (req, res) => {
+    console.log(`🔍 DEBUG: Live price endpoint hit for symbol: ${req.params.symbol}`);
+    try {
+      const { symbol } = req.params;
+      
+      console.log(`📊 Live price request for: ${symbol}`);
+      
+      // Get live price from data912
+      const livePrice = await getLatestPrice(symbol);
+      const cacheStatus = getCacheStatus();
+      
+      // Fallback to Bloomberg reference price if live price unavailable
+      const fallbackPrice = getBloombergReferencePrice(symbol);
+      
+      const response = {
+        symbol,
+        livePrice,
+        fallbackPrice,
+        priceSource: livePrice ? 'live' : (fallbackPrice ? 'reference' : 'unavailable'),
+        price: livePrice || fallbackPrice,
+        cacheStatus,
+        timestamp: new Date().toISOString()
+      };
+      
+      if (!response.price) {
+        return res.status(404).json({
+          error: `No price available for ${symbol}`,
+          ...response
+        });
+      }
+      
+      res.json(response);
+      
+    } catch (error) {
+      console.error("Live price fetch error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to fetch live price" 
+      });
+    }
+  });
+
+  // Get live prices for all supported bonds
+  app.get("/api/bonds/live-prices", async (req, res) => {
+    try {
+      console.log('📊 Bulk live prices request');
+      
+      const allPrices = await getAllPrices();
+      const cacheStatus = getCacheStatus();
+      
+      // Include fallback prices for bonds without live data
+      const pricesWithFallback = new Map(allPrices);
+      
+      // Add Bloomberg reference prices for any missing bonds
+      const supportedSymbols = ['GD29D', 'GD30D', 'GD35D', 'GD38D', 'GD41D', 'GD46D'];
+      for (const symbol of supportedSymbols) {
+        if (!pricesWithFallback.has(symbol)) {
+          const fallbackPrice = getBloombergReferencePrice(symbol);
+          if (fallbackPrice) {
+            pricesWithFallback.set(symbol, fallbackPrice);
+          }
+        }
+      }
+      
+      const response = {
+        prices: Object.fromEntries(pricesWithFallback),
+        liveCount: allPrices.size,
+        totalCount: pricesWithFallback.size,
+        cacheStatus,
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json(response);
+      
+    } catch (error) {
+      console.error("Bulk live prices fetch error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to fetch live prices" 
+      });
+    }
+  });
+
+  // Check if bond supports live pricing
+  app.post("/api/bonds/check-live-support", async (req, res) => {
+    try {
+      const { ticker, isin, issuer } = req.body;
+      
+      const data912Symbol = getData912Symbol(ticker, isin, issuer);
+      const isSupported = isData912Supported(ticker, isin, issuer);
+      const fallbackPrice = data912Symbol ? getBloombergReferencePrice(data912Symbol) : null;
+      
+      res.json({
+        isSupported,
+        data912Symbol,
+        fallbackPrice,
+        canUseLivePrice: isSupported
+      });
+      
+    } catch (error) {
+      console.error("Live support check error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to check live price support" 
+      });
     }
   });
 

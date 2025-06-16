@@ -29,6 +29,7 @@ export interface CalculatorState {
   unlockField: () => void;
   resetToMarket: () => void;
   runScenario: (shockBp: number) => void;
+  fetchLivePrice: (ticker?: string, isin?: string, issuer?: string) => Promise<{ price: number; source: 'live' | 'reference' | 'default' }>;
 }
 
 export function useCalculatorState(
@@ -82,58 +83,107 @@ export function useCalculatorState(
     }
   }, [initialBondResult]);
 
+  // Fetch live price for a bond
+  const fetchLivePrice = useCallback(async (
+    ticker?: string,
+    isin?: string,
+    issuer?: string
+  ): Promise<{ price: number; source: 'live' | 'reference' | 'default' }> => {
+    
+    try {
+      // Check if bond supports live pricing
+      const supportResponse = await fetch('/api/bonds/check-live-support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, isin, issuer })
+      });
+      
+      if (!supportResponse.ok) {
+        throw new Error('Failed to check live price support');
+      }
+      
+      const supportInfo = await supportResponse.json();
+      
+      if (!supportInfo.isSupported) {
+        console.log(`📊 Live pricing not supported for ${ticker || 'bond'}, using default`);
+        return { price: 100, source: 'default' };
+      }
+      
+      // Fetch live price
+      const priceResponse = await fetch(`/api/bonds/live-price/${supportInfo.data912Symbol}`);
+      
+      if (!priceResponse.ok) {
+        throw new Error('Failed to fetch live price');
+      }
+      
+      const priceData = await priceResponse.json();
+      
+      console.log(`📊 Fetched ${priceData.priceSource} price for ${supportInfo.data912Symbol}: ${priceData.price}`);
+      
+      return {
+        price: priceData.price,
+        source: priceData.priceSource === 'live' ? 'live' : 'reference'
+      };
+      
+    } catch (error) {
+      console.warn('Failed to fetch live price:', error);
+      
+      // Bloomberg fallback prices (updated to current market levels)
+      const bloombergRefPrices: Record<string, number> = {
+        'GD29D': 74.93,  'GD30D': 69.40,  'GD35D': 68.40,
+        'GD38D': 73.10,  'GD41D': 63.40,  'GD46D': 65.78
+      };
+      
+      // Try to extract ticker for fallback
+      if (issuer?.includes('ARGENTINA')) {
+        const maturityYear = bond?.maturityDate ? new Date(bond.maturityDate).getFullYear() : null;
+        const tickerMap: Record<number, string> = {
+          2029: 'GD29D', 2030: 'GD30D', 2035: 'GD35D',
+          2038: 'GD38D', 2041: 'GD41D', 2046: 'GD46D'
+        };
+        
+        if (maturityYear && tickerMap[maturityYear]) {
+          const fallbackTicker = tickerMap[maturityYear];
+          const fallbackPrice = bloombergRefPrices[fallbackTicker];
+          if (fallbackPrice) {
+            console.log(`📊 Using Bloomberg fallback price for ${fallbackTicker}: ${fallbackPrice}`);
+            return { price: fallbackPrice, source: 'reference' };
+          }
+        }
+      }
+      
+      return { price: 100, source: 'default' };
+    }
+  }, [bond?.maturityDate]);
+
   // Reset calculator state when bond changes (for bond switching)
   useEffect(() => {
     if (!bond) return;
     
-    // Bloomberg reference prices for Argentina bonds
-    const bloombergRefPrices: Record<string, number> = {
-      'GD29': 84.10,  // Argentina 2029
-      'GD30': 80.19,  // Argentina 2030
-      'GD38': 72.25,  // Argentina 2038
-      'GD46': 66.13,  // Argentina 2046
-      'GD35': 68.24,  // Argentina 2035
-      'GD41': 63.13,  // Argentina 2041
+    const initializeBondPrice = async () => {
+      console.log(`🔄 Bond changed to ${bond.issuer} - fetching market price`);
+      calculationCount.current = 0; // Reset calculation counter
+      
+      // Fetch live price for the bond
+      const priceInfo = await fetchLivePrice(undefined, bond.isin || undefined, bond.issuer);
+      
+      console.log(`📊 Initialized ${bond.issuer} with ${priceInfo.source} price: ${priceInfo.price}`);
+      
+      // Reset calculator state for new bond
+      setInputState(prev => ({
+        ...prev,
+        price: priceInfo.price,
+        yieldValue: undefined, // Clear yield to recalculate from price
+        spread: undefined,     // Clear spread to recalculate from price
+        lockedField: 'PRICE',  // Reset to price mode
+        calculationId: undefined // Clear calculationId to trigger fresh calculation
+      }));
+      
+      setError(undefined); // Clear any previous errors
     };
     
-    // Determine appropriate market price for the new bond
-    let marketPrice = 100; // Default to par for non-Argentina bonds
-    
-    if (bond.issuer === 'REPUBLIC OF ARGENTINA') {
-      // Try to extract ticker from bond maturity year
-      const maturityYear = bond.maturityDate ? new Date(bond.maturityDate).getFullYear() : null;
-      
-      const tickerMap: Record<number, string> = {
-        2029: 'GD29',
-        2030: 'GD30',
-        2035: 'GD35',
-        2038: 'GD38',
-        2041: 'GD41',
-        2046: 'GD46'
-      };
-      
-      if (maturityYear && tickerMap[maturityYear]) {
-        const ticker = tickerMap[maturityYear];
-        marketPrice = bloombergRefPrices[ticker] || 100;
-        console.log(`📊 Bond switch: Setting Bloomberg reference price for ${ticker}: ${marketPrice}`);
-      }
-    }
-    
-    // Reset calculator state for new bond
-    console.log(`🔄 Bond changed to ${bond.issuer} - resetting calculator state`);
-    calculationCount.current = 0; // Reset calculation counter
-    
-    setInputState(prev => ({
-      ...prev,
-      price: marketPrice,
-      yieldValue: undefined, // Clear yield to recalculate from price
-      spread: undefined,     // Clear spread to recalculate from price
-      lockedField: 'PRICE',  // Reset to price mode
-      calculationId: undefined // Clear calculationId to trigger fresh calculation
-    }));
-    
-    setError(undefined); // Clear any previous errors
-  }, [bond?.issuer, bond?.maturityDate]); // Watch for bond changes by issuer and maturity date
+    initializeBondPrice();
+  }, [bond?.issuer, bond?.maturityDate, bond?.isin, fetchLivePrice]); // Watch for bond changes
 
   // Debounced calculation effect
   useEffect(() => {
@@ -530,5 +580,6 @@ export function useCalculatorState(
     unlockField,
     resetToMarket,
     runScenario,
+    fetchLivePrice,
   };
 } 

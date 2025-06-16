@@ -687,15 +687,18 @@ export class MemStorage implements IStorage {
       
       
       // Validate calculation results to catch unrealistic values
-      if (result.yields.ytm > 50) {
-        console.error(`❌ Unrealistic YTM calculated: ${result.yields.ytm.toFixed(2)}%`);
+      // YTM is now returned as decimal, so convert to percentage for validation
+      const ytmPercent = result.yields.ytm * 100;
+      
+      if (ytmPercent > 50) {
+        console.error(`❌ Unrealistic YTM calculated: ${ytmPercent.toFixed(2)}%`);
         console.error(`❌ This suggests a price conversion error. Bond: ${bond.issuer}, Price: ${marketPrice}`);
-        throw new Error(`Calculation error: YTM of ${result.yields.ytm.toFixed(2)}% is unrealistic. Check price input format.`);
+        throw new Error(`Calculation error: YTM of ${ytmPercent.toFixed(2)}% is unrealistic. Check price input format.`);
       }
       
-      if (result.yields.ytm < -10) {
-        console.error(`❌ Negative YTM calculated: ${result.yields.ytm.toFixed(2)}%`);
-        throw new Error(`Calculation error: Negative YTM of ${result.yields.ytm.toFixed(2)}% suggests invalid inputs.`);
+      if (ytmPercent < -10) {
+        console.error(`❌ Negative YTM calculated: ${ytmPercent.toFixed(2)}%`);
+        throw new Error(`Calculation error: Negative YTM of ${ytmPercent.toFixed(2)}% suggests invalid inputs.`);
       }
       
       // DEBUG: Log calculator result before conversion
@@ -722,8 +725,8 @@ export class MemStorage implements IStorage {
         .reduce((sum, cf) => sum + cf.couponPayment, 0);
       
       const analytics = {
-        yieldToMaturity: result.yields?.ytm || 0,
-        yieldToWorst: result.yields?.ytw || 0,
+        yieldToMaturity: (result.yields?.ytm || 0) * 100, // Convert decimal to percentage
+        yieldToWorst: (result.yields?.ytw || 0) * 100, // Convert decimal to percentage
         duration: result.risk?.modifiedDuration || 0,
         macaulayDuration: result.risk?.macaulayDuration || 0,
         averageLife: result.analytics?.averageLife || 0,
@@ -739,9 +742,9 @@ export class MemStorage implements IStorage {
         dollarDuration: result.risk?.dv01 || 0,
         currentYield: result.yields?.current || 0,
         spread: result.spreads ? result.spreads.treasury : undefined, // Keep in bps
-        // Technical value metrics
-        technicalValue: result.analytics?.technicalValue || 0,
-        parity: result.analytics?.parity || 0
+        // Technical value metrics - calculated here with correct values
+        technicalValue: (currentOutstanding / bond.faceValue) * 100, // Technical Value as % of face value
+        parity: (result.price?.clean || 0) / ((currentOutstanding / bond.faceValue) * 100) * 100 // Parity: clean price % of technical value
       };
       
       console.log(`✅ FINAL ANALYTICS:`, {
