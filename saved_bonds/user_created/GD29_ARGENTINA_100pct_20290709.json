@@ -1,0 +1,67 @@
+{
+  "metadata": {
+    "id": "bond_1749833004123_e4c5f77",
+    "name": "ARGENT 1 29",
+    "created": "2025-06-13T16:23:24.123Z",
+    "modified": "2025-06-13T16:31:57.000Z",
+    "version": "1.1",
+    "source": "PROSPECTUS_PARSED"
+  },
+  "bondInfo": {
+    "ticker": "ARGENT 1 29",
+    "issuer": "REPUBLIC OF ARGENTINA",
+    "cusip": "040114HX1",
+    "isin": "US040114HX11",
+    "faceValue": 1000,
+    "couponRate": 1.000,
+    "issueDate": "2020-09-04",
+    "maturityDate": "2029-07-09",
+    "firstCouponDate": "2021-07-09",
+    "paymentFrequency": 2,
+    "dayCountConvention": "30/360",
+    "currency": "USD",
+    "settlementDays": 2
+  },
+  "features": {
+    "isAmortizing": true,
+    "isCallable": false,
+    "isPuttable": false,
+    "isVariableCoupon": false,
+    "isInflationLinked": false,
+    "hasStepUpCoupon": false
+  },
+  "cashFlowSchedule": [
+    { "date": "2021-07-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2022-01-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2022-07-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2023-01-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2023-07-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2024-01-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2024-07-09", "couponPayment": 5.000, "principalPayment": 0.000, "totalPayment": 5.000, "remainingNotional": 1000.000, "paymentType": "COUPON" },
+    { "date": "2025-01-09", "couponPayment": 5.000, "principalPayment": 100.000, "totalPayment": 105.000, "remainingNotional": 900.000, "paymentType": "AMORTIZATION" },
+    { "date": "2025-07-09", "couponPayment": 4.500, "principalPayment": 100.000, "totalPayment": 104.500, "remainingNotional": 800.000, "paymentType": "AMORTIZATION" },
+    { "date": "2026-01-09", "couponPayment": 4.000, "principalPayment": 100.000, "totalPayment": 104.000, "remainingNotional": 700.000, "paymentType": "AMORTIZATION" },
+    { "date": "2026-07-09", "couponPayment": 3.500, "principalPayment": 100.000, "totalPayment": 103.500, "remainingNotional": 600.000, "paymentType": "AMORTIZATION" },
+    { "date": "2027-01-09", "couponPayment": 3.000, "principalPayment": 100.000, "totalPayment": 103.000, "remainingNotional": 500.000, "paymentType": "AMORTIZATION" },
+    { "date": "2027-07-09", "couponPayment": 2.500, "principalPayment": 100.000, "totalPayment": 102.500, "remainingNotional": 400.000, "paymentType": "AMORTIZATION" },
+    { "date": "2028-01-09", "couponPayment": 2.000, "principalPayment": 100.000, "totalPayment": 102.000, "remainingNotional": 300.000, "paymentType": "AMORTIZATION" },
+    { "date": "2028-07-09", "couponPayment": 1.500, "principalPayment": 100.000, "totalPayment": 101.500, "remainingNotional": 200.000, "paymentType": "AMORTIZATION" },
+    { "date": "2029-01-09", "couponPayment": 1.000, "principalPayment": 100.000, "totalPayment": 101.000, "remainingNotional": 100.000, "paymentType": "AMORTIZATION" },
+    { "date": "2029-07-09", "couponPayment": 0.500, "principalPayment": 100.000, "totalPayment": 100.500, "remainingNotional": 0.000, "paymentType": "MATURITY" }
+  ],
+  "schedules": {
+    "amortizationSchedule": [
+      { "date": "2025-01-09", "principalPercent": 10.000 },
+      { "date": "2025-07-09", "principalPercent": 10.000 },
+      { "date": "2026-01-09", "principalPercent": 10.000 },
+      { "date": "2026-07-09", "principalPercent": 10.000 },
+      { "date": "2027-01-09", "principalPercent": 10.000 },
+      { "date": "2027-07-09", "principalPercent": 10.000 },
+      { "date": "2028-01-09", "principalPercent": 10.000 },
+      { "date": "2028-07-09", "principalPercent": 10.000 },
+      { "date": "2029-01-09", "principalPercent": 10.000 },
+      { "date": "2029-07-09", "principalPercent": 10.000 }
+    ],
+    "couponRateChanges": []
+  }
+}

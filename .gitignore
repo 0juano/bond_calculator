@@ -12,10 +12,10 @@ vite.config.ts.*
 .env.test.local
 .env.production.local
 
-# Saved bonds - ignore individual files but keep structure
-saved_bonds/user_created/*.json
-saved_bonds/golden_bonds/*.json
-saved_bonds/imported/*.json
+# Saved bonds - keep all bond files in git for sharing
+# saved_bonds/user_created/*.json
+# saved_bonds/golden_bonds/*.json
+# saved_bonds/imported/*.json
 
 # Logs
 server.log
