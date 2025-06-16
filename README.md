@@ -103,19 +103,23 @@ bond_calculator/
 ├── tests/                   # Test files and debugging ✨ NEW
 │   ├── unit/                # Unit tests
 │   ├── integration/         # Integration tests
-│   ├── debug/               # Debug scripts
+│   ├── debug/               # Debug scripts and HTML test files
 │   └── README.md            # Test documentation
 ├── logs/                    # Server logs ✨ NEW
 │   └── README.md            # Log documentation
 ├── docs/                    # Documentation
 │   ├── bond-json-specification.md  # Bond JSON format spec v1.1
-│   └── bloomberg-reference-data.md # Market validation data
+│   ├── bloomberg-reference-data.md # Market validation data
+│   └── todo.md              # Comprehensive development roadmap
 ├── saved_bonds/             # JSON bond repository
 │   ├── user_created/        # User-created bonds
 │   └── imported/            # Imported bond files
 ├── scripts/                 # Utility scripts
 │   ├── fetch-prices.ts      # Argentina bond price fetcher
-│   └── fetch-prices-detailed.ts # Detailed price data
+│   ├── fetch-prices-detailed.ts # Detailed price data
+│   └── curve.sh             # Treasury curve fetcher script
+├── assets/                  # Static assets ✨ NEW
+│   └── generated-icon.png   # Project icon
 ├── package.json             # Dependencies and scripts
 ├── vite.config.ts          # Vite configuration
 ├── tailwind.config.ts      # Tailwind CSS configuration
