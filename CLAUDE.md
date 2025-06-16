@@ -1,28 +1,19 @@
 # Claude Code Project Memory
 
-This repository is a TypeScript/React project with an Express backend for bond calculations and analytics.
+TypeScript/React bond calculator project with Express backend.
 
 @docs/ADDING_BONDS.md
 @docs/bond-json-specification.md
 @docs/bloomberg-reference-data.md
 
-## Development Commands
-- Install dependencies: `npm install`
-- Dev server: `npm run dev` 
-- Type checking: `npm run check` (required before commits)
-- Build verification: `npm run build`
-- Treasury data: `npm run curve` or `./curve.sh`
+## Commands
+- `npm run dev` - Dev server
+- `npm run check` - Type checking (required before commits)
+- `npm run build` - Build verification
 
-## Code Standards
-- TypeScript with strict type checking
-- Kebab-case/camelCase naming conventions
-- Prettier-compatible formatting (no explicit config)
-- Use `decimal.js` for financial calculations (precision-safe)
-- Follow existing patterns in neighboring components
-
-## Commits and PRs
-- Write clear, descriptive commit messages.
-- Summarize your changes in the pull request description.
+## Standards
+- TypeScript strict mode, `decimal.js` for calculations
+- Follow existing patterns, Prettier formatting
 
 # BOND CALCULATOR AGENT PRINCIPLES
 
@@ -134,9 +125,10 @@ Follow the comprehensive specification in `docs/bond-json-specification.md`:
 ## 🧪 Testing Requirements
 
 ### Before claiming calculator fixes work:
-1. **Test with MCP** - Use web browsing to verify actual results
-2. **Compare to Bloomberg data** - Check against reference values
-3. **Test edge cases** - Try different price levels
-4. **Verify no infinite loops** - Ensure calculations complete and stop
+1. **Test with MCP Puppeteer** - Use browser automation to verify actual results
+2. **Use https://bonistas.com/** - Cross-reference price/yield/duration calculations
+3. **Compare to Bloomberg data** - Check against reference values in docs
+4. **Test edge cases** - Try different price levels
+5. **Verify no infinite loops** - Ensure calculations complete and stop
 
 ### Never say "fix is working" without MCP verification!

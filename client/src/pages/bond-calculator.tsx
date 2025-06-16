@@ -311,7 +311,7 @@ export default function BondCalculator() {
         {/* Calculator Interface */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pricing Panel */}
-          <PricingPanel calculatorState={calculatorState} />
+          <PricingPanel calculatorState={calculatorState} bond={bond} />
 
           {/* Risk Metrics Panel */}
           <RiskMetricsPanel 

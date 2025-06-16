@@ -312,12 +312,20 @@ npm run start        # Start production server
 # Database
 npm run db:push      # Push schema changes to database
 
-# Treasury Data (NEW)
+# Market Data
 npm run curve        # Get current Treasury yield curve
 npm run rates        # Get key Treasury rates (2Y, 5Y, 10Y, 30Y)
+npm run prices       # Get Argentina bond prices (GD29, GD30, GD38, etc.)
+npm run prices:verbose   # Detailed Argentina bond data
+npm run prices:detail    # Full Argentina bond details
 ./curve.sh           # Treasury curve script (full curve)
 ./curve.sh key       # Key rates only
 ./curve.sh date      # Curve with date header
+
+# Quick Market Data Commands
+curl -s "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key=$FRED_API_KEY&file_type=json&limit=1" | jq '.observations[-1] | .date + ": " + .value + "%"'  # 10Y Treasury
+curl -s "https://api.stlouisfed.org/fred/series/observations?series_id=DGS2&api_key=$FRED_API_KEY&file_type=json&limit=1" | jq '.observations[-1] | .date + ": " + .value + "%"'   # 2Y Treasury
+curl -s "https://api.stlouisfed.org/fred/series/observations?series_id=DGS30&api_key=$FRED_API_KEY&file_type=json&limit=1" | jq '.observations[-1] | .date + ": " + .value + "%"'  # 30Y Treasury
 ```
 
 ## 🔧 Configuration
