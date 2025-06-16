@@ -34,6 +34,22 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
     return value.toFixed(decimals);
   };
 
+  // Helper function to format treasury interpolation description
+  const formatTreasuryDescription = (interpolation?: BondAnalytics['treasuryInterpolation']) => {
+    if (!interpolation) return 'Reference rate for spread';
+    
+    const { targetYears, lowerPoint, upperPoint, method } = interpolation;
+    
+    if (method === 'exact') {
+      return `${targetYears.toFixed(1)}yrs exact match with ${lowerPoint.years}yr curve`;
+    } else if (method === 'extrapolated') {
+      return `${targetYears.toFixed(1)}yrs extrapolated from ${lowerPoint.years}yr and ${upperPoint.years}yr curves`;
+    } else {
+      // interpolated
+      return `${targetYears.toFixed(1)}yrs interpolated yld using ${lowerPoint.years}yr and ${upperPoint.years}yr curves`;
+    }
+  };
+
   return (
     <Card className={`bg-gray-900 border-green-600 ${className}`}>
       <CardHeader>
@@ -155,6 +171,17 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
                   {formatNumber(analytics.technicalValue, 2)}%
                 </p>
                 <p className="text-xs text-gray-500">Principal + accrued interest</p>
+              </div>
+            )}
+
+            {/* Treasury Yield (Reference Rate) */}
+            {analytics?.treasuryYield !== undefined && analytics?.treasuryYield !== null && (
+              <div className="space-y-1">
+                <p className="text-xs text-gray-400">Reference Tr Yld</p>
+                <p className="text-lg font-mono text-green-400">
+                  {formatNumber(analytics.treasuryYield, 3)}%
+                </p>
+                <p className="text-xs text-gray-500">{formatTreasuryDescription(analytics.treasuryInterpolation)}</p>
               </div>
             )}
 

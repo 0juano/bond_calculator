@@ -103,9 +103,16 @@ export interface BondAnalyticsResult {
   };
   
   // Spreads (in basis points)
-  spreads?: {
+  spreads?: {    
     treasury: number;      // Simple spread
     zSpread: number;       // Option-adjusted spread
+    treasuryYield: number; // Reference Treasury yield used for spread calculation
+    treasuryInterpolation: {
+      targetYears: number;   // Bond's average life used for interpolation
+      lowerPoint: { years: number; rate: number }; // Lower bracket point
+      upperPoint: { years: number; rate: number }; // Upper bracket point
+      method: 'interpolated' | 'exact' | 'extrapolated';
+    };
   };
   
   // Other analytics
@@ -220,9 +227,9 @@ export class BondCalculatorPro {
     // Calculate spreads if treasury curve provided
     let spreads: BondAnalyticsResult['spreads'];
     if (treasuryCurve) {
-      const treasuryYield = this.interpolateTreasury(averageLife, treasuryCurve);
+      const treasuryResult = this.interpolateTreasuryWithMetadata(averageLife, treasuryCurve);
       // ytm is in decimal form (0.10 = 10%), treasuryYield is in percentage form (4.5 = 4.5%)
-      const spread = (ytm * 100) - treasuryYield; // This gives the spread in percentage points
+      const spread = (ytm * 100) - treasuryResult.yield; // This gives the spread in percentage points
       
       
       const zSpread = this.calculateZSpread(
@@ -234,7 +241,9 @@ export class BondCalculatorPro {
       
       spreads = {
         treasury: spread * 100, // Convert percentage points to basis points
-        zSpread: zSpread * 10000 // zSpread is in decimal form (0.05 = 5%), convert to bps
+        zSpread: zSpread * 10000, // zSpread is in decimal form (0.05 = 5%), convert to bps
+        treasuryYield: treasuryResult.yield, // Include reference treasury yield in percentage form
+        treasuryInterpolation: treasuryResult.interpolation
       };
     }
     
@@ -267,7 +276,9 @@ export class BondCalculatorPro {
         totalCashFlows: futureCFs.reduce((sum, cf) => sum + cf.amount, 0),
         daysToNextPayment: nextPayment.days,
         nextPaymentDate: nextPayment.date,
-        nextPaymentAmount: nextPayment.amount
+        nextPaymentAmount: nextPayment.amount,
+        technicalValue: currentOutstanding, // Current outstanding notional in dollars
+        parity: (cleanPrice / 100) // Clean price as ratio of par
       },
       metadata: {
         calculationDate: new Date().toISOString(),
@@ -963,11 +974,36 @@ export class BondCalculatorPro {
     years: number,
     curve: NonNullable<MarketInputs['treasuryCurve']>
   ): number {
+    return this.interpolateTreasuryWithMetadata(years, curve).yield;
+  }
+
+  private interpolateTreasuryWithMetadata(
+    years: number,
+    curve: NonNullable<MarketInputs['treasuryCurve']>
+  ): { 
+    yield: number; 
+    interpolation: {
+      targetYears: number;
+      lowerPoint: { years: number; rate: number };
+      upperPoint: { years: number; rate: number };
+      method: 'interpolated' | 'exact' | 'extrapolated';
+    }
+  } {
     const points = curve.tenors.sort((a, b) => a.years - b.years);
     
     // Exact match
     const exact = points.find(p => Math.abs(p.years - years) < 0.01);
-    if (exact) return exact.rate;
+    if (exact) {
+      return {
+        yield: exact.rate,
+        interpolation: {
+          targetYears: years,
+          lowerPoint: { years: exact.years, rate: exact.rate },
+          upperPoint: { years: exact.years, rate: exact.rate },
+          method: 'exact'
+        }
+      };
+    }
     
     // Find brackets
     let lower = points[0];
@@ -981,12 +1017,34 @@ export class BondCalculatorPro {
       }
     }
     
-    // Extrapolate or interpolate
-    if (years <= lower.years) return lower.rate;
-    if (years >= upper.years) return upper.rate;
+    // Determine method and calculate yield
+    let method: 'interpolated' | 'exact' | 'extrapolated';
+    let resultYield: number;
     
-    const weight = (years - lower.years) / (upper.years - lower.years);
-    return lower.rate + weight * (upper.rate - lower.rate);
+    if (years <= lower.years) {
+      // Extrapolation below curve
+      method = 'extrapolated';
+      resultYield = lower.rate;
+    } else if (years >= upper.years) {
+      // Extrapolation above curve
+      method = 'extrapolated';
+      resultYield = upper.rate;
+    } else {
+      // Linear interpolation
+      method = 'interpolated';
+      const weight = (years - lower.years) / (upper.years - lower.years);
+      resultYield = lower.rate + weight * (upper.rate - lower.rate);
+    }
+    
+    return {
+      yield: resultYield,
+      interpolation: {
+        targetYears: years,
+        lowerPoint: { years: lower.years, rate: lower.rate },
+        upperPoint: { years: upper.years, rate: upper.rate },
+        method
+      }
+    };
   }
   
   private calculateZSpread(

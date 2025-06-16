@@ -101,6 +101,13 @@ export interface BondAnalytics {
   
   // Spread metrics
   spread?: number;                // Spread over interpolated Treasury curve
+  treasuryYield?: number;         // Reference Treasury yield used for spread calculation
+  treasuryInterpolation?: {       // Metadata about treasury yield interpolation
+    targetYears: number;
+    lowerPoint: { years: number; rate: number };
+    upperPoint: { years: number; rate: number };
+    method: 'interpolated' | 'exact' | 'extrapolated';
+  };
   
   // Technical value metrics
   technicalValue: number;         // Present value of all future cash flows (in dollars)

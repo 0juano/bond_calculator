@@ -556,15 +556,16 @@ export class MemStorage implements IStorage {
       treasuryCurve = {
         date: this.ustCurveCache.data.recordDate,
         tenors: Object.entries(this.ustCurveCache.data.tenors).map(([tenor, rate]) => {
-          // Convert tenor string to years
+          // Convert tenor string to years - handle FRED format like "1 Month", "3 Year", etc.
           let years: number;
-          if (tenor.endsWith('M')) {
+          if (tenor.includes('Month')) {
             years = parseInt(tenor) / 12;
-          } else if (tenor.endsWith('Y')) {
+          } else if (tenor.includes('Year')) {
             years = parseInt(tenor);
           } else {
             years = 1; // Default
           }
+          console.log(`🔍 Treasury curve: ${tenor} → ${years} years → ${rate}%`);
           return { years, rate };
         })
       };
@@ -742,6 +743,8 @@ export class MemStorage implements IStorage {
         dollarDuration: result.risk?.dv01 || 0,
         currentYield: result.yields?.current || 0,
         spread: result.spreads ? result.spreads.treasury : undefined, // Keep in bps
+        treasuryYield: result.spreads ? result.spreads.treasuryYield : undefined, // Reference Treasury yield in %
+        treasuryInterpolation: result.spreads ? result.spreads.treasuryInterpolation : undefined, // Interpolation metadata
         // Technical value metrics - calculated here with correct values
         technicalValue: (currentOutstanding / bond.faceValue) * 100, // Technical Value as % of face value
         parity: (result.price?.clean || 0) / ((currentOutstanding / bond.faceValue) * 100) * 100 // Parity: clean price % of technical value
@@ -844,6 +847,7 @@ export class MemStorage implements IStorage {
       dollarDuration: 0,
       currentYield: 0,
       spread: undefined,
+      treasuryYield: undefined,
       technicalValue: 0,
       parity: 0
     };
