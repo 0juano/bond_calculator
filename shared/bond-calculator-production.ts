@@ -37,6 +37,7 @@ export interface Bond {
   faceValue: number;
   currency: string;
   dayCountConvention: '30/360' | 'ACT/ACT' | 'ACT/360' | 'ACT/365';
+  paymentFrequency?: number; // Number of payments per year (2 for semi-annual, 4 for quarterly, etc.)
   
   // Cash flows (the core data)
   cashFlows: Array<{
@@ -206,7 +207,8 @@ export class BondCalculatorPro {
     
     // Calculate other metrics
     const currentYield = this.calculateCurrentYield(bond, cleanPrice, settlementDate);
-    const durations = this.calculateDurations(futureCFs, ytm, settlementDate, cleanPrice);
+    const paymentFrequency = bond.paymentFrequency || 2; // Default to semi-annual if not specified
+    const durations = this.calculateDurations(futureCFs, ytm, settlementDate, cleanPrice, paymentFrequency);
     const convexity = this.calculateConvexity(futureCFs, ytm, settlementDate);
     const dv01 = this.calculateDV01(durations.modified, cleanPrice, bond.faceValue);
     const averageLife = this.calculateAverageLife(futureCFs, settlementDate);
@@ -845,7 +847,8 @@ export class BondCalculatorPro {
     cashFlows: Array<{ date: Date; amount: number }>,
     yield_: number,
     settlementDate: Date,
-    cleanPrice: number
+    cleanPrice: number,
+    paymentFrequency: number = 2 // Default to semi-annual
   ): { macaulay: number; modified: number; effective: number } {
     const yieldDec = new Decimal(yield_);
     let weightedTime = new Decimal(0);
@@ -861,7 +864,10 @@ export class BondCalculatorPro {
     }
     
     const macaulay = totalPV.gt(0) ? weightedTime.div(totalPV).toNumber() : 0;
-    const modified = macaulay / (1 + yield_);
+    
+    // FIXED: Modified duration for bonds with periodic compounding
+    // Formula: Modified Duration = Macaulay Duration / (1 + YTM/frequency)
+    const modified = macaulay / (1 + yield_ / paymentFrequency);
     
     // Effective duration
     const bpShock = 0.0001;
@@ -869,6 +875,16 @@ export class BondCalculatorPro {
     const priceDown = this.calculatePresentValue(cashFlows, yield_ + bpShock, settlementDate);
     const basePriceDollar = this.calculatePresentValue(cashFlows, yield_, settlementDate);
     const effective = (priceUp - priceDown) / (2 * basePriceDollar * bpShock);
+    
+    console.log(`🔧 Duration Calculation Debug:`, {
+      macaulay: macaulay.toFixed(4),
+      yieldDecimal: yield_.toFixed(4),
+      paymentFrequency,
+      yieldPerPeriod: (yield_ / paymentFrequency).toFixed(4),
+      denominator: (1 + yield_ / paymentFrequency).toFixed(4),
+      modified: modified.toFixed(4),
+      ratio: (modified / macaulay).toFixed(4)
+    });
     
     return { macaulay, modified, effective };
   }

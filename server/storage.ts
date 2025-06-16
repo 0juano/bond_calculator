@@ -517,6 +517,7 @@ export class MemStorage implements IStorage {
       faceValue: currentOutstanding, // Use current outstanding instead of original face value
       currency: bond.currency || 'USD',
       dayCountConvention: bond.dayCountConvention as any || '30/360',
+      paymentFrequency: bond.paymentFrequency || 2, // Pass payment frequency for correct duration calculation
       cashFlows: futureCashFlows.map(cf => ({
         date: cf.date,
         coupon: cf.couponPayment,
