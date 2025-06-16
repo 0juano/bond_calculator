@@ -18,4 +18,5 @@ vite.config.ts.*
 # saved_bonds/imported/*.json
 
 # Logs
+logs/*.log
 server.log

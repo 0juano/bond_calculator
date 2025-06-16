@@ -100,12 +100,22 @@ bond_calculator/
 ├── shared/                  # Shared types and schemas
 │   ├── schema.ts            # Zod schemas and TypeScript types
 │   └── bond-calculator-production.ts # Robust calculation engine
-├── docs/                    # Documentation ✨ NEW
+├── tests/                   # Test files and debugging ✨ NEW
+│   ├── unit/                # Unit tests
+│   ├── integration/         # Integration tests
+│   ├── debug/               # Debug scripts
+│   └── README.md            # Test documentation
+├── logs/                    # Server logs ✨ NEW
+│   └── README.md            # Log documentation
+├── docs/                    # Documentation
 │   ├── bond-json-specification.md  # Bond JSON format spec v1.1
 │   └── bloomberg-reference-data.md # Market validation data
 ├── saved_bonds/             # JSON bond repository
 │   ├── user_created/        # User-created bonds
 │   └── imported/            # Imported bond files
+├── scripts/                 # Utility scripts
+│   ├── fetch-prices.ts      # Argentina bond price fetcher
+│   └── fetch-prices-detailed.ts # Detailed price data
 ├── package.json             # Dependencies and scripts
 ├── vite.config.ts          # Vite configuration
 ├── tailwind.config.ts      # Tailwind CSS configuration
