@@ -8,7 +8,8 @@ import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { PricingPanel } from "@/components/calculator/pricing-panel";
 import { RiskMetricsPanel } from "@/components/calculator/risk-metrics-panel";
 import { BondSearchSelector } from "@/components/calculator/bond-search-selector";
-import { ScenarioAnalysisPanel } from "@/components/calculator/scenario-analysis-panel";
+import { PriceSensitivityPanel } from "@/components/calculator/price-sensitivity-panel";
+import { CashFlowSchedulePanel } from "@/components/calculator/cash-flow-schedule-panel";
 
 export default function BondCalculator() {
   const { bondId } = useParams<{ bondId?: string }>();
@@ -310,14 +311,44 @@ export default function BondCalculator() {
 
         {/* Calculator Interface */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pricing Panel */}
-          <PricingPanel calculatorState={calculatorState} bond={bond} />
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Pricing Panel */}
+            <PricingPanel calculatorState={calculatorState} bond={bond} />
+            
+            {/* Price Sensitivity Panel */}
+            {calculatorState.input.price && (
+              <PriceSensitivityPanel 
+                bond={bond}
+                currentPrice={calculatorState.input.price}
+                settlementDate={calculatorState.input.settlementDate}
+                predefinedCashFlows={predefinedCashFlows}
+              />
+            )}
+          </div>
 
-          {/* Risk Metrics Panel */}
-          <RiskMetricsPanel 
-            analytics={calculatorState.analytics} 
-            isCalculating={calculatorState.isCalculating} 
-          />
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Risk Metrics Panel */}
+            <RiskMetricsPanel 
+              analytics={calculatorState.analytics} 
+              isCalculating={calculatorState.isCalculating} 
+            />
+            
+            {/* Cash Flow Schedule Panel */}
+            {bondResult?.cashFlows && (
+              <CashFlowSchedulePanel 
+                cashFlows={bondResult.cashFlows}
+                isLoading={calculatorState.isCalculating}
+                bond={{
+                  faceValue: bond.faceValue,
+                  paymentFrequency: bond.paymentFrequency,
+                  couponRate: bond.couponRate,
+                  couponRateChanges: bond.couponRateChanges || []
+                }}
+              />
+            )}
+          </div>
         </div>
 
         {/* Error Display */}
@@ -330,16 +361,6 @@ export default function BondCalculator() {
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Scenario Analysis Panel */}
-        {calculatorState.input.price && (
-          <ScenarioAnalysisPanel 
-            bond={bond}
-            currentPrice={calculatorState.input.price}
-            settlementDate={calculatorState.input.settlementDate}
-            predefinedCashFlows={predefinedCashFlows}
-          />
         )}
       </div>
     </div>
