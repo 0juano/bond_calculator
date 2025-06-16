@@ -82,6 +82,59 @@ export function useCalculatorState(
     }
   }, [initialBondResult]);
 
+  // Reset calculator state when bond changes (for bond switching)
+  useEffect(() => {
+    if (!bond) return;
+    
+    // Bloomberg reference prices for Argentina bonds
+    const bloombergRefPrices: Record<string, number> = {
+      'GD29': 84.10,  // Argentina 2029
+      'GD30': 80.19,  // Argentina 2030
+      'GD38': 72.25,  // Argentina 2038
+      'GD46': 66.13,  // Argentina 2046
+      'GD35': 68.24,  // Argentina 2035
+      'GD41': 63.13,  // Argentina 2041
+    };
+    
+    // Determine appropriate market price for the new bond
+    let marketPrice = 100; // Default to par for non-Argentina bonds
+    
+    if (bond.issuer === 'REPUBLIC OF ARGENTINA') {
+      // Try to extract ticker from bond maturity year
+      const maturityYear = bond.maturityDate ? new Date(bond.maturityDate).getFullYear() : null;
+      
+      const tickerMap: Record<number, string> = {
+        2029: 'GD29',
+        2030: 'GD30',
+        2035: 'GD35',
+        2038: 'GD38',
+        2041: 'GD41',
+        2046: 'GD46'
+      };
+      
+      if (maturityYear && tickerMap[maturityYear]) {
+        const ticker = tickerMap[maturityYear];
+        marketPrice = bloombergRefPrices[ticker] || 100;
+        console.log(`📊 Bond switch: Setting Bloomberg reference price for ${ticker}: ${marketPrice}`);
+      }
+    }
+    
+    // Reset calculator state for new bond
+    console.log(`🔄 Bond changed to ${bond.issuer} - resetting calculator state`);
+    calculationCount.current = 0; // Reset calculation counter
+    
+    setInputState(prev => ({
+      ...prev,
+      price: marketPrice,
+      yieldValue: undefined, // Clear yield to recalculate from price
+      spread: undefined,     // Clear spread to recalculate from price
+      lockedField: 'PRICE',  // Reset to price mode
+      calculationId: undefined // Clear calculationId to trigger fresh calculation
+    }));
+    
+    setError(undefined); // Clear any previous errors
+  }, [bond?.issuer, bond?.maturityDate]); // Watch for bond changes by issuer and maturity date
+
   // Debounced calculation effect
   useEffect(() => {
     if (!bond) return;
@@ -411,16 +464,49 @@ export function useCalculatorState(
     // Reset calculation counter when user manually resets
     calculationCount.current = 0;
     
-    // Reset to the last calculated values
+    // Bloomberg reference prices for Argentina bonds
+    const bloombergRefPrices: Record<string, number> = {
+      'GD29': 84.10,  // Argentina 2029
+      'GD30': 80.19,  // Argentina 2030
+      'GD38': 72.25,  // Argentina 2038
+      'GD46': 66.13,  // Argentina 2046
+      'GD35': 68.24,  // Argentina 2035
+      'GD41': 63.13,  // Argentina 2041
+    };
+    
+    // Try to determine Bloomberg reference price for Argentina bonds
+    let marketPrice = bondResult?.analytics?.cleanPrice || input.price || 100; // Default to current or par
+    
+    if (bond && bond.issuer === 'REPUBLIC OF ARGENTINA') {
+      // Try to extract ticker from bond maturity year
+      const maturityYear = bond.maturityDate ? new Date(bond.maturityDate).getFullYear() : null;
+      
+      const tickerMap: Record<number, string> = {
+        2029: 'GD29',
+        2030: 'GD30',
+        2035: 'GD35',
+        2038: 'GD38',
+        2041: 'GD41',
+        2046: 'GD46'
+      };
+      
+      if (maturityYear && tickerMap[maturityYear]) {
+        const ticker = tickerMap[maturityYear];
+        marketPrice = bloombergRefPrices[ticker] || marketPrice;
+        console.log(`📊 Reset to Bloomberg reference price for ${ticker}: ${marketPrice}`);
+      }
+    }
+    
+    // Reset to Bloomberg reference price for Argentina bonds, or last calculated values for others
     setInput({
-      price: bondResult?.analytics?.cleanPrice || input.price || 100,
-      yieldValue: bondResult?.analytics?.yieldToMaturity || input.yieldValue,
-      spread: bondResult?.analytics?.spread || input.spread,
+      price: marketPrice,
+      yieldValue: undefined, // Clear yield to recalculate from price
+      spread: undefined,     // Clear spread to recalculate from price
       lockedField: 'PRICE',
       calculationId: undefined // Clear calculationId on reset
     });
     setError(undefined); // Clear any errors
-  }, [bondResult?.analytics, input, setInput]);
+  }, [bondResult?.analytics, input, setInput, bond]);
 
   const runScenario = useCallback((shockBp: number) => {
     if (bondResult?.analytics?.yieldToMaturity) {
