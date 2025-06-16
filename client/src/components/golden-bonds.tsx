@@ -83,7 +83,7 @@ export default function SavedBonds({ onLoadBond }: SavedBondsProps) {
             className="w-full text-left p-3 h-auto border-border hover:border-primary hover:bg-muted/50 transition-colors"
           >
             <div>
-              <div className="font-medium terminal-text-green text-xs">
+              <div className="font-medium terminal-text-green text-sm">
                 {bond.name}
               </div>
               <div className="terminal-text-muted text-xs mt-1">

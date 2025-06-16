@@ -187,6 +187,11 @@ export function BondSearchSelector({ currentBondId, currentBondData }: BondSearc
     const maturityYear = bond.metadata?.maturityDate || bond.bondInfo?.maturityDate;
     const year = maturityYear ? new Date(maturityYear).getFullYear() : 'Unknown';
     
+    // Use ticker format for Argentina bonds
+    if (issuer === 'REPUBLIC OF ARGENTINA' && bond.metadata?.name) {
+      return bond.metadata.name; // This is the ticker format like "ARGENT 5 38"
+    }
+    
     return `${issuer} ${coupon}% ${year}`;
   };
 
@@ -198,6 +203,16 @@ export function BondSearchSelector({ currentBondId, currentBondData }: BondSearc
   const getCurrentBondDisplay = (): string => {
     if (currentBondData) {
       const year = new Date(currentBondData.maturityDate).getFullYear();
+      
+      // Use ticker format for Argentina bonds
+      if (currentBondData.issuer === 'REPUBLIC OF ARGENTINA') {
+        // Generate ticker format from coupon and year
+        const couponStr = currentBondData.couponRate === 0.125 ? '0.125' : 
+                         currentBondData.couponRate.toString();
+        const yearStr = year.toString().slice(-2); // Last 2 digits
+        return `📊 ARGENT ${couponStr} ${yearStr}`;
+      }
+      
       return `📊 ${currentBondData.issuer} ${currentBondData.couponRate}% ${year}`;
     }
     return "📊 Select Bond";

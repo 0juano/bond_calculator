@@ -75,7 +75,9 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             <div className="space-y-1">
               <p className="text-xs text-gray-400">Current Yield</p>
               <p className="text-lg font-mono text-green-400">
-                {formatPercent(analytics?.currentYield)}
+                {analytics?.currentYield !== undefined && analytics?.currentYield !== null 
+                  ? `${analytics.currentYield.toFixed(3)}%` 
+                  : 'N/A'}
               </p>
               <p className="text-xs text-gray-500">Coupon / Price</p>
             </div>
@@ -109,6 +111,17 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               </div>
             )}
 
+            {/* Average Life (if available) */}
+            {analytics?.averageLife && (
+              <div className="space-y-1">
+                <p className="text-xs text-gray-400">Average Life</p>
+                <p className="text-lg font-mono text-green-400">
+                  {formatNumber(analytics.averageLife)}
+                </p>
+                <p className="text-xs text-gray-500">Weighted avg maturity</p>
+              </div>
+            )}
+
             {/* DV01 (if available) */}
             {analytics?.dollarDuration && (
               <div className="space-y-1">
@@ -117,6 +130,17 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
                   {formatPrice(analytics.dollarDuration, 2)}
                 </p>
                 <p className="text-xs text-gray-500">Dollar duration</p>
+              </div>
+            )}
+
+            {/* Days to Next Coupon */}
+            {analytics?.daysToNextCoupon !== undefined && (
+              <div className="space-y-1">
+                <p className="text-xs text-gray-400">Days to Next Coupon</p>
+                <p className="text-lg font-mono text-green-400">
+                  {analytics.daysToNextCoupon}
+                </p>
+                <p className="text-xs text-gray-500">Until next payment</p>
               </div>
             )}
           </div>

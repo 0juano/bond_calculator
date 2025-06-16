@@ -199,7 +199,7 @@ export function ScenarioAnalysisPanel({
                             ? "text-green-300 font-medium" 
                             : "text-green-400"
                         }`}>
-                          {scenario.spread >= 0 ? '+' : ''}{Math.round(scenario.spread)}
+                          {scenario.spread >= 0 ? '+' : ''}{Math.round(scenario.spread).toLocaleString()}
                         </span>
                       )}
                     </TableCell>
