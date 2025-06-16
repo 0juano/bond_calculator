@@ -115,6 +115,8 @@ export interface BondAnalyticsResult {
     daysToNextPayment: number;
     nextPaymentDate?: string;
     nextPaymentAmount?: number;
+    technicalValue: number;
+    parity: number;
   };
   
   // Calculation metadata
@@ -235,6 +237,16 @@ export class BondCalculatorPro {
       };
     }
     
+    // Calculate Technical Value and Parity
+    const technicalValue = this.calculatePresentValue(futureCFs, ytm, settlementDate);
+    const parity = (technicalValue / currentOutstanding) * 100;
+    
+    console.log(`🔧 Technical Value Calculation:`, {
+      technicalValue: technicalValue.toFixed(2),
+      currentOutstanding: currentOutstanding.toFixed(2),
+      parity: parity.toFixed(4)
+    });
+
     // Build result
     return {
       price: {
@@ -262,7 +274,9 @@ export class BondCalculatorPro {
         totalCashFlows: futureCFs.reduce((sum, cf) => sum + cf.amount, 0),
         daysToNextPayment: nextPayment.days,
         nextPaymentDate: nextPayment.date,
-        nextPaymentAmount: nextPayment.amount
+        nextPaymentAmount: nextPayment.amount,
+        technicalValue,
+        parity
       },
       metadata: {
         calculationDate: new Date().toISOString(),

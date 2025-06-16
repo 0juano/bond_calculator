@@ -514,7 +514,7 @@ export class MemStorage implements IStorage {
     
     // Convert to calculator format with corrected outstanding notional
     const calcBond: CalcBond = {
-      faceValue: currentOutstanding, // Use current outstanding instead of original face value
+      faceValue: bond.faceValue, // Always use original face value for price calculations
       currency: bond.currency || 'USD',
       dayCountConvention: bond.dayCountConvention as any || '30/360',
       paymentFrequency: bond.paymentFrequency || 2, // Pass payment frequency for correct duration calculation
@@ -662,11 +662,11 @@ export class MemStorage implements IStorage {
           }
         }
         
-        // CRITICAL: For amortizing bonds, interpret price as percentage of outstanding principal
-        const effectivePrice = (marketPrice / 100) * currentOutstanding;
+        // CRITICAL: All bonds are quoted as percentage of ORIGINAL face value (market standard)
+        const effectivePrice = (marketPrice / 100) * bond.faceValue;
         
-        console.log(`🔍 Price input: ${marketPrice} (${marketPrice.toFixed(2)}% of ${currentOutstanding < bond.faceValue ? 'outstanding principal' : 'face value'})`);
-        console.log(`🔍 Effective dollar price: $${effectivePrice} (${marketPrice}% of $${currentOutstanding})`);
+        console.log(`🔍 Price input: ${marketPrice} (${marketPrice.toFixed(2)}% of original face value)`);
+        console.log(`🔍 Effective dollar price: $${effectivePrice} (${marketPrice}% of $${bond.faceValue})`);
         
         const analyzeInputs = {
           bond: calcBond,
@@ -738,7 +738,10 @@ export class MemStorage implements IStorage {
         daysToNextCoupon: result.analytics?.daysToNextPayment || 0,
         dollarDuration: result.risk?.dv01 || 0,
         currentYield: result.yields?.current || 0,
-        spread: result.spreads ? result.spreads.treasury : undefined // Keep in bps
+        spread: result.spreads ? result.spreads.treasury : undefined, // Keep in bps
+        // Technical value metrics
+        technicalValue: result.analytics?.technicalValue || 0,
+        parity: result.analytics?.parity || 0
       };
       
       console.log(`✅ FINAL ANALYTICS:`, {
@@ -837,7 +840,9 @@ export class MemStorage implements IStorage {
       daysToNextCoupon: 0,
       dollarDuration: 0,
       currentYield: 0,
-      spread: undefined
+      spread: undefined,
+      technicalValue: 0,
+      parity: 0
     };
   }
 }

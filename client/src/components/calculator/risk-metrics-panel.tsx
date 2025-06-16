@@ -143,6 +143,28 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
                 <p className="text-xs text-gray-500">Until next payment</p>
               </div>
             )}
+
+            {/* Technical Value */}
+            {analytics?.technicalValue !== undefined && (
+              <div className="space-y-1">
+                <p className="text-xs text-gray-400">Technical Value</p>
+                <p className="text-lg font-mono text-green-400">
+                  ${formatNumber(analytics.technicalValue, 2)}
+                </p>
+                <p className="text-xs text-gray-500">Present value at YTM</p>
+              </div>
+            )}
+
+            {/* Parity */}
+            {analytics?.parity !== undefined && (
+              <div className="space-y-1">
+                <p className="text-xs text-gray-400">Parity</p>
+                <p className="text-lg font-mono text-green-400">
+                  {formatNumber(analytics.parity, 4)}%
+                </p>
+                <p className="text-xs text-gray-500">Technical Value vs Outstanding</p>
+              </div>
+            )}
           </div>
         )}
 

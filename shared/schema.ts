@@ -101,6 +101,10 @@ export interface BondAnalytics {
   
   // Spread metrics
   spread?: number;                // Spread over interpolated Treasury curve
+  
+  // Technical value metrics
+  technicalValue: number;         // Present value of all future cash flows (in dollars)
+  parity: number;                 // (Technical Value / Current Outstanding) * 100
 }
 
 // Complete bond result with cash flows and analytics
