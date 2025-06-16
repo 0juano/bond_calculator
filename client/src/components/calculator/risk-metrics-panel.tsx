@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Shield, Clock } from "lucide-react";
 import { BondAnalytics } from "@shared/schema";
+import { formatNumber, formatPercent, formatCurrency } from "@/lib/bond-utils";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface RiskMetricsPanelProps {
   analytics?: BondAnalytics;
@@ -16,22 +18,10 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
   // Debug: Log analytics to console
   console.log('🔍 RiskMetricsPanel analytics:', analytics);
   
-  // Helper function to format percentage values
-  const formatPercent = (value?: number, decimals = 3) => {
-    if (value === undefined || value === null) return 'N/A';
-    return `${(value * 100).toFixed(decimals)}%`;
-  };
-
-  // Helper function to format numeric values
-  const formatNumber = (value?: number, decimals = 3) => {
-    if (value === undefined || value === null) return 'N/A';
-    return value.toFixed(decimals);
-  };
-
-  // Helper function to format currency values
-  const formatPrice = (value?: number, decimals = 4) => {
-    if (value === undefined || value === null) return 'N/A';
-    return value.toFixed(decimals);
+  // Helper function to safely format values with fallback
+  const safeFormat = (value: number | undefined, formatter: (value: number, decimals?: number) => string, decimals?: number) => {
+    if (value === undefined || value === null || isNaN(value)) return 'N/A';
+    return formatter(value, decimals);
   };
 
   // Helper function to format treasury interpolation description
@@ -55,7 +45,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
       <CardHeader>
         <CardTitle className="text-green-400 flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Risk Metrics
+          Key Metrics
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -71,9 +61,10 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-blue-400" />
                 <p className="text-xs text-gray-400">Modified Duration</p>
+                <InfoTooltip text="Price sensitivity to yield changes: ∂Price/∂Yield × 100" />
               </div>
               <p className="text-lg font-mono text-green-400">
-                {formatNumber(analytics?.duration)}
+                {safeFormat(analytics?.duration, formatNumber, 2)}
               </p>
               <p className="text-xs text-gray-500">Price sensitivity</p>
             </div>
@@ -83,38 +74,46 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <div className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 text-purple-400" />
                 <p className="text-xs text-gray-400">Convexity</p>
+                <InfoTooltip text="Second-order price sensitivity: measures how duration changes as yields change" />
               </div>
               <p className="text-lg font-mono text-green-400">
-                {formatNumber(analytics?.convexity, 2)}
+                {safeFormat(analytics?.convexity, formatNumber, 2)}
               </p>
               <p className="text-xs text-gray-500">Second-order risk</p>
             </div>
 
             {/* Current Yield */}
             <div className="space-y-1">
-              <p className="text-xs text-gray-400">Current Yield</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-400">Current Yield</p>
+                <InfoTooltip text="Annual coupon income as percentage of current market price" />
+              </div>
               <p className="text-lg font-mono text-green-400">
-                {analytics?.currentYield !== undefined && analytics?.currentYield !== null 
-                  ? `${analytics.currentYield.toFixed(3)}%` 
-                  : 'N/A'}
+                {safeFormat(analytics?.currentYield, formatPercent)}
               </p>
               <p className="text-xs text-gray-500">Coupon / Price</p>
             </div>
 
             {/* Accrued Interest */}
             <div className="space-y-1">
-              <p className="text-xs text-gray-400">Accrued Interest</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-400">Accrued Interest</p>
+                <InfoTooltip text="Interest earned since last coupon payment date" />
+              </div>
               <p className="text-lg font-mono text-green-400">
-                {formatPrice(analytics?.accruedInterest)}
+                {safeFormat(analytics?.accruedInterest, formatNumber, 2)}
               </p>
               <p className="text-xs text-gray-500">Since last payment</p>
             </div>
 
             {/* Clean Price */}
             <div className="space-y-1">
-              <p className="text-xs text-gray-400">Clean Price</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-400">Clean Price</p>
+                <InfoTooltip text="Bond price excluding accrued interest" />
+              </div>
               <p className="text-lg font-mono text-green-400">
-                {formatPrice(analytics?.cleanPrice)}
+                {safeFormat(analytics?.cleanPrice, formatNumber, 2)}
               </p>
               <p className="text-xs text-gray-500">Without accrued</p>
             </div>
@@ -122,9 +121,12 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             {/* Macaulay Duration (if available) */}
             {analytics?.macaulayDuration && (
               <div className="space-y-1">
-                <p className="text-xs text-gray-400">Macaulay Duration</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">Macaulay Duration</p>
+                  <InfoTooltip text="Weighted average time to receive all cash flows" />
+                </div>
                 <p className="text-lg font-mono text-green-400">
-                  {formatNumber(analytics.macaulayDuration)}
+                  {safeFormat(analytics.macaulayDuration, formatNumber, 2)}
                 </p>
                 <p className="text-xs text-gray-500">Weighted avg time</p>
               </div>
@@ -133,9 +135,12 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             {/* Average Life (if available) */}
             {analytics?.averageLife && (
               <div className="space-y-1">
-                <p className="text-xs text-gray-400">Average Life</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">Average Life</p>
+                  <InfoTooltip text="Weighted average time until principal payments" />
+                </div>
                 <p className="text-lg font-mono text-green-400">
-                  {formatNumber(analytics.averageLife)}
+                  {safeFormat(analytics.averageLife, formatNumber, 2)}
                 </p>
                 <p className="text-xs text-gray-500">Weighted avg maturity</p>
               </div>
@@ -144,9 +149,12 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             {/* DV01 (if available) */}
             {analytics?.dollarDuration && (
               <div className="space-y-1">
-                <p className="text-xs text-gray-400">DV01</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">DV01</p>
+                  <InfoTooltip text="Dollar value change for 1 basis point yield move" />
+                </div>
                 <p className="text-lg font-mono text-green-400">
-                  {formatPrice(analytics.dollarDuration, 2)}
+                  {safeFormat(analytics.dollarDuration, formatNumber, 2)}
                 </p>
                 <p className="text-xs text-gray-500">Dollar duration</p>
               </div>
@@ -168,7 +176,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <div className="space-y-1">
                 <p className="text-xs text-gray-400">Technical Value</p>
                 <p className="text-lg font-mono text-green-400">
-                  {formatNumber(analytics.technicalValue, 2)}%
+                  {safeFormat(analytics.technicalValue, formatPercent)}
                 </p>
                 <p className="text-xs text-gray-500">Principal + accrued interest</p>
               </div>
@@ -179,7 +187,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <div className="space-y-1">
                 <p className="text-xs text-gray-400">Reference Tr Yld</p>
                 <p className="text-lg font-mono text-green-400">
-                  {formatNumber(analytics.treasuryYield, 3)}%
+                  {safeFormat(analytics.treasuryYield, formatPercent)}
                 </p>
                 <p className="text-xs text-gray-500">{formatTreasuryDescription(analytics.treasuryInterpolation)}</p>
               </div>
@@ -190,7 +198,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <div className="space-y-1">
                 <p className="text-xs text-gray-400">Parity</p>
                 <p className="text-lg font-mono text-green-400">
-                  {formatNumber(analytics.parity, 4)}%
+                  {safeFormat(analytics.parity, formatPercent)}
                 </p>
                 <p className="text-xs text-gray-500">Clean price % of technical value</p>
               </div>

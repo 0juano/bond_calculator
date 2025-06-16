@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calculator, Download, Wifi } from "lucide-react";
 import { CalculatorState } from "@/hooks/useCalculatorState";
 import { BondDefinition } from "@shared/schema";
+import { formatNumber, formatPercent } from "@/lib/bond-utils";
 
 interface PricingPanelProps {
   calculatorState: CalculatorState;
@@ -31,15 +32,15 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
   // Get display values
   const displayPrice = editingField === 'price' && tempValues.price !== undefined 
     ? tempValues.price 
-    : (input.price ?? 100).toFixed(4);
+    : formatNumber(input.price ?? 100, 2);
     
   const displayYield = editingField === 'yield' && tempValues.yield !== undefined
     ? tempValues.yield
-    : (input.yieldValue ?? 0).toFixed(3);
+    : formatNumber(input.yieldValue ?? 0, 2);
     
   const displaySpread = editingField === 'spread' && tempValues.spread !== undefined
     ? tempValues.spread
-    : (input.spread ?? 0).toFixed(0);
+    : formatNumber(input.spread ?? 0, 0);
 
   // Handle input changes while editing
   const handlePriceChange = (value: string) => {
