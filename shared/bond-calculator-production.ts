@@ -855,8 +855,13 @@ export class BondCalculatorPro {
       }
     }
     
-    const cleanDollar = (cleanPrice / 100) * bond.faceValue;
-    return annualCoupon / cleanDollar;
+    // FIXED: Use current outstanding notional for amortizing bonds, not original face value
+    const currentOutstanding = this.getCurrentOutstanding(bond, settlementDate);
+    const cleanDollar = (cleanPrice / 100) * currentOutstanding;
+    const currentYieldDecimal = annualCoupon / cleanDollar;
+    
+    // FIXED: Convert to percentage format for UI consistency
+    return currentYieldDecimal * 100;
   }
   
   private calculateDurations(

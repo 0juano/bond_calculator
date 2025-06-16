@@ -1,0 +1,1 @@
+[x] ✅ FIXED: current yield calculation corrected - Argentina 2038 now shows 6.92% instead of 0.068%
