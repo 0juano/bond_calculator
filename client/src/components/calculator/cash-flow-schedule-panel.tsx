@@ -27,6 +27,9 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
   const today = settlementDate ? new Date(settlementDate) : new Date();
   const futureFlows = cashFlows.filter(cf => new Date(cf.date) > today);
   
+  // Limit collapsed view to 10 payments
+  const visibleFlows = futureFlows.slice(0, 10);
+  
   // Get original principal for percentage calculations
   const originalPrincipal = cashFlows.length > 0 ? (cashFlows[0].remainingNotional || 0) + (cashFlows[0].principalPayment || 0) : 0;
   
@@ -219,13 +222,13 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
       </CardHeader>
       <CardContent className="flex-1">
         <div className="overflow-hidden">
-          <CompactTable flows={futureFlows} />
-          {futureFlows.length > 0 && (
+          <CompactTable flows={visibleFlows} />
+          {visibleFlows.length > 0 && (
             <div className="mt-2 text-center">
               <span className="text-xs text-gray-500">
-                Showing {futureFlows.length} future payment{futureFlows.length !== 1 ? 's' : ''}
-                {cashFlows.length > futureFlows.length && (
-                  <span> ({cashFlows.length - futureFlows.length} past payment{cashFlows.length - futureFlows.length !== 1 ? 's' : ''} hidden)</span>
+                Showing {visibleFlows.length} future payment{visibleFlows.length !== 1 ? 's' : ''}
+                {futureFlows.length > 10 && (
+                  <span> ({futureFlows.length - 10} more hidden)</span>
                 )}
               </span>
             </div>

@@ -80,3 +80,26 @@ The bond calculator now features:
     • ✅ Calculate Remaining % as: `remainingPrincipal / originalPrincipal * 100`
     • ✅ Reuse same data source for modal, no fresh fetch needed
     • ✅ Enhanced formatting with proper 2-decimal precision throughout
+
+## 🚧 Additional Refinements
+
+[ ] **Cash-Flow Schedule (collapsed) - 10 Payment Limit**
+    • Display only next 10 future payments in collapsed view
+    • Update footer: "Showing 10 future payments (X more hidden)" - dynamic count
+    • Enlarged modal keeps showing full schedule (no limit)
+    • Preserve current four-column layout for collapsed state
+
+[ ] **Price Sensitivity Table - Split First Column**
+    • Split first column into two separate columns:
+      - Px % Chg → percentage moves (-5%, -3%, ..., +5%)
+      - Price → corresponding prices (69.45, 70.91, ...)
+    • New header order: Px % Chg | Price | YTM | SoT
+    • Ensure numeric cells are right-aligned for clean scanability
+    • Update responsive breakpoints for extra column
+
+[ ] **Implementation Details**
+    • Cash-Flow slice: `futureFlows.slice(0, 10)` for collapsed view
+    • Footer with dynamic count: `(${futureFlows.length - 10} more hidden)`
+    • Price Sensitivity: separate `<th>` and `<td>` elements for split columns
+    • Right-align all numeric data for better readability
+    • Test responsive behavior with additional column

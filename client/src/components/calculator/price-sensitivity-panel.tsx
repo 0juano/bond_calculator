@@ -122,12 +122,8 @@ export function PriceSensitivityPanel({
           <Table className="w-full">
             <TableHeader>
               <TableRow className="border-green-800/30 hover:bg-transparent">
-                <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center w-24">
-                  <div className="flex flex-col leading-tight">
-                    <span>Px % Chg</span>
-                    <span>Price</span>
-                  </div>
-                </TableHead>
+                <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center w-20">Px % Chg</TableHead>
+                <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center w-20">Price</TableHead>
                 <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center w-20">YTM</TableHead>
                 <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center w-20">SoT</TableHead>
               </TableRow>
@@ -142,25 +138,21 @@ export function PriceSensitivityPanel({
                       : "hover:bg-gray-800/30"
                   }`}
                 >
-                  <TableCell className="font-mono text-xs px-2 py-1 text-center">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs w-10 ${
-                        scenario.priceChange === "current" 
-                          ? "text-green-300 font-medium" 
-                          : "text-gray-500"
-                      }`}>
-                        {scenario.priceChange === "current" ? "0%" : scenario.priceChange}
-                      </span>
-                      <span className={`${
-                        scenario.priceChange === "current" 
-                          ? "text-green-300 font-medium" 
-                          : "text-green-400"
-                      }`}>
-                        {formatNumber(scenario.price, 2)}
-                      </span>
-                    </div>
+                  <TableCell className={`font-mono text-xs px-2 py-1 text-center align-middle ${
+                    scenario.priceChange === "current" 
+                      ? "text-green-300 font-medium" 
+                      : "text-gray-500"
+                  }`}>
+                    {scenario.priceChange === "current" ? "0%" : scenario.priceChange}
                   </TableCell>
-                  <TableCell className="text-center font-mono text-xs px-2 py-1">
+                  <TableCell className={`font-mono text-xs px-2 py-1 text-center align-middle ${
+                    scenario.priceChange === "current" 
+                      ? "text-green-300 font-medium" 
+                      : "text-green-400"
+                  }`}>
+                    {formatNumber(scenario.price, 2)}
+                  </TableCell>
+                  <TableCell className="text-center align-middle font-mono text-xs px-2 py-1">
                     {scenario.isLoading ? (
                       <span className="text-gray-500">...</span>
                     ) : scenario.error ? (
@@ -175,7 +167,7 @@ export function PriceSensitivityPanel({
                       </span>
                     )}
                   </TableCell>
-                  <TableCell className="text-center font-mono text-xs px-2 py-1">
+                  <TableCell className="text-center align-middle font-mono text-xs px-2 py-1">
                     {scenario.isLoading ? (
                       <span className="text-gray-500">...</span>
                     ) : scenario.error || scenario.spread === undefined ? (
