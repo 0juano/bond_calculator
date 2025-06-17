@@ -60,25 +60,25 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
     <Table className="w-full">
       <TableHeader>
         <TableRow className="border-green-800/30 hover:bg-transparent">
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2">Date</TableHead>
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Coupon</TableHead>
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Principal</TableHead>
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Total</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Date</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Coupon</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Principal</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Total</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {flows.map((payment, index) => (
           <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
-            <TableCell className="font-mono text-xs text-green-400 px-2 py-1">
+            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle">
               {formatDate(payment.date)}
             </TableCell>
-            <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1">
+            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle">
               {formatNumber(payment.couponPayment || 0, 2)}
             </TableCell>
-            <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1">
+            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle">
               {formatNumber(payment.principalPayment || 0, 2)}
             </TableCell>
-            <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1 font-medium">
+            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle font-medium">
               {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
             </TableCell>
           </TableRow>
@@ -92,33 +92,33 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
     <Table className="w-full">
       <TableHeader>
         <TableRow className="border-green-800/30 hover:bg-transparent">
-          <TableHead className="text-green-400 font-mono text-sm">Date</TableHead>
-          <TableHead className="text-green-400 font-mono text-sm text-right">Coupon %</TableHead>
-          <TableHead className="text-green-400 font-mono text-sm text-right">Coupon $</TableHead>
-          <TableHead className="text-green-400 font-mono text-sm text-right">Principal $</TableHead>
-          <TableHead className="text-green-400 font-mono text-sm text-right">Total $</TableHead>
-          <TableHead className="text-green-400 font-mono text-sm text-right">Remaining %</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-center">Date</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-center">Coupon %</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-center">Coupon $</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-center">Principal $</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-center">Total $</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-center">Remaining %</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {flows.map((payment, index) => (
           <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
-            <TableCell className="font-mono text-sm text-green-400 px-3 py-2">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
               {formatDate(payment.date)}
             </TableCell>
-            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
               {formatPercent(getCouponRateForDate(payment.date), 2)}
             </TableCell>
-            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
               {formatNumber(payment.couponPayment || 0, 2)}
             </TableCell>
-            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
               {formatNumber(payment.principalPayment || 0, 2)}
             </TableCell>
-            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2 font-medium">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle font-medium">
               {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
             </TableCell>
-            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
               {formatPercent(calculateRemainingPercent(payment.remainingNotional || 0), 2)}
             </TableCell>
           </TableRow>
