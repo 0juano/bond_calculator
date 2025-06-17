@@ -347,6 +347,7 @@ export default function BondCalculator() {
             <CashFlowSchedulePanel 
               cashFlows={bondResult.cashFlows}
               isLoading={calculatorState.isCalculating}
+              settlementDate={calculatorState.input.settlementDate}
               bond={{
                 faceValue: bond.faceValue,
                 paymentFrequency: bond.paymentFrequency,

@@ -10,6 +10,7 @@ import { formatNumber, formatDate, formatPercent } from "@/lib/bond-utils";
 interface CashFlowSchedulePanelProps {
   cashFlows: CashFlowResult[];
   isLoading: boolean;
+  settlementDate?: string;
   bond?: {
     faceValue?: number | string;
     paymentFrequency?: number;
@@ -19,8 +20,12 @@ interface CashFlowSchedulePanelProps {
   className?: string;
 }
 
-export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }: CashFlowSchedulePanelProps) {
+export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bond, className }: CashFlowSchedulePanelProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Filter to show only future payments
+  const today = settlementDate ? new Date(settlementDate) : new Date();
+  const futureFlows = cashFlows.filter(cf => new Date(cf.date) > today);
   
   // Get original principal for percentage calculations
   const originalPrincipal = cashFlows.length > 0 ? (cashFlows[0].remainingNotional || 0) + (cashFlows[0].principalPayment || 0) : 0;
@@ -166,6 +171,26 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
     );
   }
 
+  if (!futureFlows.length) {
+    return (
+      <Card className={`bg-gray-900 border-green-600 ${className}`}>
+        <CardHeader>
+          <CardTitle className="text-green-400 flex items-center gap-2">
+            <CalendarDays className="h-5 w-5" />
+            Cash-Flow Schedule
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <CalendarDays className="h-8 w-8 mx-auto text-gray-600 mb-4" />
+            <p className="text-gray-400">No future payments</p>
+            <p className="text-sm text-gray-500">All payments are in the past</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className={`bg-gray-900 border-green-600 flex flex-col ${className}`}>
       <CardHeader className="pb-4">
@@ -186,7 +211,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
                 <DialogTitle className="text-green-400">Complete Cash Flow Schedule</DialogTitle>
               </DialogHeader>
               <div className="flex-1 overflow-auto p-4">
-                <ExtendedTable flows={cashFlows} />
+                <ExtendedTable flows={futureFlows} />
               </div>
             </DialogContent>
           </Dialog>
@@ -194,7 +219,17 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
       </CardHeader>
       <CardContent className="flex-1">
         <div className="overflow-hidden">
-          <CompactTable flows={cashFlows} />
+          <CompactTable flows={futureFlows} />
+          {futureFlows.length > 0 && (
+            <div className="mt-2 text-center">
+              <span className="text-xs text-gray-500">
+                Showing {futureFlows.length} future payment{futureFlows.length !== 1 ? 's' : ''}
+                {cashFlows.length > futureFlows.length && (
+                  <span> ({cashFlows.length - futureFlows.length} past payment{cashFlows.length - futureFlows.length !== 1 ? 's' : ''} hidden)</span>
+                )}
+              </span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
