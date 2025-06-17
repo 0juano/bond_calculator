@@ -41,23 +41,23 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
   };
 
   return (
-    <Card className={`bg-gray-900 border-green-600 h-full ${className}`}>
+    <Card className={`bg-gray-900 border-green-600 ${className}`}>
       <CardHeader>
         <CardTitle className="text-green-400 flex items-center gap-2">
           <Shield className="h-5 w-5" />
           Key Metrics
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-8">
         {isCalculating ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin h-6 w-6 border-2 border-green-400 border-t-transparent rounded-full mr-2"></div>
             <span className="text-gray-400">Calculating metrics...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-2 gap-4">
             {/* Duration */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-blue-400" />
                 <p className="text-xs text-gray-400">Modified Duration</p>
@@ -70,7 +70,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             </div>
 
             {/* Convexity */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 text-purple-400" />
                 <p className="text-xs text-gray-400">Convexity</p>
@@ -83,7 +83,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             </div>
 
             {/* Current Yield */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-1">
                 <p className="text-xs text-gray-400">Current Yield</p>
                 <InfoTooltip text="Annual coupon income as percentage of current market price" />
@@ -95,7 +95,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             </div>
 
             {/* Accrued Interest */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-1">
                 <p className="text-xs text-gray-400">Accrued Interest</p>
                 <InfoTooltip text="Interest earned since last coupon payment date" />
@@ -107,7 +107,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             </div>
 
             {/* Clean Price */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-1">
                 <p className="text-xs text-gray-400">Clean Price</p>
                 <InfoTooltip text="Bond price excluding accrued interest" />
@@ -120,7 +120,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* Macaulay Duration (if available) */}
             {analytics?.macaulayDuration && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
                   <p className="text-xs text-gray-400">Macaulay Duration</p>
                   <InfoTooltip text="Weighted average time to receive all cash flows" />
@@ -134,7 +134,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* Average Life (if available) */}
             {analytics?.averageLife && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
                   <p className="text-xs text-gray-400">Average Life</p>
                   <InfoTooltip text="Weighted average time until principal payments" />
@@ -148,7 +148,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* DV01 (if available) */}
             {analytics?.dollarDuration && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
                   <p className="text-xs text-gray-400">DV01</p>
                   <InfoTooltip text="Dollar value change for 1 basis point yield move" />
@@ -162,7 +162,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* Days to Next Coupon */}
             {analytics?.daysToNextCoupon !== undefined && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <p className="text-xs text-gray-400">Days to Next Coupon</p>
                 <p className="text-lg font-mono text-green-400">
                   {safeFormat(analytics.daysToNextCoupon, formatNumber, 0)}
@@ -173,7 +173,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* Technical Value */}
             {analytics && typeof analytics.technicalValue === 'number' && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <p className="text-xs text-gray-400">Technical Value</p>
                 <p className="text-lg font-mono text-green-400">
                   {safeFormat(analytics.technicalValue, formatPercent)}
@@ -184,7 +184,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* Treasury Yield (Reference Rate) */}
             {analytics?.treasuryYield !== undefined && analytics?.treasuryYield !== null && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <p className="text-xs text-gray-400">Reference Tr Yld</p>
                 <p className="text-lg font-mono text-green-400">
                   {safeFormat(analytics.treasuryYield, formatPercent)}
@@ -195,7 +195,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
 
             {/* Parity */}
             {analytics && typeof analytics.parity === 'number' && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <p className="text-xs text-gray-400">Parity</p>
                 <p className="text-lg font-mono text-green-400">
                   {safeFormat(analytics.parity, formatPercent)}

@@ -33,3 +33,9 @@ The bond calculator now features:
 - ✅ Bloomberg-validated calculations
 
 **Layout verified with MCP Puppeteer testing showing excellent user experience and professional appearance.**
+
+[x] **Panel height alignment**
+    • ✅ Added h-full class to all panels for consistent height matching
+    • ✅ Bond Pricing Calculator and Key Metrics panels now align perfectly
+    • ✅ Price Sensitivity and Cash-Flow Schedule start at same height
+    • ✅ Added subtle padding adjustments for visual balance
