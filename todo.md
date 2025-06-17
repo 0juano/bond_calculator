@@ -39,3 +39,13 @@ The bond calculator now features:
     • ✅ Bond Pricing Calculator and Key Metrics panels now align perfectly
     • ✅ Price Sensitivity and Cash-Flow Schedule start at same height
     • ✅ Added subtle padding adjustments for visual balance
+
+[x] **2x2 Dashboard Grid Layout**
+    • ✅ Implemented proper 2x2 grid using CSS Grid with auto-rows-fr
+    • ✅ Top row: Bond Pricing Calculator + Key Metrics with matching heights
+    • ✅ Bottom row: Price Sensitivity + Cash Flow Schedule with aligned tops
+    • ✅ Uniform 16px gaps between all grid cells
+    • ✅ Panels stretch to match row partner heights automatically
+    • ✅ Mobile responsive: stacks vertically on screens ≤768px
+    • ✅ Added placeholder states for empty panels
+    • ✅ Flex layout ensures content distribution within panels

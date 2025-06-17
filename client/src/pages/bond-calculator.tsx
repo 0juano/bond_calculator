@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Calculator, AlertTriangle, TrendingUp, CalendarDays } from "lucide-react";
 import { BondDefinition, BondResult } from "@shared/schema";
 import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { PricingPanel } from "@/components/calculator/pricing-panel";
@@ -309,46 +309,59 @@ export default function BondCalculator() {
           }}
         />
 
-        {/* Calculator Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-6">
-            {/* Pricing Panel */}
-            <PricingPanel calculatorState={calculatorState} bond={bond} />
-            
-            {/* Price Sensitivity Panel */}
-            {calculatorState.input.price && (
-              <PriceSensitivityPanel 
-                bond={bond}
-                currentPrice={calculatorState.input.price}
-                settlementDate={calculatorState.input.settlementDate}
-                predefinedCashFlows={predefinedCashFlows}
-              />
-            )}
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-            {/* Risk Metrics Panel */}
-            <RiskMetricsPanel 
-              analytics={calculatorState.analytics} 
-              isCalculating={calculatorState.isCalculating} 
+        {/* Calculator Interface - 2x2 Grid */}
+        <div className="grid gap-4 md:grid-cols-2 grid-flow-row auto-rows-fr">
+          {/* Row 1: Bond Pricing Calculator */}
+          <PricingPanel 
+            calculatorState={calculatorState} 
+            bond={bond} 
+            className="flex flex-col"
+          />
+          
+          {/* Row 1: Key Metrics */}
+          <RiskMetricsPanel 
+            analytics={calculatorState.analytics} 
+            isCalculating={calculatorState.isCalculating} 
+            className="flex flex-col"
+          />
+          
+          {/* Row 2: Price Sensitivity */}
+          {calculatorState.input.price ? (
+            <PriceSensitivityPanel 
+              bond={bond}
+              currentPrice={calculatorState.input.price}
+              settlementDate={calculatorState.input.settlementDate}
+              predefinedCashFlows={predefinedCashFlows}
             />
-            
-            {/* Cash Flow Schedule Panel */}
-            {bondResult?.cashFlows && (
-              <CashFlowSchedulePanel 
-                cashFlows={bondResult.cashFlows}
-                isLoading={calculatorState.isCalculating}
-                bond={{
-                  faceValue: bond.faceValue,
-                  paymentFrequency: bond.paymentFrequency,
-                  couponRate: bond.couponRate,
-                  couponRateChanges: bond.couponRateChanges || []
-                }}
-              />
-            )}
-          </div>
+          ) : (
+            <div className="bg-gray-900 border border-green-600 rounded-lg p-6 flex items-center justify-center">
+              <div className="text-center">
+                <TrendingUp className="h-8 w-8 mx-auto text-gray-600 mb-4" />
+                <p className="text-gray-400">Enter a price to see sensitivity analysis</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Row 2: Cash Flow Schedule */}
+          {bondResult?.cashFlows ? (
+            <CashFlowSchedulePanel 
+              cashFlows={bondResult.cashFlows}
+              isLoading={calculatorState.isCalculating}
+              bond={{
+                faceValue: bond.faceValue,
+                paymentFrequency: bond.paymentFrequency,
+                couponRate: bond.couponRate,
+                couponRateChanges: bond.couponRateChanges || []
+              }}
+            />
+          ) : (
+            <div className="bg-gray-900 border border-green-600 rounded-lg p-6 flex items-center justify-center">
+              <div className="text-center">
+                <CalendarDays className="h-8 w-8 mx-auto text-gray-600 mb-4" />
+                <p className="text-gray-400">Cash flow schedule will appear here</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Error Display */}

@@ -48,14 +48,14 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
           Key Metrics
         </CardTitle>
       </CardHeader>
-      <CardContent className="pb-8">
+      <CardContent className="flex-1">
         {isCalculating ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin h-6 w-6 border-2 border-green-400 border-t-transparent rounded-full mr-2"></div>
             <span className="text-gray-400">Calculating metrics...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 h-full content-start">
             {/* Duration */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1">

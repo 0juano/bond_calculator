@@ -143,7 +143,7 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
           Bond Pricing Calculator
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 flex-1">
         {/* Price Input Field */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
