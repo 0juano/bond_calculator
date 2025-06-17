@@ -310,19 +310,19 @@ export default function BondCalculator() {
         />
 
         {/* Calculator Interface - 2x2 Grid */}
-        <div className="grid gap-4 md:grid-cols-2 grid-flow-row auto-rows-fr">
+        <div className="grid gap-4 md:grid-cols-2 md:auto-rows-min">
           {/* Row 1: Bond Pricing Calculator */}
           <PricingPanel 
             calculatorState={calculatorState} 
             bond={bond} 
-            className="flex flex-col"
+            className="flex flex-col md:h-full"
           />
           
           {/* Row 1: Key Metrics */}
           <RiskMetricsPanel 
             analytics={calculatorState.analytics} 
             isCalculating={calculatorState.isCalculating} 
-            className="flex flex-col"
+            className="flex flex-col md:h-full"
           />
           
           {/* Row 2: Price Sensitivity */}

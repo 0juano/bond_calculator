@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Maximize2, CalendarDays } from "lucide-react";
 import { CashFlowResult } from "@shared/schema";
-import { formatCurrency, formatDate, formatNumber } from "@/lib/bond-utils";
+import { formatNumber, formatDate, formatPercent } from "@/lib/bond-utils";
 
 interface CashFlowSchedulePanelProps {
   cashFlows: CashFlowResult[];
@@ -22,39 +22,109 @@ interface CashFlowSchedulePanelProps {
 export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }: CashFlowSchedulePanelProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Show next 8 payments in the compact view
-  const compactCashFlows = cashFlows.slice(0, 8);
-  const hasMoreFlows = cashFlows.length > 8;
+  // Get original principal for percentage calculations
+  const originalPrincipal = cashFlows.length > 0 ? (cashFlows[0].remainingNotional || 0) + (cashFlows[0].principalPayment || 0) : 0;
+  
+  // Function to get coupon rate for a specific date
+  const getCouponRateForDate = (date: string): number => {
+    if (!bond) return 0;
+    
+    const paymentDate = new Date(date);
+    let currentRate = typeof bond.couponRate === 'string' ? parseFloat(bond.couponRate) : (bond.couponRate || 0);
+    
+    if (bond.couponRateChanges) {
+      // Find the applicable coupon rate for this payment date
+      const sortedChanges = [...bond.couponRateChanges].sort((a, b) => 
+        new Date(a.effectiveDate).getTime() - new Date(b.effectiveDate).getTime()
+      );
+      
+      for (const change of sortedChanges) {
+        const changeDate = new Date(change.effectiveDate);
+        if (paymentDate >= changeDate) {
+          currentRate = change.newCouponRate;
+        }
+      }
+    }
+    
+    return currentRate;
+  };
 
-  // Calculate summary
-  const totalCouponPayments = cashFlows.reduce((sum, cf) => sum + (cf.couponPayment || 0), 0);
-  const totalPrincipalPayments = cashFlows.reduce((sum, cf) => sum + (cf.principalPayment || 0), 0);
-  const totalPayments = totalCouponPayments + totalPrincipalPayments;
+  // Calculate remaining percentage
+  const calculateRemainingPercent = (remainingNotional: number): number => {
+    if (originalPrincipal === 0) return 0;
+    return (remainingNotional / originalPrincipal) * 100;
+  };
 
-  const CashFlowRows = ({ flows, showAll = false }: { flows: CashFlowResult[], showAll?: boolean }) => (
-    <>
-      {flows.map((payment, index) => (
-        <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
-          <TableCell className="font-mono text-xs text-green-400 px-2 py-1">
-            {formatDate(payment.date)}
-          </TableCell>
-          <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1">
-            {formatNumber(payment.couponPayment || 0, 2)}
-          </TableCell>
-          <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1">
-            {formatNumber(payment.principalPayment || 0, 2)}
-          </TableCell>
-          <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1 font-medium">
-            {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
-          </TableCell>
-          {showAll && (
-            <TableCell className="font-mono text-xs text-gray-400 text-right px-2 py-1">
-              {formatNumber(payment.remainingNotional || 0, 2)}
-            </TableCell>
-          )}
+  // Compact table for the panel (4 columns)
+  const CompactTable = ({ flows }: { flows: CashFlowResult[] }) => (
+    <Table className="w-full">
+      <TableHeader>
+        <TableRow className="border-green-800/30 hover:bg-transparent">
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2">Date</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Coupon</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Principal</TableHead>
+          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Total</TableHead>
         </TableRow>
-      ))}
-    </>
+      </TableHeader>
+      <TableBody>
+        {flows.map((payment, index) => (
+          <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
+            <TableCell className="font-mono text-xs text-green-400 px-2 py-1">
+              {formatDate(payment.date)}
+            </TableCell>
+            <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1">
+              {formatNumber(payment.couponPayment || 0, 2)}
+            </TableCell>
+            <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1">
+              {formatNumber(payment.principalPayment || 0, 2)}
+            </TableCell>
+            <TableCell className="font-mono text-xs text-green-400 text-right px-2 py-1 font-medium">
+              {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
+  // Extended table for the modal (6 columns)
+  const ExtendedTable = ({ flows }: { flows: CashFlowResult[] }) => (
+    <Table className="w-full">
+      <TableHeader>
+        <TableRow className="border-green-800/30 hover:bg-transparent">
+          <TableHead className="text-green-400 font-mono text-sm">Date</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-right">Coupon %</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-right">Coupon $</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-right">Principal $</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-right">Total $</TableHead>
+          <TableHead className="text-green-400 font-mono text-sm text-right">Remaining %</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {flows.map((payment, index) => (
+          <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
+            <TableCell className="font-mono text-sm text-green-400 px-3 py-2">
+              {formatDate(payment.date)}
+            </TableCell>
+            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+              {formatPercent(getCouponRateForDate(payment.date), 2)}
+            </TableCell>
+            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+              {formatNumber(payment.couponPayment || 0, 2)}
+            </TableCell>
+            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+              {formatNumber(payment.principalPayment || 0, 2)}
+            </TableCell>
+            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2 font-medium">
+              {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
+            </TableCell>
+            <TableCell className="font-mono text-sm text-green-400 text-right px-3 py-2">
+              {formatPercent(calculateRemainingPercent(payment.remainingNotional || 0), 2)}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 
   if (isLoading) {
@@ -97,7 +167,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
   }
 
   return (
-    <Card className={`bg-gray-900 border-green-600 ${className}`}>
+    <Card className={`bg-gray-900 border-green-600 flex flex-col ${className}`}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-green-400 flex items-center gap-2">
@@ -111,70 +181,20 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
                 Enlarge
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] bg-gray-900 border-green-600">
+            <DialogContent className="w-screen max-w-none h-[80vh] bg-gray-900 border-green-600">
               <DialogHeader>
                 <DialogTitle className="text-green-400">Complete Cash Flow Schedule</DialogTitle>
               </DialogHeader>
-              <div className="overflow-auto max-h-[60vh]">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-green-800/30 hover:bg-transparent">
-                      <TableHead className="text-green-400 font-mono text-xs">Date</TableHead>
-                      <TableHead className="text-green-400 font-mono text-xs text-right">Coupon</TableHead>
-                      <TableHead className="text-green-400 font-mono text-xs text-right">Principal</TableHead>
-                      <TableHead className="text-green-400 font-mono text-xs text-right">Total</TableHead>
-                      <TableHead className="text-green-400 font-mono text-xs text-right">Remaining</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <CashFlowRows flows={cashFlows} showAll={true} />
-                  </TableBody>
-                </Table>
-              </div>
-              <div className="border-t border-green-800/30 pt-4 mt-4">
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="text-gray-400">Total Coupons</div>
-                    <div className="text-green-400 font-mono">{formatNumber(totalCouponPayments, 2)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-gray-400">Total Principal</div>
-                    <div className="text-green-400 font-mono">{formatNumber(totalPrincipalPayments, 2)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-gray-400">Total Payments</div>
-                    <div className="text-green-400 font-mono font-medium">{formatNumber(totalPayments, 2)}</div>
-                  </div>
-                </div>
+              <div className="flex-1 overflow-auto">
+                <ExtendedTable flows={cashFlows} />
               </div>
             </DialogContent>
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         <div className="overflow-hidden">
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow className="border-green-800/30 hover:bg-transparent">
-                <TableHead className="text-green-400 font-mono text-xs h-8 px-2">Date</TableHead>
-                <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Coupon</TableHead>
-                <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Principal</TableHead>
-                <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <CashFlowRows flows={compactCashFlows} />
-              {hasMoreFlows && (
-                <TableRow className="border-green-800/30">
-                  <TableCell colSpan={4} className="text-center py-2">
-                    <span className="text-gray-400 text-xs">
-                      ... and {cashFlows.length - 8} more payments
-                    </span>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <CompactTable flows={cashFlows} />
         </div>
       </CardContent>
     </Card>

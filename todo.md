@@ -49,3 +49,34 @@ The bond calculator now features:
     • ✅ Mobile responsive: stacks vertically on screens ≤768px
     • ✅ Added placeholder states for empty panels
     • ✅ Flex layout ensures content distribution within panels
+
+## 🚧 New Requirements - Layout & Data Updates
+
+[x] **Cash-Flow Panel Improvements**
+    • ✅ **Collapsed view**: Shows all cash flows that fit naturally in panel height
+    • ✅ **Keep existing 4 columns**: Date, Coupon $, Principal $, Total $
+    • ✅ **Enlarged view**: Click "Enlarge" button opens full-screen modal with extended table
+    • ✅ **Extended table columns** (6 total):
+      1. Date
+      2. Coupon % (annual rate) - calculated from bond coupon rate changes
+      3. Coupon $
+      4. Principal $
+      5. Total $
+      6. Remaining % (of principal still outstanding after payment)
+
+[x] **Grid Layout Adjustments**
+    • ✅ **Top row height matching**: Bond Pricing Calculator + Key Metrics stay equal height
+    • ✅ **Bottom row auto height**: Price Sensitivity + Cash-Flow Schedule natural heights
+    • ✅ **No padding tricks needed** for bottom row - let them be natural height
+    • ✅ **Maintain uniform gaps** between all panels (16px)
+    • ✅ **Preserve mobile responsive** stacking logic
+
+[x] **Implementation Details**
+    • ✅ Use `md:auto-rows-min` instead of `auto-rows-fr` for grid
+    • ✅ Top row panels: `flex flex-col md:h-full` for equal heights
+    • ✅ Bottom row panels: natural height, no forced stretching
+    • ✅ Cash-Flow panel: fit content to panel height naturally
+    • ✅ Modal: `w-screen max-w-none h-[80vh]` for full-width extended table
+    • ✅ Calculate Remaining % as: `remainingPrincipal / originalPrincipal * 100`
+    • ✅ Reuse same data source for modal, no fresh fetch needed
+    • ✅ Enhanced formatting with proper 2-decimal precision throughout
