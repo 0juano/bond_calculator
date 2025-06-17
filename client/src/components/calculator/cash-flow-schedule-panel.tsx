@@ -181,11 +181,11 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
                 Enlarge
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-screen max-w-none h-[80vh] bg-gray-900 border-green-600">
+            <DialogContent className="w-[95vw] max-w-6xl h-[80vh] bg-gray-900 border-green-600">
               <DialogHeader>
                 <DialogTitle className="text-green-400">Complete Cash Flow Schedule</DialogTitle>
               </DialogHeader>
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-auto p-4">
                 <ExtendedTable flows={cashFlows} />
               </div>
             </DialogContent>
