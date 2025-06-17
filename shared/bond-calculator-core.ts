@@ -327,7 +327,7 @@ export class BondCalculator {
       
       // Keep yield reasonable
       if (yield_.lt(-0.5)) yield_ = new Decimal(-0.5);
-      if (yield_.gt(2)) yield_ = new Decimal(2);
+      if (yield_.gt(10)) yield_ = new Decimal(10);
       
       iterations++;
     }
@@ -345,7 +345,7 @@ export class BondCalculator {
   ): { yield: number; converged: boolean; iterations: number; precision: number } {
     // Initial bracketing
     let a = -0.5;
-    let b = 2.0;
+    let b = 10.0;
     let fa = this.calculatePresentValue(cashFlows, a, settlementDate) - targetPrice;
     let fb = this.calculatePresentValue(cashFlows, b, settlementDate) - targetPrice;
     
@@ -450,7 +450,7 @@ export class BondCalculator {
     settlementDate: Date
   ): { yield: number; converged: boolean; iterations: number; precision: number } {
     let lower = -0.99;
-    let upper = 5.0;
+    let upper = 10.0;
     let iterations = 0;
     
     // Find initial bracket
@@ -500,7 +500,7 @@ export class BondCalculator {
     targetPrice: number,
     settlementDate: Date
   ): { lower: number; upper: number; fLower: number; fUpper: number } | null {
-    const testYields = [-0.99, -0.5, -0.2, 0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0];
+    const testYields = [-0.99, -0.5, -0.2, 0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0];
     
     for (let i = 0; i < testYields.length - 1; i++) {
       const y1 = testYields[i];

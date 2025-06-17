@@ -25,6 +25,7 @@
  */
 
 import Decimal from 'decimal.js';
+import { ytmCalculator } from './ytm-calculator';
 
 // Configure Decimal for high precision
 Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_UP });
@@ -143,6 +144,7 @@ export interface BondAnalyticsResult {
 export class BondCalculatorPro {
   private readonly PRECISION = 1e-10;
   private readonly MAX_ITERATIONS = 100;
+  private currentBond: Bond | null = null;
   
   /**
    * Main analysis function - calculates all analytics
@@ -155,6 +157,7 @@ export class BondCalculatorPro {
     treasuryCurve?: MarketInputs['treasuryCurve'];
   }): BondAnalyticsResult {
     const { bond, settlementDate, price, yield: inputYield, treasuryCurve } = inputs;
+    this.currentBond = bond; // Store for YTM calculation
     
     // Validate inputs
     this.validateInputs(bond, settlementDate, price, inputYield);
@@ -384,46 +387,48 @@ export class BondCalculatorPro {
     targetPrice: number,
     settlementDate: Date
   ): { yield: number; algorithm: string; iterations: number; precision: number } {
-    console.log(`🎯 YTM Solver Starting:`);
+    console.log(`🎯 YTM Solver Starting (XIRR):`);
     console.log(`  - Target Price: ${targetPrice}`);
     console.log(`  - Cash Flows: ${cashFlows.length}`);
-    console.log(`  - Total CF Amount: ${cashFlows.reduce((sum, cf) => sum + cf.amount, 0)}`);
+    console.log(`  - Face Value: ${this.currentBond?.faceValue || 1000}`);
     
-    // Sanity check
-    const totalCF = cashFlows.reduce((sum, cf) => sum + cf.amount, 0);
-    if (targetPrice > totalCF) {
-      console.warn(`⚠️ WARNING: Target price (${targetPrice}) exceeds total cash flows (${totalCF})`);
-      console.warn(`  This will result in negative yield`);
-    }
+    // Convert target price to percentage of face value
+    const faceValue = this.currentBond?.faceValue || 1000;
+    const pricePercent = (targetPrice / faceValue) * 100;
+    console.log(`  - Price %: ${pricePercent.toFixed(2)}%`);
     
-    // Try algorithms in order of preference
-    const algorithms = [
-      { name: 'Newton-Raphson', method: this.solveNewtonRaphson.bind(this) },
-      { name: 'Brent', method: this.solveBrent.bind(this) },
-      { name: 'Bisection', method: this.solveBisection.bind(this) }
-    ];
+    // Convert cash flows to the format expected by YTM calculator
+    const bondCashFlows = cashFlows.map(cf => ({
+      date: cf.date.toISOString().split('T')[0],
+      totalPayment: cf.amount
+    }));
     
-    for (const { name, method } of algorithms) {
-      try {
-        console.log(`  🔧 Trying ${name} algorithm...`);
-        const result = method(cashFlows, targetPrice, settlementDate);
-        if (result.converged) {
-          console.log(`  ✅ ${name} converged: YTM = ${(result.yield * 100).toFixed(3)}%`);
-          return {
-            yield: result.yield,
-            algorithm: name,
-            iterations: result.iterations,
-            precision: result.precision
-          };
-        } else {
-          console.log(`  ❌ ${name} failed to converge`);
-        }
-      } catch (e) {
-        console.log(`  ❌ ${name} threw error: ${e instanceof Error ? e.message : 'Unknown'}`);
+    // Use XIRR-based YTM calculator
+    const result = ytmCalculator.calculateYTM(
+      bondCashFlows,
+      pricePercent,
+      settlementDate,
+      faceValue
+    );
+    
+    if (result.success) {
+      console.log(`  ✅ XIRR converged: YTM = ${result.ytm.toFixed(3)}%`);
+      
+      // Validate the result
+      if (!ytmCalculator.isReasonableYTM(result.ytm, pricePercent)) {
+        console.warn(`  ⚠️ WARNING: YTM ${result.ytm.toFixed(1)}% seems unreasonable for price ${pricePercent.toFixed(1)}%`);
       }
+      
+      return {
+        yield: result.ytm / 100, // Convert percentage to decimal
+        algorithm: result.algorithmUsed,
+        iterations: 0, // XIRR doesn't expose iteration count
+        precision: 1e-10
+      };
+    } else {
+      console.error(`  ❌ XIRR failed: ${result.error}`);
+      throw new Error(`Failed to calculate YTM: ${result.error}`);
     }
-    
-    throw new Error('Failed to calculate YTM with any method');
   }
   
   private solveNewtonRaphson(
@@ -483,8 +488,8 @@ export class BondCalculatorPro {
       // Enhanced bounds for complex bonds
       if (newYield.lt(-0.99)) {
         yield_ = new Decimal(-0.99);
-      } else if (newYield.gt(1.0)) {
-        yield_ = new Decimal(1.0);
+      } else if (newYield.gt(10.0)) {
+        yield_ = new Decimal(10.0);
       } else {
         yield_ = newYield;
       }
@@ -536,7 +541,7 @@ export class BondCalculatorPro {
     settlementDate: Date
   ): { yield: number; converged: boolean; iterations: number; precision: number } {
     // Simplified Brent's method implementation
-    let a = -0.5, b = 2.0;
+    let a = -0.5, b = 10.0;
     let fa = this.calculatePresentValue(cashFlows, a, settlementDate) - targetPrice;
     let fb = this.calculatePresentValue(cashFlows, b, settlementDate) - targetPrice;
     
@@ -580,7 +585,7 @@ export class BondCalculatorPro {
     targetPrice: number,
     settlementDate: Date
   ): { yield: number; converged: boolean; iterations: number; precision: number } {
-    let lower = -0.99, upper = 1.0;
+    let lower = -0.99, upper = 10.0;
     let iterations = 0;
     
     // Find initial bracket
@@ -636,7 +641,7 @@ export class BondCalculatorPro {
     const initialGuess = this.getInitialGuess(cashFlows, targetPrice, settlementDate);
     
     // Create test points around the initial guess for better bracketing
-    const basePoints = [-0.99, -0.5, -0.2, 0, 0.02, 0.05, 0.08, 0.12, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0];
+    const basePoints = [-0.99, -0.5, -0.2, 0, 0.02, 0.05, 0.08, 0.12, 0.15, 0.2, 0.3, 0.5, 0.8, 1.0, 2.0, 5.0, 10.0];
     
     // Add points around the initial guess
     const guessPoints = [
@@ -645,7 +650,7 @@ export class BondCalculatorPro {
       initialGuess,
       initialGuess + 0.05,
       initialGuess + 0.1
-    ].filter(p => p >= -0.99 && p <= 1.0);
+    ].filter(p => p >= -0.99 && p <= 10.0);
     
     const testPoints = Array.from(new Set([...basePoints, ...guessPoints])).sort((a, b) => a - b);
     
@@ -665,7 +670,7 @@ export class BondCalculatorPro {
     
     // If no bracket found, try expanding the search
     console.log(`⚠️ No bracket found in standard range, expanding search...`);
-    const expandedPoints = [-0.99, -0.8, -0.6, -0.4, -0.2, 0, 0.01, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0];
+    const expandedPoints = [-0.99, -0.8, -0.6, -0.4, -0.2, 0, 0.01, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 2.0, 5.0, 10.0];
     
     for (let i = 0; i < expandedPoints.length - 1; i++) {
       const y1 = expandedPoints[i];
@@ -775,12 +780,25 @@ export class BondCalculatorPro {
     const yieldDec = new Decimal(yield_);
     let pv = new Decimal(0);
     
+    // Debug: Log the first few cash flows to verify calculation
+    console.log(`🔍 PV CALCULATION DEBUG (YTM: ${(yield_ * 100).toFixed(3)}%):`);
+    
+    for (let i = 0; i < Math.min(3, cashFlows.length); i++) {
+      const cf = cashFlows[i];
+      const years = new Decimal(this.yearsBetween(settlementDate, cf.date));
+      const df = Decimal.pow(yieldDec.plus(1), years);
+      const cfPv = new Decimal(cf.amount).div(df);
+      
+      console.log(`  CF ${i+1}: ${cf.date} | $${cf.amount} | ${years.toFixed(4)}y | DF: ${df.toFixed(6)} | PV: $${cfPv.toFixed(2)}`);
+    }
+    
     for (const cf of cashFlows) {
       const years = new Decimal(this.yearsBetween(settlementDate, cf.date));
       const df = Decimal.pow(yieldDec.plus(1), years);
       pv = pv.plus(new Decimal(cf.amount).div(df));
     }
     
+    console.log(`  TOTAL PV: $${pv.toFixed(2)}`);
     return pv.toNumber();
   }
   

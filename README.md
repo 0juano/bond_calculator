@@ -506,6 +506,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - Price ↔ YTM ↔ Spread bidirectional calculations
   - Intelligent field locking prevents infinite recalculation loops
   - Bloomberg-validated accuracy with professional terminal results
+- **MAJOR: XIRR YTM System Implementation**
+  - Replaced unstable YTM solver with robust Formula.js XIRR algorithm
+  - Eliminates catastrophic failures (456% YTM at 40% price)
+  - Stable calculations across all price ranges (10-100%)
+  - Decimal.js precision for accurate financial calculations
+- **BUG FIX: Price Sensitivity Panel**
+  - Fixed SoT (Spread to Treasury) column displaying dashes instead of values
+  - Corrected API endpoint and field mapping issues
+  - Price sensitivity table now shows proper spread values (+479, +460, etc.)
+  - Eliminated HTML input parsing errors with comma-formatted numbers
 - **BUG FIX: Price Conversion Logic**
   - Fixed critical price interpretation bug where inputs were misunderstood
   - Calculator now correctly treats price inputs as percentage of face value

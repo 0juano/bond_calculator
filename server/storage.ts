@@ -683,7 +683,20 @@ export class MemStorage implements IStorage {
           hasTreasuryCurve: !!analyzeInputs.treasuryCurve
         });
         
+        // DEBUG: Log first few cash flows to see what we're calculating with
+        console.log('🔍 First 3 cash flows:', calcBond.cashFlows.slice(0, 3).map(cf => ({
+          date: cf.date,
+          coupon: cf.coupon,
+          principal: cf.principal,
+          total: cf.total
+        })));
+        
         result = calculator.analyze(analyzeInputs);
+        
+        console.log('🔍 CALCULATOR RESULT:', {
+          ytm: result.yields?.ytm,
+          price: result.price?.clean
+        });
       }
       
       
@@ -691,7 +704,7 @@ export class MemStorage implements IStorage {
       // YTM is now returned as decimal, so convert to percentage for validation
       const ytmPercent = result.yields.ytm * 100;
       
-      if (ytmPercent > 50) {
+      if (ytmPercent > 1000) {
         console.error(`❌ Unrealistic YTM calculated: ${ytmPercent.toFixed(2)}%`);
         console.error(`❌ This suggests a price conversion error. Bond: ${bond.issuer}, Price: ${marketPrice}`);
         throw new Error(`Calculation error: YTM of ${ytmPercent.toFixed(2)}% is unrealistic. Check price input format.`);

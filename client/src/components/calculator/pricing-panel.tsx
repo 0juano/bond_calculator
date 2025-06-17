@@ -32,15 +32,15 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
   // Get display values
   const displayPrice = editingField === 'price' && tempValues.price !== undefined 
     ? tempValues.price 
-    : formatNumber(input.price ?? 100, 2);
+    : (input.price ?? 100).toFixed(2);
     
   const displayYield = editingField === 'yield' && tempValues.yield !== undefined
     ? tempValues.yield
-    : formatNumber(input.yieldValue ?? 0, 2);
+    : input.yieldValue !== undefined ? input.yieldValue.toFixed(2) : '';
     
   const displaySpread = editingField === 'spread' && tempValues.spread !== undefined
     ? tempValues.spread
-    : formatNumber(input.spread ?? 0, 0);
+    : input.spread !== undefined ? input.spread.toFixed(2) : '';
 
   // Handle input changes while editing
   const handlePriceChange = (value: string) => {

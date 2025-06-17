@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { BondDefinition, BondAnalytics, BondResult } from "@shared/schema";
+import { useCalculatorAPI, CalculationRequest } from "./useCalculatorAPI";
+import { useCalculatorValidation } from "./useCalculatorValidation";
 
 export interface CalculatorInput {
   price?: number;
@@ -37,7 +39,12 @@ export function useCalculatorState(
   initialBondResult?: BondResult,
   predefinedCashFlows?: any[] // Add support for predefined cash flows
 ): CalculatorState {
+  const api = useCalculatorAPI(bond);
+  const validation = useCalculatorValidation();
   const calculationCount = useRef(0);
+  
+  // Memoize predefinedCashFlows to prevent unnecessary re-renders
+  const memoizedCashFlows = useMemo(() => predefinedCashFlows, [predefinedCashFlows]);
   const lastCalculationId = useRef<string>('');
   const [input, setInputState] = useState<CalculatorInput>({
     price: initialBondResult?.analytics?.cleanPrice || 100, // Default to par if no initial result
@@ -83,78 +90,8 @@ export function useCalculatorState(
     }
   }, [initialBondResult]);
 
-  // Fetch live price for a bond
-  const fetchLivePrice = useCallback(async (
-    ticker?: string,
-    isin?: string,
-    issuer?: string
-  ): Promise<{ price: number; source: 'live' | 'reference' | 'default' }> => {
-    
-    try {
-      // Check if bond supports live pricing
-      const supportResponse = await fetch('/api/bonds/check-live-support', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticker, isin, issuer })
-      });
-      
-      if (!supportResponse.ok) {
-        throw new Error('Failed to check live price support');
-      }
-      
-      const supportInfo = await supportResponse.json();
-      
-      if (!supportInfo.isSupported) {
-        console.log(`📊 Live pricing not supported for ${ticker || 'bond'}, using default`);
-        return { price: 100, source: 'default' };
-      }
-      
-      // Fetch live price
-      const priceResponse = await fetch(`/api/bonds/live-price/${supportInfo.data912Symbol}`);
-      
-      if (!priceResponse.ok) {
-        throw new Error('Failed to fetch live price');
-      }
-      
-      const priceData = await priceResponse.json();
-      
-      console.log(`📊 Fetched ${priceData.priceSource} price for ${supportInfo.data912Symbol}: ${priceData.price}`);
-      
-      return {
-        price: priceData.price,
-        source: priceData.priceSource === 'live' ? 'live' : 'reference'
-      };
-      
-    } catch (error) {
-      console.warn('Failed to fetch live price:', error);
-      
-      // Bloomberg fallback prices (updated to current market levels)
-      const bloombergRefPrices: Record<string, number> = {
-        'GD29D': 74.93,  'GD30D': 69.40,  'GD35D': 68.40,
-        'GD38D': 73.10,  'GD41D': 63.40,  'GD46D': 65.78
-      };
-      
-      // Try to extract ticker for fallback
-      if (issuer?.includes('ARGENTINA')) {
-        const maturityYear = bond?.maturityDate ? new Date(bond.maturityDate).getFullYear() : null;
-        const tickerMap: Record<number, string> = {
-          2029: 'GD29D', 2030: 'GD30D', 2035: 'GD35D',
-          2038: 'GD38D', 2041: 'GD41D', 2046: 'GD46D'
-        };
-        
-        if (maturityYear && tickerMap[maturityYear]) {
-          const fallbackTicker = tickerMap[maturityYear];
-          const fallbackPrice = bloombergRefPrices[fallbackTicker];
-          if (fallbackPrice) {
-            console.log(`📊 Using Bloomberg fallback price for ${fallbackTicker}: ${fallbackPrice}`);
-            return { price: fallbackPrice, source: 'reference' };
-          }
-        }
-      }
-      
-      return { price: 100, source: 'default' };
-    }
-  }, [bond?.maturityDate]);
+  // Use fetchLivePrice from API hook
+  const fetchLivePrice = api.fetchLivePrice;
 
   // Reset calculator state when bond changes (for bond switching)
   useEffect(() => {
@@ -189,15 +126,8 @@ export function useCalculatorState(
   useEffect(() => {
     if (!bond) return;
 
-    // Check if we need to calculate based on locked field
-    const hasInputValue = (
-      (input.lockedField === 'PRICE' && input.price !== undefined) ||
-      (input.lockedField === 'YIELD' && input.yieldValue !== undefined) ||
-      (input.lockedField === 'SPREAD' && input.spread !== undefined) ||
-      (!input.lockedField && input.price !== undefined)
-    );
-
-    if (!hasInputValue) {
+    // Check if we have valid calculation inputs
+    if (!validation.hasValidCalculationInputs(input)) {
       return;
     }
 
@@ -230,7 +160,7 @@ export function useCalculatorState(
       try {
         
         // Build enhanced request with calculator inputs
-        const calculationRequest = {
+        const calculationRequest: CalculationRequest = {
           issuer: bond.issuer,
           cusip: bond.cusip,
           isin: bond.isin,
@@ -243,18 +173,18 @@ export function useCalculatorState(
           dayCountConvention: bond.dayCountConvention,
           currency: bond.currency,
           settlementDays: bond.settlementDays,
-          isAmortizing: bond.isAmortizing,
-          isCallable: bond.isCallable,
-          isPuttable: bond.isPuttable,
-          isVariableCoupon: bond.isVariableCoupon,
+          isAmortizing: bond.isAmortizing ?? false,
+          isCallable: bond.isCallable ?? false,
+          isPuttable: bond.isPuttable ?? false,
+          isVariableCoupon: bond.isVariableCoupon ?? false,
           amortizationSchedule: bond.amortizationSchedule || [],
           callSchedule: bond.callSchedule || [],
           putSchedule: bond.putSchedule || [],
           couponRateChanges: bond.couponRateChanges || [],
           settlementDate: input.settlementDate,
           // CRITICAL: Include predefined cash flows for JSON-first architecture
-          ...(predefinedCashFlows && predefinedCashFlows.length > 0 && { 
-            predefinedCashFlows: predefinedCashFlows.map(cf => ({
+          ...(memoizedCashFlows && memoizedCashFlows.length > 0 && { 
+            predefinedCashFlows: memoizedCashFlows.map(cf => ({
               date: cf.date,
               couponPayment: cf.couponPayment,
               principalPayment: cf.principalPayment,
@@ -297,87 +227,35 @@ export function useCalculatorState(
         });
 
         
-        const response = await fetch('/api/bonds/calculate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(calculationRequest),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.text();
-          let errorMessage = `Calculation failed: ${response.statusText}`;
-          
-          try {
-            const errorJson = JSON.parse(errorData);
-            errorMessage = errorJson.error || errorMessage;
-          } catch {
-            // If not JSON, use the text as is
-            if (errorData) errorMessage = errorData;
-          }
-          
-          // Special handling for spread calculation errors
-          if (errorMessage.includes('Treasury curve') || errorMessage.includes('spread')) {
-            setError('Treasury curve data is required for spread calculations. Please wait a moment and try again.');
-            // Don't update bond result - keep previous valid state
-            return;
-          }
-          
-          throw new Error(errorMessage);
-        } else {
-          const result = await response.json();
-          
-          console.log('🔍 CALCULATOR STATE: Received calculation result:', {
-            status: result.status,
-            ytm: result.analytics?.yieldToMaturity,
-            duration: result.analytics?.duration,
-            cleanPrice: result.analytics?.cleanPrice,
-            spread: result.analytics?.spread,
-            hasAnalytics: !!result.analytics
-          });
-          
-          // Validate the result before updating state
-          if (!result.analytics || typeof result.analytics.cleanPrice !== 'number') {
-            console.error('🔍 CALCULATOR STATE: Invalid result structure:', result);
-            throw new Error('Invalid calculation result received');
-          }
-          
-          // Update the input state with the calculated values
-          // ONLY update the fields that weren't the input to avoid infinite loops
-          setInputState(prev => {
+        const result = await api.calculateBond(calculationRequest);
+        
+        // Update the input state with the calculated values
+        // ONLY update the fields that weren't the input to avoid infinite loops
+        setInputState(prev => {
             const updates: Partial<CalculatorInput> = {};
             
             // Only update fields that weren't locked (i.e., weren't the input)
-            // Use more reasonable thresholds for meaningful changes
+            // Always update calculated fields to show current results
             if (prev.lockedField !== 'PRICE') {
               const newPrice = result.analytics.cleanPrice;
-              // Use 0.01 threshold (1 cent per $100 face value)
-              if (Math.abs((prev.price || 0) - newPrice) > 0.01) {
-                updates.price = newPrice;
-              }
+              // Always update price when it's calculated
+              updates.price = newPrice;
             }
             if (prev.lockedField !== 'YIELD') {
               const newYield = result.analytics.yieldToMaturity;
-              // Use 0.01% threshold for yield changes
-              if (Math.abs((prev.yieldValue || 0) - newYield) > 0.01) {
-                updates.yieldValue = newYield;
-              }
+              // Always update yield when it's calculated
+              updates.yieldValue = newYield;
             }
             if (prev.lockedField !== 'SPREAD') {
               const newSpread = result.analytics.spread;
-              // Use 1bp threshold for spread changes
-              if (newSpread !== undefined && Math.abs((prev.spread || 0) - newSpread) > 1) {
+              // Always update spread when it's calculated
+              if (newSpread !== undefined) {
                 updates.spread = newSpread;
               }
             }
             
             // Add the calculationId to track this update
             updates.calculationId = calculationId;
-            
-            // Only update if there are actual meaningful changes
-            if (Object.keys(updates).length === 1 && updates.calculationId) {
-              console.log('🔍 CALCULATOR STATE: No meaningful updates needed - values within threshold');
-              return prev;
-            }
             
             console.log('🔄 CALCULATOR STATE: Updating input state:', {
               updates,
@@ -392,14 +270,13 @@ export function useCalculatorState(
             return { ...prev, ...updates };
           });
           
-          setBondResult(prev => ({
-            bond: bond,
-            cashFlows: prev?.cashFlows || result.cashFlows || [],
-            analytics: result.analytics,
-            buildTime: result.calculationTime || Date.now(),
-            status: result.status || 'success',
-          }));
-        }
+        setBondResult(prev => ({
+          bond: bond,
+          cashFlows: prev?.cashFlows || result.cashFlows || [],
+          analytics: result.analytics,
+          buildTime: result.calculationTime || Date.now(),
+          status: result.status || 'success',
+        }));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Calculation failed');
       } finally {
@@ -413,12 +290,14 @@ export function useCalculatorState(
   }, [
     bond, 
     input.settlementDate, 
-    predefinedCashFlows,
+    memoizedCashFlows,
     input.lockedField,
     input.price,
     input.yieldValue,
     input.spread,
-    input.calculationId
+    input.calculationId,
+    api,
+    validation
   ]);
 
   // Action handlers
@@ -431,14 +310,9 @@ export function useCalculatorState(
     calculationCount.current = 0;
     
     // Validate price input
-    if (isNaN(price)) {
-      setError('Invalid price value');
-      return;
-    }
-    
-    // Reasonable price limits (5 to 200 as percentage of face value)
-    if (price < 5 || price > 200) {
-      setError('Price must be between 5 and 200 (as % of face value)');
+    const validationResult = validation.validatePrice(price);
+    if (!validationResult.isValid) {
+      setError(validationResult.error);
       return;
     }
     
@@ -448,21 +322,16 @@ export function useCalculatorState(
       calculationId: undefined // Clear calculationId for user input
     });
     setError(undefined); // Clear any previous errors
-  }, [setInput]);
+  }, [setInput, validation]);
 
   const setYieldValue = useCallback((yieldValue: number) => {
     // Reset calculation counter when user manually enters a value
     calculationCount.current = 0;
     
     // Validate yield input
-    if (isNaN(yieldValue)) {
-      setError('Invalid yield value');
-      return;
-    }
-    
-    // Reasonable yield limits (-5% to 50%)
-    if (yieldValue < -5 || yieldValue > 50) {
-      setError('Yield must be between -5% and 50%');
+    const validationResult = validation.validateYield(yieldValue);
+    if (!validationResult.isValid) {
+      setError(validationResult.error);
       return;
     }
     
@@ -472,21 +341,16 @@ export function useCalculatorState(
       calculationId: undefined // Clear calculationId for user input
     });
     setError(undefined); // Clear any previous errors
-  }, [setInput]);
+  }, [setInput, validation]);
 
   const setSpread = useCallback((spread: number) => {
     // Reset calculation counter when user manually enters a value
     calculationCount.current = 0;
     
     // Validate spread input
-    if (isNaN(spread)) {
-      setError('Invalid spread value');
-      return;
-    }
-    
-    // Reasonable spread limits (-1000 to 5000 basis points)
-    if (spread < -1000 || spread > 5000) {
-      setError('Spread must be between -1000 and 5000 basis points');
+    const validationResult = validation.validateSpread(spread);
+    if (!validationResult.isValid) {
+      setError(validationResult.error);
       return;
     }
     
@@ -496,7 +360,7 @@ export function useCalculatorState(
       calculationId: undefined // Clear calculationId for user input
     });
     setError(undefined); // Clear any previous errors
-  }, [setInput]);
+  }, [setInput, validation]);
 
   const setSettlementDate = useCallback((date: string) => {
     setInput({ settlementDate: date });
@@ -514,40 +378,16 @@ export function useCalculatorState(
     // Reset calculation counter when user manually resets
     calculationCount.current = 0;
     
-    // Bloomberg reference prices for Argentina bonds
-    const bloombergRefPrices: Record<string, number> = {
-      'GD29': 84.10,  // Argentina 2029
-      'GD30': 80.19,  // Argentina 2030
-      'GD38': 72.25,  // Argentina 2038
-      'GD46': 66.13,  // Argentina 2046
-      'GD35': 68.24,  // Argentina 2035
-      'GD41': 63.13,  // Argentina 2041
-    };
-    
-    // Try to determine Bloomberg reference price for Argentina bonds
+    // Try to get Bloomberg reference price
     let marketPrice = bondResult?.analytics?.cleanPrice || input.price || 100; // Default to current or par
     
-    if (bond && bond.issuer === 'REPUBLIC OF ARGENTINA') {
-      // Try to extract ticker from bond maturity year
-      const maturityYear = bond.maturityDate ? new Date(bond.maturityDate).getFullYear() : null;
-      
-      const tickerMap: Record<number, string> = {
-        2029: 'GD29',
-        2030: 'GD30',
-        2035: 'GD35',
-        2038: 'GD38',
-        2041: 'GD41',
-        2046: 'GD46'
-      };
-      
-      if (maturityYear && tickerMap[maturityYear]) {
-        const ticker = tickerMap[maturityYear];
-        marketPrice = bloombergRefPrices[ticker] || marketPrice;
-        console.log(`📊 Reset to Bloomberg reference price for ${ticker}: ${marketPrice}`);
-      }
+    const fallback = api.getBloombergFallback(bond?.issuer, bond?.maturityDate);
+    if (fallback) {
+      marketPrice = fallback.price;
+      console.log(`📊 Reset to Bloomberg reference price: ${marketPrice}`);
     }
     
-    // Reset to Bloomberg reference price for Argentina bonds, or last calculated values for others
+    // Reset to reference price
     setInput({
       price: marketPrice,
       yieldValue: undefined, // Clear yield to recalculate from price
@@ -556,7 +396,7 @@ export function useCalculatorState(
       calculationId: undefined // Clear calculationId on reset
     });
     setError(undefined); // Clear any errors
-  }, [bondResult?.analytics, input, setInput, bond]);
+  }, [bondResult?.analytics, input, setInput, bond, api]);
 
   const runScenario = useCallback((shockBp: number) => {
     if (bondResult?.analytics?.yieldToMaturity) {
