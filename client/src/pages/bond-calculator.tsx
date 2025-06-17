@@ -310,7 +310,7 @@ export default function BondCalculator() {
         />
 
         {/* Calculator Interface - 2x2 Grid */}
-        <div className="grid gap-4 md:grid-cols-2 md:auto-rows-min">
+        <div className="grid gap-4 md:grid-cols-2 md:auto-rows-min relative">
           {/* Row 1: Bond Pricing Calculator */}
           <PricingPanel 
             calculatorState={calculatorState} 

@@ -1,3 +1,5 @@
+Always keep the @todo.md file in this location in the main folder. When there is a new todo, add it to the top
+
 [x] current yield is broken, the 2038 is showing 0.068% instead of 6.8% (i think should be around there)
 [x] **Number formatting – 2-dec + thousands separators**  
     • ✅ Updated components to use centralized `formatNumber()` and `formatPercent()` from bond-utils
@@ -8,6 +10,17 @@
     • ✅ Created reusable `<InfoTooltip />` component using Radix UI tooltips
     • ✅ Added tooltips to all key metrics: Modified Duration, Convexity, DV01, etc.
     • ✅ Included concise definitions like "Price sensitivity: ∂Price/∂Yield × 100"
+    • ✅ **Updated with detailed professional tooltips (June 2025)**:
+      - Technical Value: "Dirty price if the bond were at par: principal + accrued interest. Used to gauge true cost."
+      - Parity: "Clean price expressed as a % of technical value. < 100% = trading below principal + accrued."
+      - Current Yield: "Annual coupon ÷ clean price. Ignores capital gain/loss at maturity—quick income snapshot."
+      - Modified Duration: "% price change for a 1% (100 bp) move in yield. First-order interest-rate risk."
+      - DV01: "Dollar Value of 1 bp: how many currency units the bond gains or loses per 0.01% yield move."
+      - Convexity: "Second-order price sensitivity—adjusts duration for large rate moves; higher = less curve risk."
+      - Macaulay Duration: "Time-weighted average until cash flows are received. Basis for modified duration."
+      - Average Life: "Weighted-average maturity when principal is amortized; key for sinking-fund or amortizing bonds."
+      - Reference Treasury Yield: "Interpolated U.S. Treasury yield at identical maturity—anchor for spread calculations."
+    • ✅ Touch device support: Radix UI automatically handles tap behavior on mobile devices
 
 [x] **Fix DV01 calculation**  
     • ✅ Verified DV01 calculation already uses correct formula: `modDur * price * 0.0001`

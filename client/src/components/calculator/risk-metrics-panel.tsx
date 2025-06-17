@@ -55,58 +55,8 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             <span className="text-gray-400">Calculating metrics...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 h-full content-start">
-            {/* Duration */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-blue-400" />
-                <p className="text-xs text-gray-400">Modified Duration</p>
-                <InfoTooltip text="Price sensitivity to yield changes: ∂Price/∂Yield × 100" />
-              </div>
-              <p className="text-lg font-mono text-green-400">
-                {safeFormat(analytics?.duration, formatNumber, 2)}
-              </p>
-              <p className="text-xs text-gray-500">Price sensitivity</p>
-            </div>
-
-            {/* Convexity */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-purple-400" />
-                <p className="text-xs text-gray-400">Convexity</p>
-                <InfoTooltip text="Second-order price sensitivity: measures how duration changes as yields change" />
-              </div>
-              <p className="text-lg font-mono text-green-400">
-                {safeFormat(analytics?.convexity, formatNumber, 2)}
-              </p>
-              <p className="text-xs text-gray-500">Second-order risk</p>
-            </div>
-
-            {/* Current Yield */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1">
-                <p className="text-xs text-gray-400">Current Yield</p>
-                <InfoTooltip text="Annual coupon income as percentage of current market price" />
-              </div>
-              <p className="text-lg font-mono text-green-400">
-                {safeFormat(analytics?.currentYield, formatPercent)}
-              </p>
-              <p className="text-xs text-gray-500">Coupon / Price</p>
-            </div>
-
-            {/* Accrued Interest */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1">
-                <p className="text-xs text-gray-400">Accrued Interest</p>
-                <InfoTooltip text="Interest earned since last coupon payment date" />
-              </div>
-              <p className="text-lg font-mono text-green-400">
-                {safeFormat(analytics?.accruedInterest, formatNumber, 2)}
-              </p>
-              <p className="text-xs text-gray-500">Since last payment</p>
-            </div>
-
-            {/* Clean Price */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2 h-full content-start">
+            {/* Row 1, Column A - Clean Price */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1">
                 <p className="text-xs text-gray-400">Clean Price</p>
@@ -118,49 +68,59 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <p className="text-xs text-gray-500">Without accrued</p>
             </div>
 
-            {/* Macaulay Duration (if available) */}
-            {analytics?.macaulayDuration && (
+            {/* Row 1, Column B - Accrued Interest */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-400">Accrued Interest</p>
+                <InfoTooltip text="Interest earned since last coupon payment date" />
+              </div>
+              <p className="text-lg font-mono text-green-400">
+                {safeFormat(analytics?.accruedInterest, formatNumber, 2)}
+              </p>
+              <p className="text-xs text-gray-500">Since last payment</p>
+            </div>
+
+            {/* Row 2, Column A - Technical Value (dirty price) */}
+            {analytics && typeof analytics.technicalValue === 'number' && (
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <p className="text-xs text-gray-400">Macaulay Duration</p>
-                  <InfoTooltip text="Weighted average time to receive all cash flows" />
+                  <p className="text-xs text-gray-400">Technical Value</p>
+                  <InfoTooltip text="Dirty price if the bond were at par: principal + accrued interest. Used to gauge true cost." />
                 </div>
                 <p className="text-lg font-mono text-green-400">
-                  {safeFormat(analytics.macaulayDuration, formatNumber, 2)}
+                  {safeFormat(analytics.technicalValue, formatPercent)}
                 </p>
-                <p className="text-xs text-gray-500">Weighted avg time</p>
+                <p className="text-xs text-gray-500">Principal + accrued interest</p>
               </div>
             )}
 
-            {/* Average Life (if available) */}
-            {analytics?.averageLife && (
+            {/* Row 2, Column B - Parity */}
+            {analytics && typeof analytics.parity === 'number' && (
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1">
-                  <p className="text-xs text-gray-400">Average Life</p>
-                  <InfoTooltip text="Weighted average time until principal payments" />
+                  <p className="text-xs text-gray-400">Parity</p>
+                  <InfoTooltip text="Clean price expressed as a % of technical value. < 100% = trading below principal + accrued." />
                 </div>
                 <p className="text-lg font-mono text-green-400">
-                  {safeFormat(analytics.averageLife, formatNumber, 2)}
+                  {safeFormat(analytics.parity, formatPercent)}
                 </p>
-                <p className="text-xs text-gray-500">Weighted avg maturity</p>
+                <p className="text-xs text-gray-500">Clean price % of technical value</p>
               </div>
             )}
 
-            {/* DV01 (if available) */}
-            {analytics?.dollarDuration && (
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1">
-                  <p className="text-xs text-gray-400">DV01</p>
-                  <InfoTooltip text="Dollar value change for 1 basis point yield move" />
-                </div>
-                <p className="text-lg font-mono text-green-400">
-                  {safeFormat(analytics.dollarDuration, formatNumber, 2)}
-                </p>
-                <p className="text-xs text-gray-500">Dollar duration</p>
+            {/* Row 3, Column A - Current Yield */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-gray-400">Current Yield</p>
+                <InfoTooltip text="Annual coupon ÷ clean price. Ignores capital gain/loss at maturity—quick income snapshot." />
               </div>
-            )}
+              <p className="text-lg font-mono text-green-400">
+                {safeFormat(analytics?.currentYield, formatPercent)}
+              </p>
+              <p className="text-xs text-gray-500">Coupon / Price</p>
+            </div>
 
-            {/* Days to Next Coupon */}
+            {/* Row 3, Column B - Days to Next Coupon */}
             {analytics?.daysToNextCoupon !== undefined && (
               <div className="space-y-1.5">
                 <p className="text-xs text-gray-400">Days to Next Coupon</p>
@@ -171,36 +131,85 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               </div>
             )}
 
-            {/* Technical Value */}
-            {analytics && typeof analytics.technicalValue === 'number' && (
+            {/* Row 4, Column A - Modified Duration */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3 text-blue-400" />
+                <p className="text-xs text-gray-400">Modified Duration</p>
+                <InfoTooltip text="% price change for a 1% (100 bp) move in yield. First-order interest-rate risk." />
+              </div>
+              <p className="text-lg font-mono text-green-400">
+                {safeFormat(analytics?.duration, formatNumber, 2)}
+              </p>
+              <p className="text-xs text-gray-500">Price sensitivity</p>
+            </div>
+
+            {/* Row 4, Column B - DV01 */}
+            {analytics?.dollarDuration && (
               <div className="space-y-1.5">
-                <p className="text-xs text-gray-400">Technical Value</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">DV01</p>
+                  <InfoTooltip text="Dollar Value of 1 bp: how many currency units the bond gains or loses per 0.01% yield move." />
+                </div>
                 <p className="text-lg font-mono text-green-400">
-                  {safeFormat(analytics.technicalValue, formatPercent)}
+                  {safeFormat(analytics.dollarDuration, formatNumber, 2)}
                 </p>
-                <p className="text-xs text-gray-500">Principal + accrued interest</p>
+                <p className="text-xs text-gray-500">Dollar duration</p>
               </div>
             )}
 
-            {/* Treasury Yield (Reference Rate) */}
-            {analytics?.treasuryYield !== undefined && analytics?.treasuryYield !== null && (
+            {/* Row 5, Column A - Convexity */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <TrendingUp className="h-3 w-3 text-purple-400" />
+                <p className="text-xs text-gray-400">Convexity</p>
+                <InfoTooltip text="Second-order price sensitivity—adjusts duration for large rate moves; higher = less curve risk." />
+              </div>
+              <p className="text-lg font-mono text-green-400">
+                {safeFormat(analytics?.convexity, formatNumber, 2)}
+              </p>
+              <p className="text-xs text-gray-500">Second-order risk</p>
+            </div>
+
+            {/* Row 5, Column B - Macaulay Duration */}
+            {analytics?.macaulayDuration && (
               <div className="space-y-1.5">
-                <p className="text-xs text-gray-400">Reference Tr Yld</p>
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">Macaulay Duration</p>
+                  <InfoTooltip text="Time-weighted average until cash flows are received. Basis for modified duration." />
+                </div>
+                <p className="text-lg font-mono text-green-400">
+                  {safeFormat(analytics.macaulayDuration, formatNumber, 2)}
+                </p>
+                <p className="text-xs text-gray-500">Weighted avg time</p>
+              </div>
+            )}
+
+            {/* Row 6, Column A - Average Life */}
+            {analytics?.averageLife && (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">Average Life</p>
+                  <InfoTooltip text="Weighted-average maturity when principal is amortized; key for sinking-fund or amortizing bonds." />
+                </div>
+                <p className="text-lg font-mono text-green-400">
+                  {safeFormat(analytics.averageLife, formatNumber, 2)}
+                </p>
+                <p className="text-xs text-gray-500">Weighted avg maturity</p>
+              </div>
+            )}
+
+            {/* Row 6, Column B - Reference Treasury Yield (hidden on small screens) */}
+            {analytics?.treasuryYield !== undefined && analytics?.treasuryYield !== null && (
+              <div className="space-y-1.5 hidden md:block">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs text-gray-400">Reference Treasury Yield</p>
+                  <InfoTooltip text="Interpolated U.S. Treasury yield at identical maturity—anchor for spread calculations." />
+                </div>
                 <p className="text-lg font-mono text-green-400">
                   {safeFormat(analytics.treasuryYield, formatPercent)}
                 </p>
                 <p className="text-xs text-gray-500">{formatTreasuryDescription(analytics.treasuryInterpolation)}</p>
-              </div>
-            )}
-
-            {/* Parity */}
-            {analytics && typeof analytics.parity === 'number' && (
-              <div className="space-y-1.5">
-                <p className="text-xs text-gray-400">Parity</p>
-                <p className="text-lg font-mono text-green-400">
-                  {safeFormat(analytics.parity, formatPercent)}
-                </p>
-                <p className="text-xs text-gray-500">Clean price % of technical value</p>
               </div>
             )}
           </div>
