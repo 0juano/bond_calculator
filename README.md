@@ -10,7 +10,35 @@
 
 ## 🎯 Overview
 
-YAS Bond Builder is a comprehensive fixed-income analysis tool that allows power users to create, analyze, and visualize any type of USD bond from scratch. Built with a retro Bloomberg terminal aesthetic, it provides instant cash flow calculations and analytics for vanilla, amortizing, callable, and puttable bonds.
+YAS Bond Builder is a comprehensive fixed-income analysis platform that transforms how professionals work with bond data. Built with a retro Bloomberg terminal aesthetic, it provides three integrated components for complete bond analysis workflows.
+
+### 🚀 Project Vision
+
+Transform from a single-bond analysis tool into a **comprehensive bond analysis platform** with three integrated components:
+
+#### **Component 1: Intelligent Bond Builder**
+- **Current**: Manual form-based creation of bond JSON files
+- **Future**: LLM-powered bond creation from multiple sources
+  - Feed a URL (prospectus, term sheet)
+  - Upload an image (bond documentation screenshot)
+  - Paste text descriptions
+  - AI extracts and structures bond parameters automatically
+
+#### **Component 2: Universal Bond Calculator**
+- **Current**: Working calculator with three-way interactive calculations (Price ↔ YTM ↔ Spread)
+- **Future**: Expand capabilities while maintaining Bloomberg-validated accuracy
+  - Continue focus on hard currency bonds
+  - Support increasingly complex bond structures
+  - Real-time market data integration
+
+#### **Component 3: Comparables Builder** (Coming Soon)
+- **Goal**: Create a bond screening and comparison tool
+  - Filter bonds by characteristics (country, industry, ratings, maturity)
+  - Build comparison tables with selected bonds
+  - Generate graphs/charts for visual analysis
+  - Export comparable bond sets for analysis
+
+This creates a complete workflow: **Build/Import bonds → Calculate analytics → Compare with peers**
 
 ### Key Features
 
@@ -399,6 +427,27 @@ DATABASE_URL=postgresql://...    # Optional database connection
 - **Bloomberg Reference Data**: Real market data for Argentina sovereign bonds (GD29, GD30, GD38, etc.)
 - **Professional Accuracy**: Calculator results match Bloomberg terminal values
 - **Expected Results**: GD38 at 72.25 → YTM 10.88%, spread 660bp, duration 5.01
+
+## 🏗️ Architecture Principles
+
+- **JSON-First Design**: Bond definitions contain only exogenous variables
+- **High-Precision Math**: All calculations use decimal.js
+- **Bloomberg Validation**: Results match professional terminal accuracy
+- **Modular Components**: Clear separation between UI, calculations, and data
+
+## 🧪 Testing & Validation
+
+- Unit tests in `/tests/unit/`
+- Integration tests in `/tests/integration/`
+- Bloomberg reference data in `/docs/bloomberg-reference-data.md`
+- Debug utilities in `/tests/debug/`
+
+## 📦 Component Architecture
+
+- **UI Components**: Reusable shadcn/ui components
+- **Calculator Components**: Domain-specific bond components
+- **Shared Logic**: Centralized calculations and utilities
+- **API Layer**: Express routes with validation
 
 ## 🏗️ Development Guidelines
 

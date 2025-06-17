@@ -1,6 +1,6 @@
 # Claude Code Project Memory
 
-TypeScript/React bond calculator project with Express backend.
+TypeScript/React bond calculator project with Express backend - A comprehensive fixed-income analysis platform with three components: Bond Builder, Universal Calculator, and Comparables Builder (planned).
 
 @docs/ADDING_BONDS.md
 @docs/bond-json-specification.md
@@ -132,3 +132,40 @@ Follow the comprehensive specification in `docs/bond-json-specification.md`:
 5. **Verify no infinite loops** - Ensure calculations complete and stop
 
 ### Never say "fix is working" without MCP verification!
+
+# PROJECT ARCHITECTURE
+
+## Architecture Decisions
+- Calculator state uses custom hook pattern
+- Multiple YTM solvers with automatic fallback
+- Bond storage supports file and database backends
+- Price inputs always as percentage of face value
+
+## Code Organization
+- `/client/src/components/ui/` - shadcn/ui components (audit needed)
+- `/client/src/components/calculator/` - Bond-specific components
+- `/client/src/hooks/` - Custom React hooks
+- `/shared/` - Shared types and calculation logic
+- `/server/` - Express API and storage
+
+## Refactoring Guidelines
+- Prefer composition over complex components
+- Use decimal.js for all financial calculations
+- Validate against Bloomberg reference data
+- Keep bond JSONs free of calculated values
+
+## Priority Refactoring Areas
+1. **High Priority**:
+   - Simplify calculator state management (split 585-line hook)
+   - Remove unused UI components (47+ components, many unused)
+   - Consolidate storage implementations
+
+2. **Medium Priority**:
+   - Split large route files (800+ lines)
+   - Centralize constants and magic numbers
+   - Improve test organization
+
+3. **Low Priority**:
+   - Component optimization with React.memo
+   - Error handling standardization
+   - Address prop drilling with Context
