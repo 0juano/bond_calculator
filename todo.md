@@ -103,3 +103,19 @@ The bond calculator now features:
     • Price Sensitivity: separate `<th>` and `<td>` elements for split columns
     • Right-align all numeric data for better readability
     • Test responsive behavior with additional column
+
+## 🚧 Cash-Flow Schedule Totals Row
+
+[x] **Cash-Flow Schedule (enlarged view only) - Totals Footer**
+    • ✅ Add `<tfoot>` totals row that stays visually anchored to bottom
+    • ✅ Label first cell "Total (future)"
+    • ✅ Aggregate only future payments (paymentDate > today || settlementDate):
+      - Coupon $ → Σ couponPayment
+      - Principal $ → Σ principalPayment  
+      - Total $ → Σ (couponPayment + principalPayment)
+      - Leave Coupon % and Remaining % cells blank with "—"
+    • ✅ Center-align numeric cells with font-semibold for subtle emphasis
+    • ✅ Format numbers with house style (thousands commas, 2 decimals)
+    • ✅ Make totals row sticky at bottom with `sticky bottom-0`
+    • ✅ Consistent styling with existing panels (green colors, typography, borders)
+    • ✅ Accessibility: use `<th scope="row">` for label, `<th scope="col">` for headers
