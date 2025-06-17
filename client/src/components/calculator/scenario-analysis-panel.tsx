@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BondDefinition, BondAnalytics } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import { formatNumber } from "@/lib/bond-utils";
 
 interface ScenarioAnalysisPanelProps {
   bond: BondDefinition;
@@ -169,7 +170,7 @@ export function ScenarioAnalysisPanel({
                             ? "text-green-300 font-medium" 
                             : "text-green-400"
                         }`}>
-                          {scenario.price.toFixed(2)}
+                          {formatNumber(scenario.price, 2)}
                         </span>
                       </div>
                     </TableCell>
@@ -184,7 +185,7 @@ export function ScenarioAnalysisPanel({
                             ? "text-green-300 font-medium" 
                             : "text-green-400"
                         }`}>
-                          {scenario.ytm ? `${scenario.ytm.toFixed(1)}%` : '-'}
+                          {scenario.ytm ? `${formatNumber(scenario.ytm, 1)}%` : '-'}
                         </span>
                       )}
                     </TableCell>
@@ -199,7 +200,7 @@ export function ScenarioAnalysisPanel({
                             ? "text-green-300 font-medium" 
                             : "text-green-400"
                         }`}>
-                          {scenario.spread >= 0 ? '+' : ''}{Math.round(scenario.spread).toLocaleString()}
+                          {scenario.spread >= 0 ? '+' : ''}{formatNumber(Math.round(scenario.spread), 0)}
                         </span>
                       )}
                     </TableCell>

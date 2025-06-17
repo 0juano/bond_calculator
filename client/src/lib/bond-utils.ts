@@ -15,11 +15,14 @@ export function formatCurrency(amount: number | undefined, currency: string = "U
   }).format(amount);
 }
 
-export function formatPercent(rate: number | undefined): string {
+export function formatPercent(rate: number | undefined, decimals: number = 2): string {
   if (rate === undefined || rate === null || isNaN(rate)) {
-    return "0.000%";
+    return "0" + (decimals > 0 ? "." + "0".repeat(decimals) : "") + "%";
   }
-  return `${rate.toFixed(3)}%`;
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(rate) + "%";
 }
 
 export function formatDate(dateString: string): string {

@@ -59,7 +59,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
 
   if (isLoading) {
     return (
-      <Card className={`bg-gray-900 border-green-600 ${className}`}>
+      <Card className={`bg-gray-900 border-green-600 h-full ${className}`}>
         <CardHeader>
           <CardTitle className="text-green-400 flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
@@ -78,7 +78,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, bond, className }:
 
   if (!cashFlows.length) {
     return (
-      <Card className={`bg-gray-900 border-green-600 ${className}`}>
+      <Card className={`bg-gray-900 border-green-600 h-full ${className}`}>
         <CardHeader>
           <CardTitle className="text-green-400 flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />

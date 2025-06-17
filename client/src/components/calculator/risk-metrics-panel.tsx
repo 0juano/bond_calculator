@@ -31,17 +31,17 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
     const { targetYears, lowerPoint, upperPoint, method } = interpolation;
     
     if (method === 'exact') {
-      return `${targetYears.toFixed(1)}yrs exact match with ${lowerPoint.years}yr curve`;
+      return `${formatNumber(targetYears, 1)}yrs exact match with ${lowerPoint.years}yr curve`;
     } else if (method === 'extrapolated') {
-      return `${targetYears.toFixed(1)}yrs extrapolated from ${lowerPoint.years}yr and ${upperPoint.years}yr curves`;
+      return `${formatNumber(targetYears, 1)}yrs extrapolated from ${lowerPoint.years}yr and ${upperPoint.years}yr curves`;
     } else {
       // interpolated
-      return `${targetYears.toFixed(1)}yrs interpolated yld using ${lowerPoint.years}yr and ${upperPoint.years}yr curves`;
+      return `${formatNumber(targetYears, 1)}yrs interpolated yld using ${lowerPoint.years}yr and ${upperPoint.years}yr curves`;
     }
   };
 
   return (
-    <Card className={`bg-gray-900 border-green-600 ${className}`}>
+    <Card className={`bg-gray-900 border-green-600 h-full ${className}`}>
       <CardHeader>
         <CardTitle className="text-green-400 flex items-center gap-2">
           <Shield className="h-5 w-5" />
@@ -55,7 +55,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
             <span className="text-gray-400">Calculating metrics...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 py-2">
             {/* Duration */}
             <div className="space-y-1">
               <div className="flex items-center gap-1">
@@ -165,7 +165,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
               <div className="space-y-1">
                 <p className="text-xs text-gray-400">Days to Next Coupon</p>
                 <p className="text-lg font-mono text-green-400">
-                  {analytics.daysToNextCoupon}
+                  {safeFormat(analytics.daysToNextCoupon, formatNumber, 0)}
                 </p>
                 <p className="text-xs text-gray-500">Until next payment</p>
               </div>
