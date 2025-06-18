@@ -79,7 +79,7 @@ export function BondSearch({
   // Filter bonds based on search query
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredBonds(bonds.slice(0, 8)); // Show first 8 bonds when no search
+      setFilteredBonds([]); // Show nothing when no search query
     } else {
       const query = searchQuery.toLowerCase();
       const filtered = bonds.filter(bond => {
@@ -243,7 +243,7 @@ export function BondSearch({
             </div>
           ) : filteredBonds.length === 0 ? (
             <div className="p-4 text-center text-gray-400">
-              {searchQuery ? `No bonds found matching "${searchQuery}"` : "No bonds available"}
+              {searchQuery ? `No bonds found matching "${searchQuery}"` : "Start typing to search bonds..."}
             </div>
           ) : (
             filteredBonds.map((bond, index) => (
