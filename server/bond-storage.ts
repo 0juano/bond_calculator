@@ -19,7 +19,7 @@ export interface DuplicateCheckResult {
 }
 
 export class BondStorageService {
-  private static readonly SAVED_BONDS_DIR = path.join(process.cwd(), 'saved_bonds');
+  private static readonly SAVED_BONDS_DIR = path.join(process.cwd() || '/app', 'saved_bonds');
   
   /**
    * Check for duplicate bonds before saving
