@@ -40,7 +40,7 @@ Always keep the @todo.md file in this location in the main folder. When there is
     • [x] **Comprehensive logging system** - Log price, both yields, solver used, iterations, residual NPV
     • [x] **Dual display UI** - Show "Current 37.40% (semi-annual)" vs "XIRR 34.42% (converted)" with info tooltip
     • [x] **Initial testing** - Validated XIRR implementation with Argentina 2038 bond data
-    • [ ] **Golden test suite** - Bloomberg reference data (5¢, 20¢, 30¢, negative-yield cases)
+    • [x] **Golden test suite** - Bloomberg reference data (5¢, 20¢, 30¢, negative-yield cases)
     
     **🧪 ACTUAL Test Results (Argentina AE38D vs Excel YIELD):**
     
@@ -155,15 +155,28 @@ Always keep the @todo.md file in this location in the main folder. When there is
     • ✅ **Quality Assurance**: All TypeScript checks and build verification passed
     • ✅ **Market Reality**: Calculator now handles full spectrum of emerging market bond scenarios including deep distress
 
-## 🔧 Refactoring Roadmap
+## 🔧 Refactoring Roadmap - Updated Priorities (June 2025)
 
-### High Priority Refactoring
+### 🔥 HIGH PRIORITY (Performance/Architecture)
 
-[x] **1. Simplify Calculator State Management**
-    • ✅ Split 585-line `useCalculatorState` hook into focused modules
-    • ✅ Extract API calls, validation, and pure state logic
-    • ✅ Fixed infinite loop issue in calculator hooks
-    • [ ] Create dedicated calculation service (Step 3 remaining)
+[x] **1. Remove Unused UI Components** ✅ COMPLETED
+    • **Impact**: Audited 48 shadcn/ui components, removed 31 unused ones (64.6% reduction)
+    • **Deleted**: accordion, alert, alert-dialog, aspect-ratio, avatar, breadcrumb, calendar, carousel, chart, collapsible, command, context-menu, drawer, dropdown-menu, form, hover-card, input-otp, menubar, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, sidebar, slider, switch, tabs, textarea, toggle-group
+    • **Kept**: 17 actively used components (button, card, skeleton, table, input, toast, dialog, label, badge, tooltip, checkbox, select, separator, sheet, toaster, toggle, info-tooltip)
+    • **Benefit**: Reduced bundle size, faster builds, simplified maintenance, improved IDE performance
+    • **Verification**: TypeScript check passed - no build errors
+
+[ ] **2. Calculator State Refactoring Step 3**
+    • **Status**: Steps 1-2 Complete (API + Validation extracted)
+    • **Remaining**: Create dedicated calculation service
+    • **Benefit**: Final cleanup of 350-line useCalculatorState hook
+    • **Risk**: Low - well-defined refactoring step
+
+[ ] **3. XIRR Architecture Cleanup**
+    • **Impact**: "Dual" naming is misleading since we're XIRR-only now
+    • **Tasks**: Remove unused current-solver.ts, simplify dual-ytm-display.tsx
+    • **Benefit**: Code clarity, reduced confusion
+    • **Risk**: Low - cosmetic improvements to stable system
     
     **Implementation approach:**
     ```typescript
@@ -197,44 +210,7 @@ Always keep the @todo.md file in this location in the main folder. When there is
     };
     ```
 
-[ ] **2. Remove Unused UI Components**
-    • Audit 47+ shadcn/ui components
-    • Remove unused: avatar, carousel, menubar, navigation-menu, pagination, sidebar, etc.
-    • Reduce bundle size and maintenance burden
-    
-    **Components to remove:**
-    ```bash
-    # Run audit script to identify unused components
-    grep -r "from '@/components/ui/" client/src | cut -d"'" -f2 | sort | uniq
-    
-    # Components likely unused (verify before deletion):
-    - accordion.tsx
-    - alert-dialog.tsx
-    - avatar.tsx
-    - breadcrumb.tsx
-    - calendar.tsx
-    - carousel.tsx
-    - checkbox.tsx
-    - collapsible.tsx
-    - context-menu.tsx
-    - drawer.tsx
-    - dropdown-menu.tsx
-    - menubar.tsx
-    - navigation-menu.tsx
-    - pagination.tsx
-    - popover.tsx
-    - progress.tsx
-    - radio-group.tsx
-    - scroll-area.tsx
-    - sidebar.tsx
-    - slider.tsx
-    - sonner.tsx
-    - switch.tsx
-    - toggle-group.tsx
-    - toggle.tsx
-    ```
-
-[ ] **3. Consolidate Storage Implementations**
+[ ] **4. Consolidate Storage Implementations**
     • Merge storage.ts, storage-temp.ts, and bond-storage.ts
     • Create single abstraction with file/database adapters
     • Simplify API routes
