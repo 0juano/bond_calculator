@@ -8,21 +8,28 @@ Always keep the @todo.md file in this location in the main folder. When there is
     
     **Phase 1: Treasury Data Cache Service** 
     • [ ] Create `server/services/TreasuryCache.ts`:
-      - Cached rates structure: `{ '1M': 4.5, '3M': 4.6, '6M': 4.7, '1Y': 4.2, '2Y': 4.1, '5Y': 4.0, '10Y': 4.2, '30Y': 4.4 }`
+      - **Complete 11-tenor curve**: `{ '1M', '3M', '6M', '1Y', '2Y', '3Y', '5Y', '7Y', '10Y', '20Y', '30Y' }` (required for cubic-spline interpolation)
+      - **Type safety**: Export `type Tenor = '1M'|'3M'|'6M'|'1Y'|'2Y'|'3Y'|'5Y'|'7Y'|'10Y'|'20Y'|'30Y'` and `interface TreasuryRates { [k in Tenor]: number }`
       - Store in JSON file: `server/data/treasury-rates.json`
-      - Include `lastUpdated` timestamp and `source: 'FRED'` metadata
-      - Fallback to reasonable defaults if cache file missing
+      - **Zod schema validation**: `TreasuryRatesSchema` to reject corrupt downloads before overwriting cache
+      - **Atomic writes**: Use temp file + rename to prevent race conditions between cron/manual/API writes
+      - **Default fallback**: Load from `server/data/default-treasury-rates.json` (bundled at build time)
+      - **Sanity validation**: Reject rates outside 0.1-20% range, keep existing cache if new data invalid
     
     **Phase 2: Admin Update System**
     • [ ] Create admin endpoint `/api/admin/update-treasury-rates`:
-      - Protected by simple admin key (environment variable)
+      - Protected by admin key + **rate limiting** (max 5 calls/minute to prevent key leak abuse)
       - Fetches fresh data from FRED API using server-side key
       - Updates cache file with new rates + timestamp
       - Returns success/failure status
+    • [ ] Add **status endpoint** `/api/admin/treasury-cache-status`:
+      - Returns `{ stale: boolean, lastUpdated: ISO, ageHours: number, nextUpdate: ISO }`
+      - For health monitoring and Grafana/alerting integration
     • [ ] Add manual update script `npm run update-treasury`:
+      - **TypeScript with tsx**: Share `TreasuryCache` logic, no code duplication
       - Calls FRED API directly from Node.js
       - Updates cache file locally for development
-      - Useful for testing and manual refreshes
+      - **Pre-commit hook**: Warn if cache >7 days old in feature branches
     
     **Phase 3: Client API Migration**
     • [ ] Update `/api/treasury-rates` endpoint:
@@ -37,11 +44,13 @@ Always keep the @todo.md file in this location in the main folder. When there is
       - Add refresh indicator when rates are stale
     
     **Phase 4: Production Deployment Setup**
-    • [ ] Add cron job or scheduler for periodic updates:
-      - Daily update at 6 PM EST (after market close)
+    • [ ] Add flexible cron scheduling:
+      - **Intraday option**: Hourly during US trading hours (9 AM - 4 PM EST) for active users
+      - **End-of-day option**: Daily at 6 PM EST for portfolio work
+      - **Single source of truth**: Drive frequency from `TREASURY_CACHE_HOURS` env var
+      - **Manual refresh**: Admin "Refresh Curve" button with UI confirmation for immediate updates
       - Retry logic for FRED API failures
       - Email/logging for update failures
-      - Option: Use hosting platform's cron (Vercel Cron, etc.)
     • [ ] Add rate staleness monitoring:
       - Display warning when rates >3 days old
       - Fallback message: "Using cached Treasury rates from [date]"
@@ -57,38 +66,101 @@ Always keep the @todo.md file in this location in the main folder. When there is
       - Reject obviously bad data from FRED
       - Maintain previous rates if new data seems invalid
     
+    **Phase 6: Testing & Data Source Abstraction**
+    • [ ] **Unit tests** for `TreasuryCache.getRates()`:
+      - Loads good JSON correctly
+      - Falls back to defaults on missing file
+      - Refuses rates outside 0.1-20% guardrail
+    • [ ] **Integration tests** with nock-mocked FRED responses
+    • [ ] **Abstract data source layer**:
+      - Swap FRED for Treasury.gov or Quandl by passing different fetcher
+      - Future-proof for multiple data providers
+    
+    **Phase R: Railway-Ready Deployment (Optional - Activate When Ready to Deploy)**
+    • [ ] **Containerization**:
+      - Add `Dockerfile` (multi-stage, node:lts-slim) that copies repo, installs deps, sets `CMD ["npm","start"]`
+      - Add `.dockerignore` (node_modules, tests, .env, cache files)
+    • [ ] **Railway config scaffolding**:
+      - Add minimal `.railway/config.json`:
+        ```jsonc
+        {
+          "services": {
+            "treasury-cron": {
+              "buildCommand": "npm ci",
+              "startCommand": "npm start", 
+              "envVars": ["FRED_API_KEY","TREASURY_ADMIN_KEY","TREASURY_CACHE_HOURS"]
+            }
+          }
+        }
+        ```
+      - Commit but **comment out** the `treasury-cron` service in Git by default (local dev unaffected)
+    • [ ] **Unified scheduler hook**:
+      - In `scripts/update-treasury.ts`, call `await cache.updateRates()` and **exit**
+      - Cron choice (node-cron locally vs Railway Cron) becomes hosting detail, not code
+    • [ ] **Railway secrets template**:
+      - In `/infra/sample.env` document required vars with placeholders
+      - Add README section *"Deploying on Railway"*:
+        1. `railway up` or import repo in dashboard
+        2. Add env variables  
+        3. Set Cron schedule (`0 22 * * *` or as desired)
+        4. Profit
+    • [ ] **GitHub Actions (optional)**:
+      - Create `railway-deploy.yml` that pushes main branch to Railway when `DEPLOY_TO_RAILWAY=true` secret toggled
+    • [ ] **Cost footnote**:
+      - Note in README that Hobby plan ≈ USD 5/mo and cron runtime << USD 0.01/mo
+    
+    **Railway Benefits:**
+    - ✅ **Affordable hosting** - $5/month hobby plan, virtually free cron execution
+    - ✅ **Built-in cron** - No need for external schedulers
+    - ✅ **Simple deployment** - Git push or dashboard import
+    - ✅ **Environment variables** - Easy secret management
+    - ✅ **Host-agnostic code** - Can switch providers later without refactoring
+    
     **Implementation Files:**
     ```typescript
     // server/services/TreasuryCache.ts
+    export type Tenor = '1M'|'3M'|'6M'|'1Y'|'2Y'|'3Y'|'5Y'|'7Y'|'10Y'|'20Y'|'30Y';
+    export interface TreasuryRates { [k in Tenor]: number }
+    
+    const TreasuryRatesSchema = z.object({
+      rates: z.record(z.number().min(0.1).max(20)),
+      lastUpdated: z.string(),
+      source: z.string(),
+      cacheVersion: z.string()
+    });
+    
     export class TreasuryCache {
       private cachePath = './server/data/treasury-rates.json';
+      private defaultPath = './server/data/default-treasury-rates.json';
       
       async getRates(): Promise<TreasuryRates> {
-        // Load from cache file or fallback defaults
+        // Atomic read with Zod validation, fallback to defaults
       }
       
       async updateRates(): Promise<void> {
-        // Fetch from FRED and save to cache
+        // Atomic write: temp file + rename, with validation
       }
       
       isStale(): boolean {
-        // Check if cache > 3 days old
+        // Check age vs TREASURY_CACHE_HOURS env var
       }
     }
     
-    // server/data/treasury-rates.json
+    // server/data/treasury-rates.json (complete 11-tenor curve)
     {
       "rates": {
         "1M": 4.50, "3M": 4.60, "6M": 4.70,
-        "1Y": 4.20, "2Y": 4.10, "5Y": 4.00,
-        "10Y": 4.20, "30Y": 4.40
+        "1Y": 4.20, "2Y": 4.10, "3Y": 4.05,
+        "5Y": 4.00, "7Y": 4.15, "10Y": 4.20,
+        "20Y": 4.35, "30Y": 4.40
       },
       "lastUpdated": "2025-01-15T23:00:00.000Z",
       "source": "FRED",
       "cacheVersion": "1.0"
     }
     
-    // scripts/update-treasury.js
+    // scripts/update-treasury.ts (TypeScript with tsx)
+    import { TreasuryCache } from '../server/services/TreasuryCache';
     const cache = new TreasuryCache();
     await cache.updateRates();
     console.log('Treasury rates updated successfully');
@@ -102,10 +174,22 @@ Always keep the @todo.md file in this location in the main folder. When there is
     # Admin protection for update endpoint
     TREASURY_ADMIN_KEY=secure_random_string
     
-    # Cache settings
-    TREASURY_CACHE_HOURS=24
-    TREASURY_STALE_DAYS=3
+    # Cache settings - single source of truth
+    TREASURY_CACHE_HOURS=24  # Drives both cron frequency and staleness detection
+    TREASURY_STALE_DAYS=3    # When to show UI warnings
     ```
+    
+    **Key Improvements Based on Developer Feedback:**
+    - ✅ **Complete 11-tenor curve** (was missing 3Y, 7Y, 20Y for interpolation)
+    - ✅ **Type safety** with `Tenor` union type and `TreasuryRates` interface
+    - ✅ **Race condition protection** via atomic writes (temp file + rename)
+    - ✅ **Zod schema validation** to prevent cache corruption
+    - ✅ **Flexible cron scheduling** for intraday vs end-of-day use cases
+    - ✅ **Rate limiting** on admin endpoints to prevent key leak abuse
+    - ✅ **Status monitoring** endpoint for health checks and alerting
+    - ✅ **TypeScript scripts** with shared logic (no duplication)
+    - ✅ **Testing plan** with unit/integration coverage
+    - ✅ **Data source abstraction** for future provider flexibility
     
     **Benefits:**
     - ✅ **No user API keys required** - Public users can use calculator immediately

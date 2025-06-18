@@ -8,6 +8,8 @@ import { BondStorageService } from "./bond-storage";
 import { BondJsonUtils } from "../shared/bond-definition";
 import { getLatestPrice, getAllPrices, getCacheStatus } from "./data912-service";
 import { getData912Symbol, getBloombergReferencePrice, isData912Supported } from "../shared/bond-ticker-mapping";
+import rateLimit from "express-rate-limit";
+import { TreasuryCache } from "./services/TreasuryCache";
 
 // In-memory cache for UST curve data
 let ustCurveCache: { data: USTCurveData; timestamp: number } | null = null;
@@ -390,58 +392,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get US Treasury yield curve
+  // Get US Treasury yield curve - Updated to use TreasuryCache
   app.get("/api/ust-curve", async (req, res) => {
     try {
-      const now = Date.now();
+      console.log('📊 Serving UST curve from Treasury cache...');
       
-      // Check if we have cached data that's still fresh
-      if (ustCurveCache && (now - ustCurveCache.timestamp) < CACHE_DURATION) {
-        console.log('✓ Serving cached UST curve data');
-        return res.json({
-          ...ustCurveCache.data,
-          cached: true,
-          cacheAge: Math.round((now - ustCurveCache.timestamp) / 1000 / 60), // minutes
-        });
-      }
-
-      // Fetch fresh data
-      const curveData = await fetchUSTCurve();
+      const cache = new TreasuryCache();
+      const treasuryData = await cache.getRates();
+      const ageHours = cache.getCacheAgeHours();
+      const isStale = cache.isStale();
       
-      // Update cache
-      ustCurveCache = {
-        data: curveData,
-        timestamp: now,
+      // Convert TreasuryCache format to UST curve format for backward compatibility
+      const recordDate = new Date(treasuryData.lastUpdated).toISOString().split('T')[0];
+      const convertedData: USTCurveData = {
+        recordDate: recordDate,
+        tenors: {
+          '1 Month': (treasuryData.rates as any)['1M'],
+          '3 Month': (treasuryData.rates as any)['3M'],
+          '6 Month': (treasuryData.rates as any)['6M'],
+          '1 Year': (treasuryData.rates as any)['1Y'],
+          '2 Year': (treasuryData.rates as any)['2Y'],
+          '3 Year': (treasuryData.rates as any)['3Y'],
+          '5 Year': (treasuryData.rates as any)['5Y'],
+          '7 Year': (treasuryData.rates as any)['7Y'],
+          '10 Year': (treasuryData.rates as any)['10Y'],
+          '20 Year': (treasuryData.rates as any)['20Y'],
+          '30 Year': (treasuryData.rates as any)['30Y']
+        },
+        marketTime: `${recordDate} (cached from ${treasuryData.source})`
       };
 
-      // Update storage with UST curve cache
-      storage.setUSTCurveCache(ustCurveCache);
+      // Prepare response with cache metadata
+      const response = {
+        ...convertedData,
+        cached: true,
+        cacheAge: Math.round(ageHours * 60), // Convert to minutes for backward compatibility
+        stale: isStale,
+        source: treasuryData.source,
+        cacheVersion: treasuryData.cacheVersion,
+        ...(isStale && {
+          warning: `Treasury data is ${Math.round(ageHours)} hours old - consider updating`,
+          staleDays: Math.round(ageHours / 24 * 10) / 10
+        })
+      };
 
-      res.json({
-        ...curveData,
-        cached: false,
-      });
+      console.log(`✓ Served UST curve from cache (${treasuryData.source}, ${Math.round(ageHours * 100) / 100}h old)`);
+      res.json(response);
       
     } catch (error) {
-      console.error("UST curve fetch error:", error);
+      console.error("Treasury cache read error:", error);
       
-      // If we have stale cached data, serve it with a warning
-      if (ustCurveCache) {
-        const staleAge = Math.round((Date.now() - ustCurveCache.timestamp) / 1000 / 60);
-        console.log(`⚠️ Serving stale UST curve data (${staleAge} minutes old)`);
+      // Fallback to original FRED API if cache completely fails
+      try {
+        console.log('⚠️ Cache failed, falling back to direct FRED API...');
         
-        return res.json({
-          ...ustCurveCache.data,
-          cached: true,
-          stale: true,
-          cacheAge: staleAge,
-          warning: "Using cached data due to API unavailability",
+        const curveData = await fetchUSTCurve();
+        
+        res.json({
+          ...curveData,
+          cached: false,
+          fallback: true,
+          warning: "Using direct FRED API due to cache failure"
+        });
+        
+      } catch (fredError) {
+        console.error("Both cache and FRED API failed:", fredError);
+        
+        res.status(503).json({ 
+          error: "Treasury curve service unavailable",
+          details: error instanceof Error ? error.message : "Cache read failed",
+          suggestion: "Treasury curve data is temporarily unavailable. Bond spread calculations may be limited.",
+          fallbackFailed: fredError instanceof Error ? fredError.message : "FRED API also failed"
         });
       }
+    }
+  });
+
+  // Get Treasury rates in modern format (for future frontend use)
+  app.get("/api/treasury-rates", async (req, res) => {
+    try {
+      console.log('📊 Serving Treasury rates from cache...');
       
+      const cache = new TreasuryCache();
+      const treasuryData = await cache.getRates();
+      const ageHours = cache.getCacheAgeHours();
+      const isStale = cache.isStale();
+      
+      // Return Treasury data in modern format
+      const response = {
+        rates: treasuryData.rates,
+        metadata: {
+          lastUpdated: treasuryData.lastUpdated,
+          source: treasuryData.source,
+          cacheVersion: treasuryData.cacheVersion,
+          ageHours: Math.round(ageHours * 100) / 100,
+          stale: isStale,
+          cached: true
+        },
+        ...(isStale && {
+          warning: `Treasury data is ${Math.round(ageHours)} hours old`,
+          staleDays: Math.round(ageHours / 24 * 10) / 10
+        })
+      };
+
+      console.log(`✓ Served Treasury rates from cache (${treasuryData.source}, ${Math.round(ageHours * 100) / 100}h old)`);
+      res.json(response);
+      
+    } catch (error) {
+      console.error("Treasury rates fetch error:", error);
       res.status(503).json({ 
-        error: error instanceof Error ? error.message : "UST curve service unavailable",
-        suggestion: "Treasury curve data is temporarily unavailable. Bond spread calculations may be limited.",
+        error: "Treasury rates service unavailable",
+        details: error instanceof Error ? error.message : "Cache read failed"
       });
     }
   });
@@ -477,6 +538,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Bond fetch error:", error);
       res.status(500).json({ error: "Failed to fetch bond" });
+    }
+  });
+
+  // ============================
+  // ADMIN ENDPOINTS - Treasury Cache Management
+  // ============================
+
+  // Rate limiter for admin endpoints (1 request per 15 minutes)
+  const adminRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1, // Limit each IP to 1 request per 15 minutes
+    message: {
+      error: "Treasury update rate limited",
+      retryAfter: "15 minutes",
+      details: "Treasury rates don't change frequently - please wait before updating again"
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // Admin authentication middleware
+  const requireAdminKey = (req: any, res: any, next: any) => {
+    const adminKey = process.env.TREASURY_ADMIN_KEY;
+    const providedKey = req.headers['x-admin-key'] || req.query.adminKey;
+
+    if (!adminKey) {
+      return res.status(500).json({ 
+        error: "Admin functionality not configured",
+        details: "TREASURY_ADMIN_KEY environment variable not set"
+      });
+    }
+
+    if (!providedKey || providedKey !== adminKey) {
+      return res.status(401).json({ 
+        error: "Unauthorized",
+        details: "Valid admin key required in X-Admin-Key header or adminKey query parameter"
+      });
+    }
+
+    next();
+  };
+
+  // Treasury Cache Status Endpoint
+  app.get("/api/admin/treasury-cache-status", adminRateLimit, requireAdminKey, async (req, res) => {
+    try {
+      const cache = new TreasuryCache();
+      const rates = await cache.getRates();
+      const ageHours = cache.getCacheAgeHours();
+      const isStale = cache.isStale();
+      
+      // Calculate next update time based on cache hours
+      const cacheHours = parseInt(process.env.TREASURY_CACHE_HOURS || '24');
+      const nextUpdateMs = Date.now() + (cacheHours * 60 * 60 * 1000) - (ageHours * 60 * 60 * 1000);
+      const nextUpdate = new Date(nextUpdateMs).toISOString();
+
+      res.json({
+        status: "ok",
+        cache: {
+          lastUpdated: rates.lastUpdated,
+          source: rates.source,
+          version: rates.cacheVersion,
+          ageHours: Math.round(ageHours * 100) / 100,
+          stale: isStale,
+          nextUpdate: nextUpdate,
+          tenorCount: Object.keys(rates.rates).length
+        },
+        config: {
+          cacheHours: cacheHours,
+          staleDays: parseInt(process.env.TREASURY_STALE_DAYS || '3')
+        },
+        sampleRates: {
+          '1M': (rates.rates as any)['1M'],
+          '10Y': (rates.rates as any)['10Y'],
+          '30Y': (rates.rates as any)['30Y']
+        }
+      });
+
+    } catch (error) {
+      console.error("Treasury cache status error:", error);
+      res.status(500).json({ 
+        error: "Failed to get cache status",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Treasury Cache Update Endpoint
+  app.post("/api/admin/update-treasury-rates", adminRateLimit, requireAdminKey, async (req, res) => {
+    try {
+      console.log("🔧 Admin-triggered Treasury rate update starting...");
+      
+      const cache = new TreasuryCache();
+      
+      // Get current state
+      const beforeRates = await cache.getRates();
+      const beforeAge = cache.getCacheAgeHours();
+      
+      // Perform update
+      await cache.updateRates();
+      
+      // Get updated state
+      const afterRates = await cache.getRates();
+      const afterAge = cache.getCacheAgeHours();
+      
+      console.log("✅ Admin-triggered Treasury rate update completed");
+      
+      res.json({
+        status: "success",
+        message: "Treasury rates updated successfully",
+        before: {
+          lastUpdated: beforeRates.lastUpdated,
+          source: beforeRates.source,
+          ageHours: Math.round(beforeAge * 100) / 100
+        },
+        after: {
+          lastUpdated: afterRates.lastUpdated,
+          source: afterRates.source,
+          ageHours: Math.round(afterAge * 100) / 100
+        },
+        sampleRates: {
+          '1M': (afterRates.rates as any)['1M'],
+          '10Y': (afterRates.rates as any)['10Y'],
+          '30Y': (afterRates.rates as any)['30Y']
+        },
+        updatedAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Treasury rate update error:", error);
+      res.status(500).json({ 
+        error: "Failed to update Treasury rates",
+        details: error instanceof Error ? error.message : "Unknown error",
+        suggestion: "Check FRED_API_KEY environment variable and network connectivity"
+      });
     }
   });
 
