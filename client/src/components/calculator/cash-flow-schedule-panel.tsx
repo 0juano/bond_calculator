@@ -68,25 +68,25 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
     <Table className="w-full">
       <TableHeader>
         <TableRow className="border-green-800/30 hover:bg-transparent">
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Date</TableHead>
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Coupon</TableHead>
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Principal</TableHead>
-          <TableHead className="text-green-400 font-mono text-xs h-8 px-2 text-center">Total</TableHead>
+          <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Date</TableHead>
+          <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Coupon</TableHead>
+          <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Principal</TableHead>
+          <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Total</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {flows.map((payment, index) => (
           <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
-            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle">
+            <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">
               {formatDate(payment.date)}
             </TableCell>
-            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle">
+            <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">
               {formatNumber(payment.couponPayment || 0, 2)}
             </TableCell>
-            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle">
+            <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">
               {formatNumber(payment.principalPayment || 0, 2)}
             </TableCell>
-            <TableCell className="font-mono text-xs text-green-400 px-2 py-1 text-center align-middle font-medium">
+            <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle font-medium">
               {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
             </TableCell>
           </TableRow>
@@ -110,33 +110,33 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
       <Table className="w-full">
         <TableHeader>
           <TableRow className="border-green-800/30 hover:bg-transparent">
-            <TableHead scope="col" className="text-green-400 font-mono text-sm text-center">Date</TableHead>
-            <TableHead scope="col" className="text-green-400 font-mono text-sm text-center">Coupon %</TableHead>
-            <TableHead scope="col" className="text-green-400 font-mono text-sm text-center">Coupon $</TableHead>
-            <TableHead scope="col" className="text-green-400 font-mono text-sm text-center">Principal $</TableHead>
-            <TableHead scope="col" className="text-green-400 font-mono text-sm text-center">Total $</TableHead>
-            <TableHead scope="col" className="text-green-400 font-mono text-sm text-center">Remaining %</TableHead>
+            <TableHead scope="col" className="text-terminal-accent font-mono text-sm text-center">Date</TableHead>
+            <TableHead scope="col" className="text-terminal-accent font-mono text-sm text-center">Coupon %</TableHead>
+            <TableHead scope="col" className="text-terminal-accent font-mono text-sm text-center">Coupon $</TableHead>
+            <TableHead scope="col" className="text-terminal-accent font-mono text-sm text-center">Principal $</TableHead>
+            <TableHead scope="col" className="text-terminal-accent font-mono text-sm text-center">Total $</TableHead>
+            <TableHead scope="col" className="text-terminal-accent font-mono text-sm text-center">Remaining %</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {flows.map((payment, index) => (
             <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
-              <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
+              <TableCell className="font-mono text-sm text-terminal-accent px-3 py-2 text-center align-middle">
                 {formatDate(payment.date)}
               </TableCell>
-              <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
+              <TableCell className="font-mono text-sm text-terminal-accent px-3 py-2 text-center align-middle">
                 {formatPercent(getCouponRateForDate(payment.date), 2)}
               </TableCell>
-              <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
+              <TableCell className="font-mono text-sm text-terminal-accent px-3 py-2 text-center align-middle">
                 {formatNumber(payment.couponPayment || 0, 2)}
               </TableCell>
-              <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
+              <TableCell className="font-mono text-sm text-terminal-accent px-3 py-2 text-center align-middle">
                 {formatNumber(payment.principalPayment || 0, 2)}
               </TableCell>
-              <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle font-medium">
+              <TableCell className="font-mono text-sm text-terminal-accent px-3 py-2 text-center align-middle font-medium">
                 {formatNumber((payment.couponPayment || 0) + (payment.principalPayment || 0), 2)}
               </TableCell>
-              <TableCell className="font-mono text-sm text-green-400 px-3 py-2 text-center align-middle">
+              <TableCell className="font-mono text-sm text-terminal-accent px-3 py-2 text-center align-middle">
                 {formatPercent(calculateRemainingPercent(payment.remainingNotional || 0), 2)}
               </TableCell>
             </TableRow>
@@ -147,7 +147,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
             <th scope="row" className="font-mono text-sm text-green-300 px-3 py-3 text-center font-semibold">
               Total (future)
             </th>
-            <TableCell className="px-3 py-3 text-center text-gray-500">—</TableCell>
+            <TableCell className="px-3 py-3 text-center text-terminal-txt/40">—</TableCell>
             <TableCell className="font-mono text-sm text-green-300 px-3 py-3 text-center font-semibold">
               {formatNumber(totals.coupon, 2)}
             </TableCell>
@@ -157,7 +157,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
             <TableCell className="font-mono text-sm text-green-300 px-3 py-3 text-center font-semibold">
               {formatNumber(totals.total, 2)}
             </TableCell>
-            <TableCell className="px-3 py-3 text-center text-gray-500">—</TableCell>
+            <TableCell className="px-3 py-3 text-center text-terminal-txt/40">—</TableCell>
           </TableRow>
         </tfoot>
       </Table>
@@ -166,9 +166,9 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
 
   if (isLoading) {
     return (
-      <Card className={`bg-gray-900 border-green-600 ${className}`}>
+      <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
-          <CardTitle className="text-green-400 flex items-center gap-2">
+          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
             Cash-Flow Schedule
           </CardTitle>
@@ -176,7 +176,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
         <CardContent>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin h-6 w-6 border-2 border-green-400 border-t-transparent rounded-full mr-2"></div>
-            <span className="text-gray-400">Loading cash flows...</span>
+            <span className="text-terminal-txt/60">Loading cash flows...</span>
           </div>
         </CardContent>
       </Card>
@@ -185,18 +185,18 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
 
   if (!cashFlows.length) {
     return (
-      <Card className={`bg-gray-900 border-green-600 ${className}`}>
+      <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
-          <CardTitle className="text-green-400 flex items-center gap-2">
+          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
             Cash-Flow Schedule
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <CalendarDays className="h-8 w-8 mx-auto text-gray-600 mb-4" />
-            <p className="text-gray-400">No cash flows available</p>
-            <p className="text-sm text-gray-500">Enter pricing data to generate schedule</p>
+            <CalendarDays className="h-8 w-8 mx-auto text-terminal-txt/40 mb-4" />
+            <p className="text-terminal-txt/60">No cash flows available</p>
+            <p className="text-sm text-terminal-txt/40">Enter pricing data to generate schedule</p>
           </div>
         </CardContent>
       </Card>
@@ -205,18 +205,18 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
 
   if (!futureFlows.length) {
     return (
-      <Card className={`bg-gray-900 border-green-600 ${className}`}>
+      <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
-          <CardTitle className="text-green-400 flex items-center gap-2">
+          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
             Cash-Flow Schedule
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <CalendarDays className="h-8 w-8 mx-auto text-gray-600 mb-4" />
-            <p className="text-gray-400">No future payments</p>
-            <p className="text-sm text-gray-500">All payments are in the past</p>
+            <CalendarDays className="h-8 w-8 mx-auto text-terminal-txt/40 mb-4" />
+            <p className="text-terminal-txt/60">No future payments</p>
+            <p className="text-sm text-terminal-txt/40">All payments are in the past</p>
           </div>
         </CardContent>
       </Card>
@@ -224,10 +224,10 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
   }
 
   return (
-    <Card className={`bg-gray-900 border-green-600 flex flex-col ${className}`}>
+    <Card className={`bg-terminal-panel border-terminal-line flex flex-col ${className}`}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-green-400 flex items-center gap-2">
+          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
             Cash-Flow Schedule
           </CardTitle>
@@ -238,9 +238,9 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
                 Enlarge
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-6xl h-[80vh] bg-gray-900 border-green-600">
+            <DialogContent className="w-[95vw] max-w-6xl h-[80vh] bg-terminal-panel border-terminal-line">
               <DialogHeader>
-                <DialogTitle className="text-green-400">Complete Cash Flow Schedule</DialogTitle>
+                <DialogTitle className="text-terminal-accent">Complete Cash Flow Schedule</DialogTitle>
               </DialogHeader>
               <div className="flex-1 overflow-auto p-4">
                 <ExtendedTable flows={futureFlows} />
@@ -254,7 +254,7 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
           <CompactTable flows={visibleFlows} />
           {visibleFlows.length > 0 && (
             <div className="mt-2 text-center">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-terminal-txt/40">
                 Showing {visibleFlows.length} future payment{visibleFlows.length !== 1 ? 's' : ''}
                 {futureFlows.length > 10 && (
                   <span> ({futureFlows.length - 10} more hidden)</span>

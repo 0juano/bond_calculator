@@ -35,40 +35,41 @@ export function Grid({
       initial={{ opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="grid gap-4 md:grid-cols-2 md:auto-rows-min"
+      className="grid grid-cols-12 gap-6"
     >
-      {/* Row 1: Bond Pricing Calculator */}
+      {/* Top Row: Bond Pricing Calculator */}
       <PricingPanel 
         calculatorState={calculatorState} 
         bond={bond} 
-        className="flex flex-col md:h-full"
+        className="col-span-6 p-5 border border-terminal-line rounded-md"
       />
       
-      {/* Row 1: Key Metrics */}
+      {/* Top Row: Key Metrics */}
       <RiskMetricsPanel 
         analytics={calculatorState.analytics} 
         isCalculating={calculatorState.isCalculating} 
-        className="flex flex-col md:h-full"
+        className="col-span-6 p-5 border border-terminal-line rounded-md"
       />
       
-      {/* Row 2: Price Sensitivity */}
+      {/* Bottom Row: Price Sensitivity */}
       {calculatorState.input.price ? (
         <PriceSensitivityPanel 
           bond={bond}
           currentPrice={calculatorState.input.price}
           settlementDate={calculatorState.input.settlementDate}
           predefinedCashFlows={predefinedCashFlows}
+          className="col-span-6 p-5 border border-terminal-line rounded-md"
         />
       ) : (
-        <div className="bg-gray-900 border border-green-600 rounded-lg p-6 flex items-center justify-center">
+        <div className="col-span-6 p-5 border border-terminal-line rounded-md bg-terminal-panel flex items-center justify-center">
           <div className="text-center">
-            <TrendingUp className="h-8 w-8 mx-auto text-gray-600 mb-4" />
-            <p className="text-gray-400">Enter a price to see sensitivity analysis</p>
+            <TrendingUp className="h-8 w-8 mx-auto text-terminal-txt/40 mb-4" />
+            <p className="text-terminal-txt/60">Enter a price to see sensitivity analysis</p>
           </div>
         </div>
       )}
       
-      {/* Row 2: Cash Flow Schedule */}
+      {/* Bottom Row: Cash Flow Schedule */}
       {bondResult?.cashFlows ? (
         <CashFlowSchedulePanel 
           cashFlows={bondResult.cashFlows}
@@ -80,12 +81,13 @@ export function Grid({
             couponRate: bond.couponRate,
             couponRateChanges: bond.couponRateChanges || []
           }}
+          className="col-span-6 p-5 border border-terminal-line rounded-md"
         />
       ) : (
-        <div className="bg-gray-900 border border-green-600 rounded-lg p-6 flex items-center justify-center">
+        <div className="col-span-6 p-5 border border-terminal-line rounded-md bg-terminal-panel flex items-center justify-center">
           <div className="text-center">
-            <CalendarDays className="h-8 w-8 mx-auto text-gray-600 mb-4" />
-            <p className="text-gray-400">Cash flow schedule will appear here</p>
+            <CalendarDays className="h-8 w-8 mx-auto text-terminal-txt/40 mb-4" />
+            <p className="text-terminal-txt/60">Cash flow schedule will appear here</p>
           </div>
         </div>
       )}

@@ -111,9 +111,9 @@ export function PriceSensitivityPanel({
   }, [bond, currentPrice, settlementDate, predefinedCashFlows]);
 
   return (
-    <Card className={`bg-gray-900 border-green-600 ${className}`}>
+    <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
-        <CardTitle className="text-green-400 flex items-center gap-2">
+        <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
           Price Sensitivity
         </CardTitle>

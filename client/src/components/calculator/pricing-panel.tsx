@@ -135,9 +135,9 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
   const canFetchLivePrice = isArgentinaBond && !isCalculating && !isLoadingLivePrice;
 
   return (
-    <Card className={`bg-gray-900 border-green-600 ${className}`}>
+    <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
-        <CardTitle className="text-green-400 flex items-center gap-2">
+        <CardTitle className="text-lg font-bold text-terminal-accent flex items-center gap-2">
           <Calculator className="h-5 w-5" />
           Bond Pricing Calculator
         </CardTitle>
