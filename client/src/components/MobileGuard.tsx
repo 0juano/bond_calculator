@@ -25,7 +25,8 @@ export const MobileGuard: React.FC = () => {
       <div className="space-y-3">
         <Button 
           onClick={() => setLocation('/calculator')}
-          className="bg-terminal-accent text-terminal-bg hover:bg-terminal-accent/90 font-medium px-6"
+          className="bg-terminal-accent text-terminal-bg hover:bg-terminal-accent/90 font-medium px-6 touch-target"
+          size="lg"
         >
           <Calculator className="w-4 h-4 mr-2" />
           Back to Calculator
@@ -34,7 +35,8 @@ export const MobileGuard: React.FC = () => {
         <Button 
           variant="outline" 
           onClick={() => setLocation('/')}
-          className="border-terminal-line text-terminal-txt hover:bg-terminal-panel px-6"
+          className="border-terminal-line text-terminal-txt hover:bg-terminal-panel px-6 touch-target"
+          size="lg"
         >
           Back to Home
         </Button>

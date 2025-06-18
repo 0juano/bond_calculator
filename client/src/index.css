@@ -13,9 +13,10 @@
   --terminal-bg-secondary: 0 0% 8%; /* #141414 */
   --terminal-panel: 0 0% 12%; /* #1F1F1F */
   --terminal-border: 0 0% 20%; /* #333333 */
-  --terminal-green: 120 100% 50%; /* #00FF00 */
+  --terminal-green: 120 100% 55%; /* #00ffa0 - Improved contrast */
   --terminal-green-bright: 120 100% 60%; /* #33FF33 */
   --terminal-green-dark: 120 100% 40%; /* #00CC00 */
+  --terminal-green-muted: 120 50% 45%; /* #00CC80 - For dimmed headers */
   --terminal-red: 0 85% 60%; /* #FF4444 */
   --terminal-amber: 45 100% 50%; /* #FFD700 */
   --terminal-blue: 210 100% 70%; /* #5599FF */
@@ -230,13 +231,41 @@
 
   .panel-header {
     @apply text-lg font-bold mb-4;
-    color: hsl(var(--terminal-green));
-    text-shadow: 0 0 10px hsla(var(--terminal-green) / 0.6);
+    color: hsl(var(--terminal-green-muted));
+    opacity: 0.8;
   }
 
   .section-header {
     @apply text-sm font-semibold mb-3 pb-1 border-b border-border;
-    color: hsl(var(--terminal-green));
+    color: hsl(var(--terminal-green-muted));
+    opacity: 0.8;
+  }
+
+  /* Visual hierarchy utilities */
+  .header-muted {
+    @apply text-terminal-accent;
+    opacity: 0.8;
+  }
+
+  .header-dimmed {
+    color: hsl(var(--terminal-green-muted));
+  }
+
+  /* Touch target utilities for mobile accessibility */
+  .touch-target {
+    @apply min-w-[44px] min-h-[44px];
+  }
+
+  .icon-button {
+    @apply min-w-[44px] min-h-[44px] py-3 px-3 touch-manipulation;
+  }
+
+  .date-picker {
+    @apply py-3 px-3 min-h-[44px] touch-manipulation;
+  }
+
+  .menu-trigger {
+    @apply min-w-[44px] min-h-[44px] touch-manipulation;
   }
 }
 

@@ -137,7 +137,7 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
   return (
     <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
-        <CardTitle className="text-lg font-bold text-terminal-accent flex items-center gap-2">
+        <CardTitle className="text-lg font-bold header-muted flex items-center gap-2">
           <Calculator className="h-5 w-5" />
           Bond Pricing Calculator
         </CardTitle>

@@ -26,7 +26,7 @@ export const MobileTopBar = () => {
         
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-terminal-txt hover:text-terminal-accent">
+            <Button variant="ghost" className="menu-trigger text-terminal-txt hover:text-terminal-accent">
               <Menu size={20} />
               <span className="sr-only">Open navigation menu</span>
             </Button>
@@ -38,7 +38,7 @@ export const MobileTopBar = () => {
             <nav className="flex flex-col gap-2 mt-6">
               <Link href="/calculator">
                 <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-md transition-colors text-base font-medium",
+                  "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
                   location.startsWith("/calculator")
                     ? "bg-terminal-accent/20 text-terminal-accent"
                     : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
@@ -50,7 +50,7 @@ export const MobileTopBar = () => {
               
               <Link href="/builder">
                 <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-md transition-colors text-base font-medium",
+                  "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
                   location === "/builder"
                     ? "bg-terminal-accent/20 text-terminal-accent"
                     : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
@@ -62,7 +62,7 @@ export const MobileTopBar = () => {
               
               <Link href="/">
                 <a className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-md transition-colors text-base font-medium",
+                  "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
                   location === "/"
                     ? "bg-terminal-accent/20 text-terminal-accent"
                     : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"

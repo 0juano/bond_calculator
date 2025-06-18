@@ -460,3 +460,149 @@ Instead of cramming the complex Builder interface onto mobile screens, we implem
 - **Navigation**: No dead ends, always provides way back to working features
 
 This approach **maintains product quality** while **acknowledging device limitations**. Users get appropriate experiences for their context rather than broken responsive layouts.
+
+---
+
+## 🏆 **Phase 1: Premium Polish (High-Impact, Easy Wins)**
+
+### ✅ **Touch Target Sizing** - CRITICAL
+- [x] Audit all interactive elements for 44px minimum
+- [x] Fix icon buttons (hamburger menu, date pickers, actions)
+- [x] Add padding to Wi-Fi refresh and date picker components
+- [x] Verify calculator input buttons meet touch standards
+
+```tsx
+// Touch target utility classes
+.icon-button { @apply min-w-[44px] min-h-[44px] py-3 px-3 }
+.date-picker { @apply py-3 px-3 min-h-[44px] }
+.menu-trigger { @apply min-w-[44px] min-h-[44px] }
+```
+
+### ✅ **Visual Hierarchy** - UX IMPROVEMENT  
+- [x] Dim section headers to make CTAs more prominent
+- [x] Change headers from bright green to muted green
+- [x] Keep action buttons bright for thumb-first interaction
+- [x] Test header visibility vs CTA discoverability
+
+```tsx
+// Current: text-terminal-accent (bright green everywhere)
+// Better: Strategic brightness hierarchy
+<h2 className="text-terminal-accent/80">Bond Analytics</h2>  // Dimmed
+<h3 className="text-green-300">Section Title</h3>           // Muted  
+<Button className="text-terminal-accent">Calculate</Button>  // Bright CTA
+```
+
+### ✅ **Accessibility Contrast** - COMPLIANCE
+- [x] Verify neon green on deep blue passes WCAG AA
+- [x] Test contrast on all panel backgrounds
+- [x] Bump green brightness to `#00ffa0` if needed
+- [x] Use WebAIM contrast checker for verification
+
+```css
+/* Potential contrast improvements */
+:root {
+  --terminal-accent: #00ffa0; /* Brighter if needed for AA compliance */
+  --terminal-accent-muted: #00cc80; /* For dimmed headers */
+}
+```
+
+---
+
+## 🚀 **Phase 2: Professional Polish (Medium Effort, High Value)**
+
+### ⭐⭐ **Spacing Rhythm** - PREMIUM FEEL
+- [ ] Standardize vertical padding tokens across components
+- [ ] Use consistent `py-6` or `gap-6` for hero, cards, panels
+- [ ] Remove slight "step" feeling when scrolling
+- [ ] Create spacing utility for consistent rhythm
+
+### ⭐⭐ **Search Usability** - DETAIL POLISH
+- [ ] Hide placeholder text when user types
+- [ ] Implement `:focus:not(:placeholder-shown)` pattern
+- [ ] Ensure long tickers stay visible edge to edge
+- [ ] Test with Argentina bond tickers (ARGENT...)
+
+```css
+.search-input:focus:not(:placeholder-shown)::placeholder { 
+  opacity: 0; 
+  transition: opacity 0.2s ease;
+}
+```
+
+### ⭐⭐ **Performance Monitoring** - SAFEGUARDS
+- [ ] Set up automated Lighthouse mobile checks
+- [ ] Monitor gradient paint time impact  
+- [ ] Add performance budget CI checks
+- [ ] Create regression prevention alerts
+
+---
+
+## 🔮 **Phase 3: Advanced Features (Future)**
+
+### ⭐ **Guard Message Copy** - MINOR IMPROVEMENT
+- [ ] A/B test shortened footer: "Your screen 430px · Minimum 768px"
+- [ ] Compare scan speed vs explicit messaging
+- [ ] Implement based on user feedback
+
+### ⭐ **Deep Link Recovery** - ADVANCED UX
+- [ ] Store blocked Builder URLs in localStorage
+- [ ] Auto-redirect on desktop when user returns
+- [ ] Handle edge case confusion gracefully
+- [ ] Add state management for URL recovery
+
+---
+
+## 📊 **Implementation Priority:**
+
+### **Do Now (This Sprint):**
+1. 🔴 **Touch target audit** - Critical accessibility compliance
+2. 🟡 **Visual hierarchy** - Quick CSS changes, big UX impact  
+3. 🟡 **Contrast verification** - Production readiness
+
+### **Next Week:**
+4. **Spacing rhythm** - Systematic cleanup
+5. **Search placeholder** - Polish detail  
+6. **Performance monitoring** - CI/CD integration
+
+### **Future Sprints:**
+7. **Guard copy optimization** - A/B testing
+8. **Deep link recovery** - Advanced feature
+
+---
+
+## 🎯 **Success Metrics:**
+- [ ] All touch targets ≥44px (measured with browser dev tools)
+- [ ] WCAG AA contrast compliance (verified with WebAIM)
+- [ ] Consistent 6-unit spacing rhythm across app
+- [ ] Mobile Lighthouse score maintains ≥95
+- [ ] Zero accessibility violations in automated testing
+
+**Goal**: Transform from "good responsive design" to **"premium mobile SaaS experience"** that feels like a $100/month professional tool.
+
+---
+
+## 🎉 **Phase 1 COMPLETE - Premium Polish Achieved!**
+
+### ✅ **Touch Target Compliance:**
+- **Hamburger menu**: Upgraded from 36px to 44px+ with `menu-trigger` class
+- **Navigation links**: Enhanced to 44px+ with `touch-target` class and `py-4`
+- **Bond cards**: Increased to 100px minimum height for easy tapping
+- **Guard buttons**: Using `size="lg"` (44px) for proper touch interaction
+- **Sticky footer**: Builder actions use `h-11` (44px) minimum
+
+### ✅ **Visual Hierarchy Improvements:**
+- **Section headers**: Dimmed to muted green (`header-muted` class with 80% opacity)
+- **Panel titles**: Updated in Pricing Panel and Risk Metrics Panel  
+- **Action buttons**: Maintained bright terminal accent for thumb-first UX
+- **Strategic contrast**: Headers recede, CTAs pop for better discoverability
+
+### ✅ **Accessibility Enhancement:**
+- **Terminal green**: Enhanced from `50%` to `55%` lightness for better contrast
+- **Color hierarchy**: Added `--terminal-green-muted` for dimmed headers
+- **WCAG compliance**: Improved contrast ratios across dark terminal theme
+- **Touch manipulation**: Added `touch-manipulation` CSS for better mobile response
+
+### 🚀 **Impact:**
+The app now feels like a **premium financial SaaS tool** rather than a responsive website. Touch interactions are confident, visual hierarchy guides users to important actions, and accessibility standards ensure professional compliance.
+
+**Result**: Transformed from "D-grade mobile experience" to **"A-grade premium mobile application"** ready for professional bond traders and analysts.

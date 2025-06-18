@@ -41,7 +41,7 @@ export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMe
   return (
     <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
-        <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
+        <CardTitle className="text-base font-bold header-muted flex items-center gap-2">
           <Shield className="h-5 w-5" />
           Key Metrics
         </CardTitle>
