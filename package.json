@@ -12,7 +12,7 @@
     "curve": "curl -s http://localhost:3000/api/ust-curve | jq '.tenors'",
     "rates": "curl -s http://localhost:3000/api/ust-curve | jq -r '\"2Y=\" + (.tenors.\"2 Year\" | tostring) + \"% | 5Y=\" + (.tenors.\"5 Year\" | tostring) + \"% | 10Y=\" + (.tenors.\"10 Year\" | tostring) + \"% | 30Y=\" + (.tenors.\"30 Year\" | tostring) + \"%\"'",
     "curve:time": "curl -s http://localhost:3000/api/ust-curve | jq -r '\"Market Date: \" + .recordDate, \"Published: \" + (.marketTime // \"Time unknown\")'",
-    "update-treasury": "tsx scripts/update-treasury.ts",
+    "update-treasury": "node -e \"fetch('http://localhost:10000/api/treasury-rates').then(r=>r.json()).then(console.log).catch(console.error)\"",
     "prices": "tsx scripts/fetch-prices.ts",
     "prices:verbose": "tsx scripts/fetch-prices.ts --verbose",
     "prices:detail": "tsx scripts/fetch-prices-detailed.ts"

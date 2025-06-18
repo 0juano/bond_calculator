@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: bond-calculator
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT 
+        value: 10000
+    healthCheckPath: /api/treasury-rates
+
+  - type: cron
+    name: treasury-update
+    runtime: node
+    schedule: "*/30 * * * *"
+    buildCommand: npm ci
+    startCommand: npm run update-treasury
