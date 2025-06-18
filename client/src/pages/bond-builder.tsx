@@ -13,9 +13,16 @@ import { useToast } from "@/hooks/use-toast";
 import { getDefaultSettlementDate } from "@shared/day-count";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileGuard } from "@/components/MobileGuard";
 
 export default function BondBuilder() {
   const [, setLocation] = useLocation();
+  
+  // Mobile guard - block Builder on screens <768px
+  const isMobile = useIsMobile(767);
+  if (isMobile) return <MobileGuard />;
+  
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [bondData, setBondData] = useState<Partial<InsertBond>>({
     issuer: "REPUBLIC OF ARGENTINA",
@@ -415,20 +422,25 @@ export default function BondBuilder() {
 
   return (
     <div className="text-terminal-txt">
-      {/* Header */}
-      <header className="bg-terminal-panel border-b border-terminal-line px-6 py-4">
+      {/* Mobile-optimized Header */}
+      <header className="bg-terminal-panel border-b border-terminal-line px-4 py-3 lg:px-6 lg:py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 lg:space-x-4">
             <button
               onClick={() => setLocation('/')}
               className="flex items-center gap-2 text-sm text-terminal-txt/70 hover:text-terminal-accent transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Home
+              <span className="hidden sm:inline">Back to Home</span>
+              <span className="sm:hidden">Back</span>
             </button>
-            <div className="h-4 w-px bg-terminal-line"></div>
-            <h1 className="text-lg font-bold text-terminal-accent mb-0">YAS BOND BUILDER v1.0</h1>
-            <div className="flex items-center space-x-2 text-xs">
+            <div className="h-4 w-px bg-terminal-line hidden sm:block"></div>
+            <h1 className="text-base lg:text-lg font-bold text-terminal-accent mb-0">
+              <span className="sm:hidden">Builder</span>
+              <span className="hidden sm:inline">Bond Builder</span>
+            </h1>
+            {/* Hide session info on mobile */}
+            <div className="hidden lg:flex items-center space-x-2 text-xs">
               <span className="text-terminal-txt/60">SESSION:</span>
               <span className="text-terminal-accent">JX001_2024</span>
               <span className="text-terminal-txt/60">|</span>
@@ -436,7 +448,9 @@ export default function BondBuilder() {
               <span className="text-terminal-accent">JUAN_TRADER</span>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          
+          {/* Desktop-only header actions */}
+          <div className="hidden lg:flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleSave()}
@@ -470,119 +484,60 @@ export default function BondBuilder() {
         </div>
       </header>
 
-      <div className="flex min-h-[calc(100vh-80px)] relative">
-        {/* Sidebar */}
-        <aside className={cn(
-          "bg-terminal-panel border-r border-terminal-line transition-all duration-300 overflow-y-auto terminal-scrollbar",
-          sidebarOpen ? "w-80 p-4" : "w-0 p-0"
-        )}>
-          <div className={cn(
-            "transition-opacity duration-300",
-            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+      {/* Mobile-responsive main content with scroll container */}
+      <main className="overflow-y-auto h-[calc(100vh-var(--nav-height))] lg:h-[calc(100vh-80px)]">
+        <div className="lg:flex lg:min-h-full">
+          {/* Desktop Sidebar - Hidden on Mobile */}
+          <aside className={cn(
+            "hidden lg:block bg-terminal-panel border-r border-terminal-line transition-all duration-300 overflow-y-auto terminal-scrollbar",
+            sidebarOpen ? "lg:w-80 lg:p-4" : "lg:w-0 lg:p-0"
           )}>
-          <SavedBonds onLoadBond={handleLoadSavedBond} />
+            <div className={cn(
+              "transition-opacity duration-300",
+              sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}>
+              <SavedBonds onLoadBond={handleLoadSavedBond} />
+              
+              {/* System Status */}
+              <div className="mt-6">
+                <h2 className="section-header">SYSTEM STATUS</h2>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-terminal-txt/60">API_RESPONSE:</span>
+                    <span className={cn(
+                      buildResult && buildResult.buildTime > 250 
+                        ? "text-terminal-warn" 
+                        : "text-terminal-accent"
+                    )}>
+                      {buildResult ? `${buildResult.buildTime}ms` : "< 50ms"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-terminal-txt/60">VALIDATION:</span>
+                    <span className="text-terminal-accent">&lt; 2ms</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
           
-          {/* System Status */}
-          <div className="mt-6">
-            <h2 className="section-header">SYSTEM STATUS</h2>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-terminal-txt/60">API_RESPONSE:</span>
-                <span className={cn(
-                  buildResult && buildResult.buildTime > 250 
-                    ? "text-terminal-warn" 
-                    : "text-terminal-accent"
-                )}>
-                  {buildResult ? `${buildResult.buildTime}ms` : "< 50ms"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-terminal-txt/60">VALIDATION:</span>
-                <span className="text-terminal-accent">&lt; 2ms</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-terminal-txt/60">MEMORY_USAGE:</span>
-                <span className="text-terminal-accent">12.4MB</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-terminal-txt/60">CACHE_HIT:</span>
-                <span className="text-terminal-accent">94.2%</span>
-              </div>
-            </div>
-          </div>
+          {/* Desktop Sidebar Toggle Button */}
+          <button
+            onClick={() => setSidebarOpen(prev => !prev)}
+            className="hidden lg:block absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-terminal-panel border border-terminal-line rounded-r-md p-2 hover:bg-terminal-accent/10 transition-colors"
+            style={{ left: sidebarOpen ? '320px' : '0px' }}
+          >
+            {sidebarOpen ? (
+              <ChevronLeft className="h-4 w-4 text-terminal-accent" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-terminal-accent" />
+            )}
+          </button>
 
-          {/* Quick Actions */}
-          <div className="mt-6">
-            <h2 className="section-header">QUICK ACTIONS</h2>
-            <div className="space-y-2">
-              <button
-                onClick={handleReset}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-terminal-line hover:border-primary transition-colors"
-              >
-                [CTRL+R] RESET_FORM
-              </button>
-              <button
-                onClick={() => {
-                  if (buildResult?.cashFlows) {
-                    const headers = ['Date', 'Coupon_Payment', 'Principal_Payment', 'Total_Payment', 'Remaining_Notional', 'Payment_Type'];
-                    const csvData = buildResult.cashFlows.map(flow => [
-                      flow.date,
-                      flow.couponPayment.toFixed(2),
-                      flow.principalPayment.toFixed(2),
-                      flow.totalPayment.toFixed(2),
-                      flow.remainingNotional.toFixed(2),
-                      flow.paymentType
-                    ]);
-                    
-                    const csv = [headers, ...csvData].map(row => row.join(',')).join('\n');
-                    const issuer = bondData.issuer?.replace(/[^a-zA-Z0-9]/g, '_') || 'Bond';
-                    const timestamp = new Date().toISOString().split('T')[0];
-                    const filename = `${issuer}_CashFlows_${timestamp}.csv`;
-                    
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }
-                }}
-                disabled={!buildResult?.cashFlows}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-terminal-line hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                [CTRL+E] EXPORT_CSV
-              </button>
-              <button
-                onClick={() => handleSave()}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-terminal-line hover:border-primary transition-colors"
-title={buildResult ? "Save bond to repository for later use in calculator" : "Save draft to localStorage"}
-              >
-[CTRL+S] {buildResult ? 'SAVE_BOND' : 'SAVE_DRAFT'}
-              </button>
-            </div>
-          </div>
-          </div>
-        </aside>
-        
-        {/* Sidebar Toggle Button */}
-        <button
-          onClick={() => setSidebarOpen(prev => !prev)}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-terminal-panel border border-terminal-line rounded-r-md p-2 hover:bg-terminal-accent/10 transition-colors"
-          style={{ left: sidebarOpen ? '320px' : '0px' }}
-        >
-          {sidebarOpen ? (
-            <ChevronLeft className="h-4 w-4 text-terminal-accent" />
-          ) : (
-            <ChevronRight className="h-4 w-4 text-terminal-accent" />
-          )}
-        </button>
-
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col">
-          <div className="flex-1 flex">
-            {/* Bond Form */}
-            <div className="w-1/2 p-6 border-r border-terminal-line overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
+          {/* Main Content Area */}
+          <div className="flex-1 lg:flex">
+            {/* Bond Form - Mobile accordion, Desktop left panel */}
+            <div className="lg:w-1/2 p-4 pb-20 lg:pb-6 lg:p-6 lg:border-r lg:border-terminal-line lg:overflow-y-auto lg:terminal-scrollbar lg:max-h-[calc(100vh-120px)]">
               <BondForm
                 key={`${bondData.issuer}-${bondData.maturityDate}-${bondData.couponRate}`}
                 bondData={bondData}
@@ -593,8 +548,8 @@ title={buildResult ? "Save bond to repository for later use in calculator" : "Sa
               />
             </div>
 
-            {/* Preview Panel */}
-            <div className="w-1/2 p-6 overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
+            {/* Preview Panel - Desktop right panel */}
+            <div className="hidden lg:block lg:w-1/2 lg:p-6 lg:overflow-y-auto lg:terminal-scrollbar lg:max-h-[calc(100vh-120px)]">
               <AnalyticsPanel 
                 analytics={buildResult?.analytics} 
                 cashFlows={buildResult?.cashFlows}
@@ -604,11 +559,36 @@ title={buildResult ? "Save bond to repository for later use in calculator" : "Sa
               />
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
 
-      {/* Status Bar */}
-      <div className="h-6 bg-terminal-panel border-t border-terminal-line px-4 flex items-center justify-between text-xs">
+      {/* Mobile Sticky Footer Actions */}
+      <footer className="fixed bottom-0 inset-x-0 bg-background/90 backdrop-blur border-t border-terminal-line lg:hidden p-3 pb-safe z-50">
+        <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+          <button
+            onClick={handleReset}
+            className="h-11 px-3 text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md font-medium transition-colors"
+          >
+            Reset
+          </button>
+          <button
+            onClick={() => handleSave()}
+            className="h-11 px-3 text-sm bg-muted text-muted-foreground hover:bg-muted/80 rounded-md font-medium transition-colors"
+          >
+            Save
+          </button>
+          <button
+            onClick={handleBuildBond}
+            disabled={buildMutation.isPending || Object.keys(validationErrors).length > 0}
+            className="h-11 px-3 text-sm bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-md font-medium transition-colors"
+          >
+            {buildMutation.isPending ? 'Building...' : 'Build'}
+          </button>
+        </div>
+      </footer>
+
+      {/* Desktop Status Bar */}
+      <div className="hidden lg:block h-6 bg-terminal-panel border-t border-terminal-line px-4 flex items-center justify-between text-xs">
         <div className="flex items-center space-x-4">
           <span className="text-terminal-txt/60">STATUS:</span>
           <span className="text-terminal-accent">

@@ -1,19 +1,23 @@
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+// Updated to align with mobile-first responsive plan
+const MOBILE_BREAKPOINT = 640
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+export function useIsMobile(customBreakpoint?: number) {
+  const breakpoint = customBreakpoint || MOBILE_BREAKPOINT;
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
+    typeof window !== 'undefined' ? window.innerWidth <= breakpoint : false
+  )
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`)
     const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(window.innerWidth <= breakpoint)
     }
     mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    setIsMobile(window.innerWidth <= breakpoint)
     return () => mql.removeEventListener("change", onChange)
-  }, [])
+  }, [breakpoint])
 
   return !!isMobile
 }

@@ -6,7 +6,7 @@ export function TopBar() {
   const [location] = useLocation();
   
   return (
-    <header className="fixed top-0 left-0 right-0 h-[var(--topbar-h)] z-50 bg-terminal-bg/80 backdrop-blur-sm border-b border-terminal-line">
+    <header className="fixed top-0 left-0 right-0 h-[var(--topbar-h)] z-50 bg-terminal-bg/80 backdrop-blur-sm border-b border-terminal-line hidden sm:block">
       <div className="h-full px-4 mx-auto max-w-7xl flex items-center justify-between">
         {/* Logo/Brand - Fixed width */}
         <div className="flex-basis-[200px] min-w-[200px]">

@@ -32,16 +32,23 @@ export default function Landing() {
   };
 
   return (
-    <HeroLayout
-      suggestedBonds={<SuggestedBonds onSelect={handleBondSelect} />}
-    >
-      <BondSearch 
-        ref={heroSearchRef}
-        autoFocus
-        onSelect={handleBondSelect}
-        onChange={handleSearchChange}
-        className="w-[90%] md:w-[600px]"
-      />
-    </HeroLayout>
+    <>
+      <HeroLayout>
+        <BondSearch 
+          ref={heroSearchRef}
+          autoFocus
+          onSelect={handleBondSelect}
+          onChange={handleSearchChange}
+          className="w-full"
+        />
+      </HeroLayout>
+      
+      {/* Suggested bonds in separate content section */}
+      <section className="py-8 px-4 bg-background">
+        <div className="max-w-4xl mx-auto">
+          <SuggestedBonds onSelect={handleBondSelect} />
+        </div>
+      </section>
+    </>
   );
 }

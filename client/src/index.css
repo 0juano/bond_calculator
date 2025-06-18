@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 :root {
-  /* Layout */
+  /* Layout - Mobile-first navigation heights */
   --topbar-h: 3rem; /* 48px - keep current for now */
+  --nav-height: 64px;
+  --nav-height-mobile: 56px;
   
   /* Terminal colors */
   --terminal-bg: 0 0% 5%; /* #0D0D0D */
@@ -242,5 +244,10 @@
 @media (max-width: 640px) {
   :root {
     --topbar-h: 2.5rem; /* 40px on mobile */
+    --nav-height: var(--nav-height-mobile);
+  }
+  
+  body {
+    font-size: 16px; /* Prevent iOS zoom on input focus */
   }
 }

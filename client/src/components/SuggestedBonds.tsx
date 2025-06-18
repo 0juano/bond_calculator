@@ -1,5 +1,6 @@
 import { TrendingUp, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useViewport } from "@/hooks/useViewport";
 
 interface SuggestedBond {
   id: string;
@@ -19,6 +20,8 @@ interface SuggestedBondsProps {
  * Shows 2 featured bonds below the search for quick access
  */
 export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
+  const { isDesktop } = useViewport();
+  
   // Featured bonds for quick access - using real saved bond IDs
   const suggestedBonds: SuggestedBond[] = [
     {
@@ -38,21 +41,28 @@ export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
   ];
 
   return (
-    <div className={cn("flex flex-col sm:flex-row gap-4 w-full max-w-[640px]", className)}>
-      <div className="text-xs text-terminal-txt/40 text-center mb-2 w-full sm:hidden">
-        Popular bonds:
-      </div>
+    <div className={cn("w-full", className)}>
+      {/* Section title */}
+      <h3 className="text-sm font-semibold text-terminal-accent mb-4 text-center">
+        Popular Bonds
+      </h3>
       
-      {suggestedBonds.map((bond) => (
+      {/* Vertical stack on mobile, horizontal grid on desktop */}
+      <div className={cn(
+        "space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 lg:max-w-2xl lg:mx-auto",
+        "px-4 lg:px-0"
+      )}>
+        {suggestedBonds.map((bond) => (
         <button
           key={bond.id}
           onClick={() => onSelect(bond.id)}
           className={cn(
-            "flex-1 p-4 rounded-lg border border-terminal-line/50",
+            "w-full p-4 rounded-lg border border-terminal-line/50",
             "bg-terminal-panel/30 hover:bg-terminal-panel/50",
             "hover:border-terminal-accent/50 hover:shadow-lg",
             "transition-all duration-200 group",
-            "text-left"
+            "text-left touch-manipulation",
+            "min-h-[100px]" // Proper touch targets
           )}
         >
           <div className="flex items-start justify-between mb-2">
@@ -79,6 +89,7 @@ export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
           </div>
         </button>
       ))}
+      </div>
     </div>
   );
 }

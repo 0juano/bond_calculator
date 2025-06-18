@@ -274,22 +274,22 @@ export default function BondCalculator() {
   }
 
   return (
-    <main className="text-terminal-accent p-6">
+    <main className="text-terminal-accent p-4 sm:p-6">
         {/* Sticky Bond Info + Search Bar */}
-        <section className="sticky top-[var(--topbar-h)] z-20 bg-terminal-panel/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-terminal-line/50 -mx-6 mb-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <section className="sticky top-[var(--topbar-h)] z-20 bg-terminal-panel/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-terminal-line/50 -mx-4 sm:-mx-6 mb-4 sm:mb-6">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
             {/* Left: Current Bond Info */}
             <div className="flex-1">
               {bond ? (
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-terminal-accent mb-1">
+                    <h2 className="text-base sm:text-lg font-semibold text-terminal-accent mb-1">
                       📊 {bond.issuer === 'REPUBLIC OF ARGENTINA' ? 
                         `ARGENT ${bond.couponRate} ${new Date(bond.maturityDate).getFullYear().toString().slice(-2)}` :
                         `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`
                       }
                     </h2>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-terminal-txt/60">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-terminal-txt/60">
                       <span className="flex items-center gap-1">
                         <Building2 className="h-3 w-3" />
                         {bond.issuer}
@@ -323,7 +323,7 @@ export default function BondCalculator() {
             </div>
             
             {/* Right: Search Bar */}
-            <div className="md:ml-6">
+            <div className="lg:ml-6 lg:flex-shrink-0">
               <BondSearch 
                 ref={stickySearchRef}
                 selectedBond={bond ? {
@@ -340,13 +340,13 @@ export default function BondCalculator() {
                 } : null}
                 onSelect={handleBondSelect}
                 onChange={handleSearchChange}
-                className="w-full md:w-80"
+                className="w-full lg:w-80"
               />
             </div>
           </div>
         </section>
 
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           {/* Analytics Grid with Animation */}
           <Grid 
             show={true}
