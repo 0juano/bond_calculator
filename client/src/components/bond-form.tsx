@@ -114,7 +114,7 @@ export default function BondForm({
       </div>
 
       {/* Basic Information */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <h3 className="section-header">[BASIC_INFO]</h3>
         
         <div className="grid grid-cols-2 gap-4">
@@ -294,7 +294,7 @@ export default function BondForm({
       </div>
 
       {/* Bond Type */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <h3 className="section-header">[BOND_TYPE]</h3>
         
         <div className="grid grid-cols-2 gap-4">
@@ -407,7 +407,7 @@ export default function BondForm({
 
       {/* Amortization Schedule */}
       {bondData.isAmortizing && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h3 className="section-header">[AMORTIZATION_SCHEDULE]</h3>
           <div className="terminal-panel p-4">
             <div className="space-y-2">
@@ -460,7 +460,7 @@ export default function BondForm({
 
       {/* Call Schedule */}
       {bondData.isCallable && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h3 className="section-header">[CALL_SCHEDULE]</h3>
           <div className="terminal-panel p-4">
             <div className="space-y-2">
@@ -520,7 +520,7 @@ export default function BondForm({
 
       {/* Put Schedule */}
       {bondData.isPuttable && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h3 className="section-header">[PUT_SCHEDULE]</h3>
           <div className="terminal-panel p-4">
             <div className="space-y-2">

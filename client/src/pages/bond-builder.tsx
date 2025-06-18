@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { useHotkeys } from "react-hotkeys-hook";
 import { apiRequest } from "@/lib/queryClient";
 import BondForm from "@/components/bond-form";
 import CashFlowTable from "@/components/cash-flow-table";
@@ -9,8 +11,12 @@ import { BondResult, InsertBond, ValidationResult } from "@shared/schema";
 import { BondJsonUtils } from "@shared/bond-definition";
 import { useToast } from "@/hooks/use-toast";
 import { getDefaultSettlementDate } from "@shared/day-count";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function BondBuilder() {
+  const [, setLocation] = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [bondData, setBondData] = useState<Partial<InsertBond>>({
     issuer: "REPUBLIC OF ARGENTINA",
     cusip: "040114HS2",
@@ -57,6 +63,12 @@ export default function BondBuilder() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Sidebar toggle hotkey
+  useHotkeys('meta+b', (e) => {
+    e.preventDefault();
+    setSidebarOpen(prev => !prev);
+  }, { enableOnContentEditable: true, enableOnFormTags: true });
 
   // Update time every second
   useEffect(() => {
@@ -402,18 +414,26 @@ export default function BondBuilder() {
   };
 
   return (
-    <div className="text-foreground">
+    <div className="text-terminal-txt">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
+      <header className="bg-terminal-panel border-b border-terminal-line px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="panel-header mb-0">YAS BOND BUILDER v1.0</h1>
+            <button
+              onClick={() => setLocation('/')}
+              className="flex items-center gap-2 text-sm text-terminal-txt/70 hover:text-terminal-accent transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Calculator
+            </button>
+            <div className="h-4 w-px bg-terminal-line"></div>
+            <h1 className="text-lg font-bold text-terminal-accent mb-0">YAS BOND BUILDER v1.0</h1>
             <div className="flex items-center space-x-2 text-xs">
-              <span className="terminal-text-muted">SESSION:</span>
-              <span className="terminal-text-green">JX001_2024</span>
-              <span className="terminal-text-muted">|</span>
-              <span className="terminal-text-muted">USER:</span>
-              <span className="terminal-text-green">JUAN_TRADER</span>
+              <span className="text-terminal-txt/60">SESSION:</span>
+              <span className="text-terminal-accent">JX001_2024</span>
+              <span className="text-terminal-txt/60">|</span>
+              <span className="text-terminal-txt/60">USER:</span>
+              <span className="text-terminal-accent">JUAN_TRADER</span>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -426,13 +446,13 @@ export default function BondBuilder() {
               </button>
               <button
                 onClick={handleReset}
-                className="form-button-secondary text-xs terminal-text-amber"
+                className="form-button-secondary text-xs text-terminal-warn"
               >
                 RESET
               </button>
               <button
                 onClick={() => window.location.href = '/calculator/bond_1749832694227_8aefc56'}
-                className="form-button-secondary text-xs terminal-text-blue"
+                className="form-button-secondary text-xs text-blue-400"
               >
                 CALC
               </button>
@@ -442,7 +462,7 @@ export default function BondBuilder() {
                 <div className="status-online"></div>
                 <span>API ONLINE</span>
               </div>
-              <div className="terminal-text-muted">
+              <div className="text-terminal-txt/60">
                 {currentTime.toLocaleTimeString()} EST
               </div>
             </div>
@@ -450,9 +470,16 @@ export default function BondBuilder() {
         </div>
       </header>
 
-      <div className="flex min-h-[calc(100vh-80px)]">
+      <div className="flex min-h-[calc(100vh-80px)] relative">
         {/* Sidebar */}
-        <aside className="w-80 bg-card border-r border-border p-4 overflow-y-auto terminal-scrollbar">
+        <aside className={cn(
+          "bg-terminal-panel border-r border-terminal-line transition-all duration-300 overflow-y-auto terminal-scrollbar",
+          sidebarOpen ? "w-80 p-4" : "w-0 p-0"
+        )}>
+          <div className={cn(
+            "transition-opacity duration-300",
+            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}>
           <SavedBonds onLoadBond={handleLoadSavedBond} />
           
           {/* System Status */}
@@ -460,22 +487,26 @@ export default function BondBuilder() {
             <h2 className="section-header">SYSTEM STATUS</h2>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="terminal-text-muted">API_RESPONSE:</span>
-                <span className="terminal-text-green">
+                <span className="text-terminal-txt/60">API_RESPONSE:</span>
+                <span className={cn(
+                  buildResult && buildResult.buildTime > 250 
+                    ? "text-terminal-warn" 
+                    : "text-terminal-accent"
+                )}>
                   {buildResult ? `${buildResult.buildTime}ms` : "< 50ms"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="terminal-text-muted">VALIDATION:</span>
-                <span className="terminal-text-green">&lt; 2ms</span>
+                <span className="text-terminal-txt/60">VALIDATION:</span>
+                <span className="text-terminal-accent">&lt; 2ms</span>
               </div>
               <div className="flex justify-between">
-                <span className="terminal-text-muted">MEMORY_USAGE:</span>
-                <span className="terminal-text-green">12.4MB</span>
+                <span className="text-terminal-txt/60">MEMORY_USAGE:</span>
+                <span className="text-terminal-accent">12.4MB</span>
               </div>
               <div className="flex justify-between">
-                <span className="terminal-text-muted">CACHE_HIT:</span>
-                <span className="terminal-text-green">94.2%</span>
+                <span className="text-terminal-txt/60">CACHE_HIT:</span>
+                <span className="text-terminal-accent">94.2%</span>
               </div>
             </div>
           </div>
@@ -486,7 +517,7 @@ export default function BondBuilder() {
             <div className="space-y-2">
               <button
                 onClick={handleReset}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors"
+                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-terminal-line hover:border-primary transition-colors"
               >
                 [CTRL+R] RESET_FORM
               </button>
@@ -518,26 +549,40 @@ export default function BondBuilder() {
                   }
                 }}
                 disabled={!buildResult?.cashFlows}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-terminal-line hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 [CTRL+E] EXPORT_CSV
               </button>
               <button
                 onClick={() => handleSave()}
-                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-border hover:border-primary transition-colors"
+                className="w-full text-left p-2 text-xs bg-muted hover:bg-primary hover:text-primary-foreground border border-terminal-line hover:border-primary transition-colors"
 title={buildResult ? "Save bond to repository for later use in calculator" : "Save draft to localStorage"}
               >
 [CTRL+S] {buildResult ? 'SAVE_BOND' : 'SAVE_DRAFT'}
               </button>
             </div>
           </div>
+          </div>
         </aside>
+        
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={() => setSidebarOpen(prev => !prev)}
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-terminal-panel border border-terminal-line rounded-r-md p-2 hover:bg-terminal-accent/10 transition-colors"
+          style={{ left: sidebarOpen ? '320px' : '0px' }}
+        >
+          {sidebarOpen ? (
+            <ChevronLeft className="h-4 w-4 text-terminal-accent" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-terminal-accent" />
+          )}
+        </button>
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col">
           <div className="flex-1 flex">
             {/* Bond Form */}
-            <div className="w-1/2 p-6 border-r border-border overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
+            <div className="w-1/2 p-6 border-r border-terminal-line overflow-y-auto terminal-scrollbar max-h-[calc(100vh-120px)]">
               <BondForm
                 key={`${bondData.issuer}-${bondData.maturityDate}-${bondData.couponRate}`}
                 bondData={bondData}
@@ -563,26 +608,26 @@ title={buildResult ? "Save bond to repository for later use in calculator" : "Sa
       </div>
 
       {/* Status Bar */}
-      <div className="h-6 bg-card border-t border-border px-4 flex items-center justify-between text-xs">
+      <div className="h-6 bg-terminal-panel border-t border-terminal-line px-4 flex items-center justify-between text-xs">
         <div className="flex items-center space-x-4">
-          <span className="terminal-text-muted">STATUS:</span>
-          <span className="terminal-text-green">
+          <span className="text-terminal-txt/60">STATUS:</span>
+          <span className="text-terminal-accent">
             {buildMutation.isPending ? "BUILDING..." : "READY"}
           </span>
-          <span className="terminal-text-muted">|</span>
-          <span className="terminal-text-muted">LAST_BUILD:</span>
-          <span className="terminal-text-green">
+          <span className="text-terminal-txt/60">|</span>
+          <span className="text-terminal-txt/60">LAST_BUILD:</span>
+          <span className="text-terminal-accent">
             {buildResult ? new Date().toLocaleTimeString() : "--:--:--"}
           </span>
         </div>
         <div className="flex items-center space-x-4">
-          <span className="terminal-text-muted">API_CALLS:</span>
-          <span className="terminal-text-green">
+          <span className="text-terminal-txt/60">API_CALLS:</span>
+          <span className="text-terminal-accent">
             {(buildMutation.data ? 1 : 0) + (validateMutation.data ? 1 : 0)}
           </span>
-          <span className="terminal-text-muted">|</span>
-          <span className="terminal-text-muted">CACHE_SIZE:</span>
-          <span className="terminal-text-green">1.2MB</span>
+          <span className="text-terminal-txt/60">|</span>
+          <span className="text-terminal-txt/60">CACHE_SIZE:</span>
+          <span className="text-terminal-accent">1.2MB</span>
         </div>
       </div>
     </div>

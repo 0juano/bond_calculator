@@ -93,13 +93,21 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="panel-header">BOND ANALYTICS</h2>
-          <div className="text-xs terminal-text-muted mb-4">
+          <h2 className="text-lg font-bold text-terminal-accent">BOND ANALYTICS</h2>
+          <div className="text-xs text-terminal-txt/60 mb-4">
             Build a bond to see analytics and cash flow preview
           </div>
         </div>
 
-        <div className="terminal-panel p-4">
+        {/* Placeholder graphic */}
+        <div className="h-full flex items-center justify-center text-terminal-txt/40 py-12">
+          <div className="text-center space-y-4">
+            <div className="text-4xl">⌛</div>
+            <p className="text-sm">Build the bond to see analytics</p>
+          </div>
+        </div>
+
+        <div className="bg-terminal-panel border border-terminal-line rounded-md p-4">
           <h3 className="section-header">[HEADLINE_ANALYTICS]</h3>
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="space-y-2">
@@ -121,10 +129,10 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
           </div>
         </div>
 
-        <div className="terminal-panel p-4">
+        <div className="bg-terminal-panel border border-terminal-line rounded-md p-4">
           <h3 className="section-header">[PAYMENT_TIMELINE]</h3>
           <div className="bg-muted/20 border border-border p-4 h-64 flex items-center justify-center">
-            <div className="terminal-text-muted text-sm">Chart will appear after building bond</div>
+            <div className="text-terminal-txt/60 text-sm">Chart will appear after building bond</div>
           </div>
         </div>
       </div>
@@ -135,7 +143,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
     <div className="space-y-6">
       {/* Bond Title Section */}
       {bond && (
-        <div className="text-lg font-bold terminal-text-green mb-4">
+        <div className="text-lg font-bold text-terminal-accent mb-4">
           {bond.issuer || 'UNKNOWN ISSUER'} {bond.couponRate}% {bond.maturityDate?.substring(0, 4) || ''}
         </div>
       )}
@@ -145,7 +153,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
 
 
       {/* 3. Payment Timeline Chart */}
-      <div className="terminal-panel p-4">
+      <div className="bg-terminal-panel border border-terminal-line rounded-md p-4">
         <h3 className="section-header">[PAYMENT_TIMELINE]</h3>
         <div className="terminal-chart h-64">
           <canvas 
@@ -153,7 +161,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
             className="w-full h-full"
           />
         </div>
-        <div className="mt-4 flex items-center justify-between text-xs terminal-text-muted">
+        <div className="mt-4 flex items-center justify-between text-xs text-terminal-txt/60">
           <div>Hover over bars for detailed information</div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
@@ -193,7 +201,7 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
             📋 JSON
           </button>
         </div>
-        <div className="text-xs terminal-text-muted mb-2">
+        <div className="text-xs text-terminal-txt/60 mb-2">
           📥 Downloads files to your computer for external use
         </div>
         
@@ -211,27 +219,27 @@ export default function AnalyticsPanel({ analytics, cashFlows, buildStatus, buil
       </div>
 
       {/* 5. Build Status */}
-      <div className="terminal-panel p-4 mt-4">
+      <div className="bg-terminal-panel border border-terminal-line rounded-md p-4 mt-4">
         <h3 className="section-header">[BUILD_STATUS]</h3>
         <div className="space-y-2 text-xs">
           <div className="flex items-center space-x-2">
             <div className="status-online"></div>
-            <span className="terminal-text-green">
+            <span className="text-terminal-accent">
               {buildStatus === "SUCCESS" ? "BUILD COMPLETE" : "READY"}
             </span>
             {buildTime && (
-              <span className="terminal-text-muted">| {buildTime}ms</span>
+              <span className="text-terminal-txt/60">| {buildTime}ms</span>
             )}
           </div>
           <div className="flex items-center space-x-2">
             <div className="status-online"></div>
-            <span className="terminal-text-green">Bond definition validated successfully</span>
-            <span className="terminal-text-muted">| &lt;2ms</span>
+            <span className="text-terminal-accent">Bond definition validated successfully</span>
+            <span className="text-terminal-txt/60">| &lt;2ms</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="status-online"></div>
-            <span className="terminal-text-green">PV check: Bond prices to par</span>
-            <span className="terminal-text-muted">| Within 1¢</span>
+            <span className="text-terminal-accent">PV check: Bond prices to par</span>
+            <span className="text-terminal-txt/60">| Within 1¢</span>
           </div>
         </div>
       </div>
