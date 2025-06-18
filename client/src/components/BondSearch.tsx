@@ -229,7 +229,7 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
       </div>
       
       {/* Dropdown Results */}
-      {isOpen && (
+      {isOpen && (searchQuery.trim() || isLoading || filteredBonds.length > 0) && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl max-h-[400px] overflow-y-auto z-50">
           {isLoading ? (
             <div className="p-4 text-center text-gray-400">
