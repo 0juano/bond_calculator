@@ -17,6 +17,40 @@ TypeScript/React bond calculator project with Express backend - A comprehensive 
 
 # BOND CALCULATOR AGENT PRINCIPLES
 
+## 🔍 RESEARCH-FIRST PRINCIPLE 🔍
+
+**BEFORE implementing complex algorithms or mathematical functions:**
+
+1. **ASK THE USER**: "Should I research existing open source libraries for [specific functionality] first?"
+2. **CHECK npm/GitHub**: Search for existing, well-maintained packages
+3. **EVALUATE OPTIONS**: Compare libraries for:
+   - Maintenance status and popularity
+   - TypeScript support
+   - License compatibility
+   - Performance and accuracy
+   - Dependencies and bundle size
+4. **JUSTIFY CUSTOM IMPLEMENTATION**: Only implement from scratch if:
+   - No suitable library exists
+   - Existing libraries have critical limitations
+   - Custom implementation provides specific advantages
+   - User explicitly prefers custom solution
+
+**Examples of when to research first:**
+- Complex mathematical calculations (IRR, XIRR, statistical functions)
+- Date/time handling beyond basic operations
+- Financial formulas and algorithms
+- Data validation and parsing
+- Chart/visualization components
+
+**This principle applies especially to:**
+- Financial calculations (YTM, duration, convexity)
+- Mathematical solvers (Newton-Raphson, bisection)
+- Data format parsers (CSV, Excel, PDF)
+- Cryptographic functions
+- Complex algorithms with established implementations
+
+**Learning from XIRR implementation:** We spent significant time implementing Formula.js XIRR from scratch when existing npm packages might have provided the same functionality with less effort and potentially better testing.
+
 ## 🚨 CRITICAL ARCHITECTURE PRINCIPLE 🚨
 
 **ALL BOND INFORMATION MUST BE JSON-FIRST WITH EXOGENOUS VARIABLES ONLY**
