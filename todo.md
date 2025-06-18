@@ -50,17 +50,62 @@ Always keep the @todo.md file in this location in the main folder. When there is
     • [ ] Create `client/src/theme.ts` with centralized palette:
       ```ts
       export const palette = {
-        bg: "#0d1117",
-        panelBg: "#11161f", 
-        panelBorder: "#1f2937",
-        accentGreen: "#00ff90",
-        accentRed: "#ff5555",
-        textPrimary: "#d1d5db",
-        textSecondary: "#6b7280",
+        // Background layers (darkest to lightest)
+        bg: "#0a0e13",           // Main background (darker than current)
+        surface: "#0f1419",      // Card/panel surfaces  
+        surfaceHover: "#1a1f29", // Hover states
+        
+        // Borders & dividers
+        border: "#1f2937",       // Primary borders
+        borderSubtle: "#111827", // Subtle separators
+        borderAccent: "#065f46", // Green-tinted borders (current green-900/30)
+        
+        // Text hierarchy
+        textPrimary: "#e5e7eb",   // Primary text (high contrast)
+        textSecondary: "#9ca3af", // Secondary text
+        textMuted: "#6b7280",     // Muted/disabled text
+        
+        // Accent colors
+        green: "#10b981",         // Primary green (current emerald-500)
+        greenLight: "#34d399",    // Success/positive states
+        greenDark: "#059669",     // Green hover states
+        greenGlow: "rgba(16, 185, 129, 0.3)", // Green glow effects
+        
+        red: "#ef4444",           // Error/danger states
+        redLight: "#f87171",      // Warning states
+        redDark: "#dc2626",       // Critical errors
+        
+        // Neutral accents
+        amber: "#f59e0b",         // Warning/attention
+        blue: "#3b82f6",          // Information/links
+        
+        // Transparency overlays
+        overlay: "rgba(0, 0, 0, 0.8)",        // Modal backdrops
+        glassmorphism: "rgba(0, 0, 0, 0.4)",  // TopBar backdrop
+      };
+      
+      // Semantic mappings for financial data
+      export const semantic = {
+        success: palette.green,
+        error: palette.red,
+        warning: palette.amber,
+        info: palette.blue,
+        
+        // Financial data
+        positive: palette.greenLight,  // Gains
+        negative: palette.red,         // Losses
+        neutral: palette.textSecondary // Unchanged
       };
       ```
     • [ ] Inject as CSS variables in ThemeProvider or extend Tailwind colors
     • [ ] Replace hardcoded colors in both Calculator and Builder
+    
+    **🎨 Color Palette Design Decisions:**
+    - **Darker Foundation**: Slightly darker than current for better contrast depth
+    - **Green-Centric**: Maintains signature terminal green with sophisticated shades
+    - **Layer System**: Clear hierarchy from darkest background to surface elements
+    - **Glow Effects**: Leverages existing green glow aesthetic
+    - **Professional**: Colors chosen for financial data and Bloomberg terminal feel
     
     **Phase 4: Reusable Panel Component**
     • [ ] Extract Calculator "card" shell into `components/Panel.tsx`:
