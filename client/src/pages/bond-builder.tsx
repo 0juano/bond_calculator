@@ -424,7 +424,7 @@ export default function BondBuilder() {
               className="flex items-center gap-2 text-sm text-terminal-txt/70 hover:text-terminal-accent transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Calculator
+              Back to Home
             </button>
             <div className="h-4 w-px bg-terminal-line"></div>
             <h1 className="text-lg font-bold text-terminal-accent mb-0">YAS BOND BUILDER v1.0</h1>

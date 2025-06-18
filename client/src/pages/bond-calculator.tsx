@@ -7,9 +7,7 @@ import { ArrowLeft, AlertTriangle, Building2, Calendar, Percent } from "lucide-r
 import { BondDefinition, BondResult } from "@shared/schema";
 import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { BondSearch } from "@/components/BondSearch";
-import { HeroLayout } from "@/components/calculator/HeroLayout";
 import { Grid } from "@/components/calculator/Grid";
-import { SuggestedBonds } from "@/components/SuggestedBonds";
 import { getDefaultSettlementDate } from "@shared/day-count";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +18,11 @@ export default function BondCalculator() {
   const [bondResult, setBondResult] = useState<BondResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const hasTyped = useRef(false);
 
   // Store predefined cash flows for complex bonds
   const [predefinedCashFlows, setPredefinedCashFlows] = useState<any[] | undefined>();
 
   // Refs for search inputs
-  const heroSearchRef = useRef<HTMLInputElement>(null);
   const stickySearchRef = useRef<HTMLInputElement>(null);
 
   // Initialize calculator state once bond is loaded
@@ -35,25 +31,18 @@ export default function BondCalculator() {
   // Global hotkey for search focus
   useHotkeys('/', (e) => {
     e.preventDefault();
-    // Focus whichever search input is currently visible
-    const showHero = !bond && !hasTyped.current && !bondId;
-    if (showHero && heroSearchRef.current) {
-      heroSearchRef.current.focus();
-    } else if (stickySearchRef.current) {
+    if (stickySearchRef.current) {
       stickySearchRef.current.focus();
     }
   }, { enableOnContentEditable: true, enableOnFormTags: true });
 
   const handleBondSelect = (selectedBondId: string) => {
-    hasTyped.current = true;
     // Navigate to the selected bond - this will trigger the useEffect to load the bond
     setLocation(`/calculator/${encodeURIComponent(selectedBondId)}`);
   };
 
   const handleSearchChange = (query: string) => {
-    if (query.length > 0) {
-      hasTyped.current = true;
-    }
+    // Could add analytics here if needed
   };
 
   // Load bond data on mount
@@ -250,14 +239,11 @@ export default function BondCalculator() {
     loadBond();
   }, [bondId]);
 
-  // Progressive disclosure: Show hero search when no bond and haven't typed
-  const showHero = !bond && !hasTyped.current && !bondId;
-
   if (isLoading) {
     return (
-      <div className="text-green-400 p-6 flex items-center justify-center min-h-96">
+      <div className="text-terminal-accent p-6 flex items-center justify-center min-h-96">
         <div className="text-center space-y-4">
-          <div className="animate-spin h-8 w-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto"></div>
+          <div className="animate-spin h-8 w-8 border-2 border-terminal-accent border-t-transparent rounded-full mx-auto"></div>
           <p>Loading bond data...</p>
         </div>
       </div>
@@ -266,20 +252,20 @@ export default function BondCalculator() {
 
   if (error && bondId) {
     return (
-      <div className="text-green-400 p-6 flex items-center justify-center min-h-96">
-        <Card className="bg-gray-900 border-red-600 max-w-md">
+      <div className="text-terminal-accent p-6 flex items-center justify-center min-h-96">
+        <Card className="bg-terminal-panel border-terminal-warn max-w-md">
           <CardHeader>
-            <CardTitle className="text-red-400">Error Loading Bond</CardTitle>
+            <CardTitle className="text-terminal-warn">Error Loading Bond</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-400">{error || 'Bond not found'}</p>
+            <p className="text-terminal-txt/60">{error || 'Bond not found'}</p>
             <Button 
               onClick={() => setLocation('/')}
               variant="outline"
               className="w-full"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Calculator
+              Back to Home
             </Button>
           </CardContent>
         </Card>
@@ -288,39 +274,22 @@ export default function BondCalculator() {
   }
 
   return (
-    <>
-      {/* Hero Layout - Google-style centered search */}
-      {showHero && (
-        <HeroLayout
-          suggestedBonds={<SuggestedBonds onSelect={handleBondSelect} />}
-        >
-          <BondSearch 
-            ref={heroSearchRef}
-            autoFocus
-            onSelect={handleBondSelect}
-            onChange={handleSearchChange}
-            className="w-[90%] md:w-[600px]"
-          />
-        </HeroLayout>
-      )}
-
-      {/* Main Calculator Interface */}
-      <main className={cn(showHero && 'hidden', 'text-green-400 p-6')}>
+    <main className="text-terminal-accent p-6">
         {/* Sticky Bond Info + Search Bar */}
-        <section className="sticky top-[var(--topbar-h)] z-20 bg-gray-900/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-gray-700/50 -mx-6 mb-6">
+        <section className="sticky top-[var(--topbar-h)] z-20 bg-terminal-panel/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-terminal-line/50 -mx-6 mb-6">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Left: Current Bond Info */}
             <div className="flex-1">
               {bond ? (
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-green-400 mb-1">
+                    <h2 className="text-lg font-semibold text-terminal-accent mb-1">
                       📊 {bond.issuer === 'REPUBLIC OF ARGENTINA' ? 
                         `ARGENT ${bond.couponRate} ${new Date(bond.maturityDate).getFullYear().toString().slice(-2)}` :
                         `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`
                       }
                     </h2>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-terminal-txt/60">
                       <span className="flex items-center gap-1">
                         <Building2 className="h-3 w-3" />
                         {bond.issuer}
@@ -341,14 +310,14 @@ export default function BondCalculator() {
                       </span>
                     </div>
                   </div>
-                  <div className="text-xs bg-green-600 text-white px-2 py-1 rounded self-start">
+                  <div className="text-xs bg-terminal-accent text-terminal-bg px-2 py-1 rounded self-start">
                     Active
                   </div>
                 </div>
               ) : (
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-400">No Bond Selected</h2>
-                  <p className="text-sm text-gray-500">Choose a bond to begin analysis</p>
+                  <h2 className="text-lg font-semibold text-terminal-txt/60">No Bond Selected</h2>
+                  <p className="text-sm text-terminal-txt/40">Choose a bond to begin analysis</p>
                 </div>
               )}
             </div>
@@ -380,7 +349,7 @@ export default function BondCalculator() {
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Analytics Grid with Animation */}
           <Grid 
-            show={!showHero}
+            show={true}
             bond={bond}
             bondResult={bondResult}
             calculatorState={calculatorState}
@@ -389,17 +358,16 @@ export default function BondCalculator() {
 
           {/* Error Display */}
           {calculatorState.error && (
-            <Card className="bg-gray-900 border-red-600">
+            <Card className="bg-terminal-panel border-terminal-warn">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 p-4 bg-red-900/20 border border-red-600 rounded">
-                  <AlertTriangle className="h-5 w-5 text-red-400" />
-                  <span className="text-red-400">{calculatorState.error}</span>
+                <div className="flex items-center gap-2 p-4 bg-terminal-warn/20 border border-terminal-warn rounded">
+                  <AlertTriangle className="h-5 w-5 text-terminal-warn" />
+                  <span className="text-terminal-warn">{calculatorState.error}</span>
                 </div>
               </CardContent>
             </Card>
           )}
         </div>
-      </main>
-    </>
+    </main>
   );
 } 

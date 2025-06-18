@@ -19,18 +19,18 @@ interface SuggestedBondsProps {
  * Shows 2 featured bonds below the search for quick access
  */
 export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
-  // Featured bonds for quick access
+  // Featured bonds for quick access - using real saved bond IDs
   const suggestedBonds: SuggestedBond[] = [
     {
-      id: "golden:argentina_2038",
-      name: "ARGENT 4125 38",
+      id: "bond_1749835000_abcd123",
+      name: "ARGENT 5 38",
       description: "Argentina USD 2038",
       yield: "10.88%",
       price: "72.25"
     },
     {
-      id: "golden:argentina_2030", 
-      name: "ARGENT 0125 30",
+      id: "bond_1749832694227_8aefc56", 
+      name: "ARGENT 0.75 30",
       description: "Argentina USD 2030",
       yield: "10.45%",
       price: "80.19"
@@ -38,7 +38,7 @@ export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
   ];
 
   return (
-    <div className={cn("flex flex-col sm:flex-row gap-3 w-full max-w-[600px]", className)}>
+    <div className={cn("flex flex-col sm:flex-row gap-4 w-full max-w-[640px]", className)}>
       <div className="text-xs text-terminal-txt/40 text-center mb-2 w-full sm:hidden">
         Popular bonds:
       </div>
@@ -56,9 +56,9 @@ export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
           )}
         >
           <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-terminal-accent/60 group-hover:text-terminal-accent" />
-              <h3 className="text-sm font-semibold text-terminal-accent">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Star className="h-4 w-4 text-terminal-accent/60 group-hover:text-terminal-accent flex-shrink-0" />
+              <h3 className="text-xs font-semibold text-terminal-accent whitespace-nowrap overflow-hidden text-ellipsis">
                 {bond.name}
               </h3>
             </div>

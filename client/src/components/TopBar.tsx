@@ -22,10 +22,10 @@ export function TopBar() {
         
         {/* Navigation - Fixed width container */}
         <nav className="flex items-center gap-4 min-w-[240px] justify-end">
-          <Link href="/">
+          <Link href="/calculator">
             <a className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-md transition-colors text-sm font-medium min-w-[100px] justify-center",
-              location === "/" || location.startsWith("/calculator")
+              location.startsWith("/calculator")
                 ? "bg-terminal-accent/20 text-terminal-accent"
                 : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
             )}>
