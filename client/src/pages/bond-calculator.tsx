@@ -222,20 +222,87 @@ export default function BondCalculator() {
 
   if (!bondId) {
     return (
-      <div className="min-h-screen bg-gray-950 text-green-400 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center space-y-6">
-            <Calculator className="h-16 w-16 mx-auto text-green-400" />
-            <h1 className="text-3xl font-bold">📊 BOND CALCULATOR</h1>
-            <p className="text-gray-400">
-              Select a bond to begin interactive analysis
-            </p>
-            <Button 
-              onClick={() => setLocation('/builder')}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Go to Bond Builder
-            </Button>
+      <div className="text-green-400 p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Calculator className="h-6 w-6 text-green-400" />
+              <h1 className="text-xl font-semibold">Bond Calculator</h1>
+            </div>
+          </div>
+
+          {/* Prominent Bond Selector */}
+          <BondSearchSelector 
+            currentBondId={undefined}
+            currentBondData={undefined}
+          />
+
+          {/* Empty State for Calculator Panels */}
+          <div className="grid gap-4 md:grid-cols-2 md:auto-rows-min">
+            {/* Placeholder for Bond Pricing Calculator */}
+            <Card className="bg-gray-900/50 border-green-900/30 flex flex-col md:h-full">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Bond Pricing Calculator
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <div className="text-4xl mb-2">📊</div>
+                  <p>Select a bond above to begin analysis</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Placeholder for Key Metrics */}
+            <Card className="bg-gray-900/50 border-green-900/30 flex flex-col md:h-full">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Key Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <div className="text-4xl mb-2">📈</div>
+                  <p>Analytics will appear here</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Placeholder for Price Sensitivity */}
+            <Card className="bg-gray-900/50 border-green-900/30">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Price Sensitivity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center py-8">
+                <div className="text-center text-gray-500">
+                  <div className="text-4xl mb-2">📋</div>
+                  <p>Price scenarios will appear here</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Placeholder for Cash Flow Schedule */}
+            <Card className="bg-gray-900/50 border-green-900/30">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5" />
+                  Cash Flow Schedule
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center py-8">
+                <div className="text-center text-gray-500">
+                  <div className="text-4xl mb-2">💰</div>
+                  <p>Payment schedule will appear here</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -244,7 +311,7 @@ export default function BondCalculator() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 text-green-400 flex items-center justify-center">
+      <div className="text-green-400 p-6 flex items-center justify-center min-h-96">
         <div className="text-center space-y-4">
           <div className="animate-spin h-8 w-8 border-2 border-green-400 border-t-transparent rounded-full mx-auto"></div>
           <p>Loading bond data...</p>
@@ -255,7 +322,7 @@ export default function BondCalculator() {
 
   if (error || !bond) {
     return (
-      <div className="min-h-screen bg-gray-950 text-green-400 flex items-center justify-center">
+      <div className="text-green-400 p-6 flex items-center justify-center min-h-96">
         <Card className="bg-gray-900 border-red-600 max-w-md">
           <CardHeader>
             <CardTitle className="text-red-400">Error Loading Bond</CardTitle>
@@ -263,12 +330,12 @@ export default function BondCalculator() {
           <CardContent className="space-y-4">
             <p className="text-gray-400">{error || 'Bond not found'}</p>
             <Button 
-              onClick={() => setLocation('/builder')}
+              onClick={() => setLocation('/')}
               variant="outline"
               className="w-full"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Builder
+              Back to Calculator
             </Button>
           </CardContent>
         </Card>
@@ -277,7 +344,7 @@ export default function BondCalculator() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-green-400 p-6">
+    <div className="text-green-400 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">

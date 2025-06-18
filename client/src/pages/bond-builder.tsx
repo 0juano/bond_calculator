@@ -402,7 +402,7 @@ export default function BondBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="text-foreground">
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">

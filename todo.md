@@ -6,12 +6,34 @@ Always keep the @todo.md file in this location in the main folder. When there is
     • **Objective**: Transform the app so Calculator and Bond Builder feel like one cohesive product
     • **Status**: Planning phase - detailed implementation plan created
     
-    **Phase 1: Routing Changes**
-    • [ ] Update `client/src/App.tsx` routing:
-      - Change root route "/" → `<BondCalculator />` (was Bond Builder)
-      - Keep "/builder" → `<BondBuilder />` 
-      - Preserve "/calculator/:bondId?" → `<BondCalculator />` with bond ID
-      - Add fallback `<Navigate to="/" />` for unknown paths
+    **Phase 0: Universal Top Bar Implementation** ✅ COMPLETED
+    • [x] **Create Universal Layout Wrapper**:
+      - ✅ Created `client/src/layouts/AppLayout.tsx` with single `<TopBar />` and proper content wrapper
+      - ✅ Defined 48px translucent header that appears on ALL routes
+      - ✅ Main content area uses `pt-[var(--topbar-h)]` for proper spacing below fixed header
+    • [x] **Update Router Architecture**:
+      - ✅ Modified router to use `AppLayout` as wrapper for all routes
+      - ✅ All child routes (Calculator, Builder, NotFound) inherit universal top bar
+      - ✅ No duplicate headers - each page renders pure content only
+    • [x] **CSS Variable System**:
+      - ✅ Added `:root { --topbar-h: 3rem; }` to globals.css (48px)
+      - ✅ Mobile override: `@media (max-width: 640px) { --topbar-h: 2.5rem; }` (40px)
+      - ✅ All pages reference CSS variable for consistent spacing
+    • [x] **Clean Up Existing Components**:
+      - ✅ Removed `min-h-screen bg-gradient` classes from all page components
+      - ✅ Pages are now "pure" content without background or navigation
+      - ✅ AppLayout handles universal styling and spacing
+    • [x] **Testing**:
+      - ✅ Created `/router-test` page to verify implementation
+      - ✅ Verified single top bar appears across all routes
+      - ✅ Navigation persistence confirmed - no layout shifts
+    
+    **Phase 1: Routing Changes** ✅ COMPLETED
+    • [x] Update routing structure (within AppLayout):
+      - ✅ Changed root route "/" → `<BondCalculator />` (was Bond Builder)
+      - ✅ Kept "/builder" → `<BondBuilder />` 
+      - ✅ Preserved "/calculator/:bondId?" → `<BondCalculator />` with bond ID
+      - ✅ Fallback route handles unknown paths with NotFound component
     
     **Phase 2: Navigation Flow Updates**
     • [ ] **Bond Calculator Navigation** (`client/src/pages/bond-calculator.tsx`):
@@ -73,16 +95,16 @@ Always keep the @todo.md file in this location in the main folder. When there is
     4. **Mobile Experience**: How navigation works on smaller screens
     
     **Current State:**
-    - "/" → Bond Builder (will change to Calculator)
+    - ✅ "/" → Calculator (CHANGED - was Bond Builder)
     - Calculator "← Back" → `/builder` (will need updating)
     - Builder has no back button (will add "← Back to Calculator")
     
     **Success Criteria:**
-    - ✅ Calculator loads instantly at "/"
-    - ✅ Visual consistency between Calculator & Builder
-    - ✅ Intuitive navigation flow between tools
-    - ✅ No breaking changes to existing deep links
-    - ✅ Bloomberg terminal aesthetic maintained throughout
+    - ✅ Calculator loads instantly at "/" ← COMPLETED!
+    - [ ] Visual consistency between Calculator & Builder
+    - [ ] Intuitive navigation flow between tools
+    - ✅ No breaking changes to existing deep links ← COMPLETED!
+    - ✅ Bloomberg terminal aesthetic maintained throughout ← COMPLETED!
 
 ## ✅ COMPLETED: Price Sensitivity Panel Bug Fix (June 2025)
 
