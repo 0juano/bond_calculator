@@ -9,12 +9,14 @@ export function TopBar() {
     <header className="fixed top-0 left-0 right-0 h-[var(--topbar-h)] z-50 bg-black/80 backdrop-blur-sm border-b border-green-900/30">
       <div className="h-full px-4 mx-auto max-w-7xl flex items-center justify-between">
         {/* Logo/Brand */}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
-            <Calculator className="w-5 h-5 text-green-500" />
-          </div>
-          <span className="text-lg font-semibold text-gray-100">Bond Calculator</span>
-        </div>
+        <Link href="/">
+          <a className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
+              <Calculator className="w-5 h-5 text-green-500" />
+            </div>
+            <span className="text-lg font-semibold text-gray-100">Bond Calculator</span>
+          </a>
+        </Link>
         
         {/* Navigation */}
         <nav className="flex items-center gap-6">
