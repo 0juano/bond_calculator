@@ -121,7 +121,6 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
       setPriceSource(priceInfo.source);
       setLastPriceUpdate(new Date());
       
-      console.log(`🎯 Live price fetched: ${priceInfo.price} (${priceInfo.source})`);
       
     } catch (error) {
       console.error('Failed to fetch live price:', error);

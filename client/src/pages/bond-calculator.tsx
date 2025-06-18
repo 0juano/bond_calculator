@@ -136,7 +136,6 @@ export default function BondCalculator() {
           
           // CRITICAL: Store predefined cash flows for JSON-first architecture
           const hasCashFlows = bondDefinition.cashFlowSchedule && bondDefinition.cashFlowSchedule.length > 0;
-          console.log('🔥 Bond Loading: Cash flows available?', hasCashFlows, 'count:', bondDefinition.cashFlowSchedule?.length || 0);
           setPredefinedCashFlows(hasCashFlows ? bondDefinition.cashFlowSchedule : undefined);
           
           // Build the bond to get analytics with default market price
@@ -158,7 +157,6 @@ export default function BondCalculator() {
           if (filenameMatch) {
             const ticker = filenameMatch[1];
             defaultPrice = argentinaDefaultPrices[ticker] || 100;
-            console.log(`📊 Using Bloomberg reference price for ${ticker}: ${defaultPrice}`);
           }
           
           const buildRequest = {
@@ -167,12 +165,6 @@ export default function BondCalculator() {
             settlementDate: new Date().toISOString().split('T')[0]
           };
           
-          console.log('🔥 Building bond with request:', {
-            issuer: buildRequest.issuer,
-            hasPredefinedCashFlows: !!buildRequest.predefinedCashFlows,
-            cashFlowCount: buildRequest.predefinedCashFlows?.length || 0,
-            marketPrice: buildRequest.marketPrice
-          });
           
           const buildResponse = await fetch('/api/bonds/build', {
             method: 'POST',

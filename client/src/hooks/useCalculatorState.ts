@@ -57,14 +57,6 @@ export function useCalculatorState(
     calculationId: undefined
   });
   
-  // DEBUG: Log initialization
-  console.log('🔍 CALCULATOR STATE: Initializing with:', {
-    bondIssuer: bond?.issuer,
-    hasPredefinedCashFlows: !!predefinedCashFlows,
-    cashFlowCount: predefinedCashFlows?.length || 0,
-    initialPrice: input.price,
-    hasInitialBondResult: !!initialBondResult
-  });
 
   const [bondResult, setBondResult] = useState<BondResult | undefined>(initialBondResult);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -80,7 +72,6 @@ export function useCalculatorState(
   // Update price when initial bond result becomes available
   useEffect(() => {
     if (initialBondResult?.analytics?.cleanPrice && input.price === 100) {
-      console.log('📊 Updating initial price from bond result:', initialBondResult.analytics.cleanPrice);
       setInputState(prev => ({
         ...prev,
         price: initialBondResult.analytics.cleanPrice,
@@ -98,13 +89,10 @@ export function useCalculatorState(
     if (!bond) return;
     
     const initializeBondPrice = async () => {
-      console.log(`🔄 Bond changed to ${bond.issuer} - fetching market price`);
       calculationCount.current = 0; // Reset calculation counter
       
       // Fetch live price for the bond
       const priceInfo = await fetchLivePrice(undefined, bond.isin || undefined, bond.issuer);
-      
-      console.log(`📊 Initialized ${bond.issuer} with ${priceInfo.source} price: ${priceInfo.price}`);
       
       // Reset calculator state for new bond
       setInputState(prev => ({
@@ -136,7 +124,6 @@ export function useCalculatorState(
     
     // Skip if this is a result of our own calculation update
     if (input.calculationId && input.calculationId === lastCalculationId.current) {
-      console.log('🔄 Skipping calculation - triggered by own update');
       return;
     }
     
@@ -214,17 +201,6 @@ export function useCalculatorState(
           }),
         };
 
-        console.log('🔍 CALCULATOR STATE: About to send calculation request:', {
-          bondIssuer: calculationRequest.issuer,
-          hasPredefinedCashFlows: !!calculationRequest.predefinedCashFlows,
-          cashFlowCount: calculationRequest.predefinedCashFlows?.length || 0,
-          marketPrice: calculationRequest.marketPrice,
-          targetYield: calculationRequest.targetYield,
-          targetSpread: calculationRequest.targetSpread,
-          lockedField: input.lockedField,
-          settlementDate: calculationRequest.settlementDate,
-          calculationCount: currentCallNumber
-        });
 
         
         const result = await api.calculateBond(calculationRequest);
@@ -257,16 +233,6 @@ export function useCalculatorState(
             // Add the calculationId to track this update
             updates.calculationId = calculationId;
             
-            console.log('🔄 CALCULATOR STATE: Updating input state:', {
-              updates,
-              calculationId,
-              lockedField: prev.lockedField,
-              before: {
-                price: prev.price,
-                yieldValue: prev.yieldValue,
-                spread: prev.spread
-              }
-            });
             return { ...prev, ...updates };
           });
           

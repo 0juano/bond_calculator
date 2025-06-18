@@ -54,7 +54,6 @@ export function ScenarioAnalysisPanel({
           // Add small delay to prevent overwhelming the server
           await new Promise(resolve => setTimeout(resolve, index * 100));
           try {
-            console.log(`📊 Calculating scenario for price ${scenario.price.toFixed(2)}`);
             
             // Transform bond data to correct types for API
             const requestBody = {
@@ -73,12 +72,6 @@ export function ScenarioAnalysisPanel({
               ...(predefinedCashFlows && { predefinedCashFlows }),
             };
             
-            console.log(`📊 Request body for ${scenario.priceChange}:`, {
-              issuer: requestBody.issuer,
-              marketPrice: requestBody.marketPrice,
-              settlementDate: requestBody.settlementDate,
-              hasPredefinedCashFlows: !!requestBody.predefinedCashFlows
-            });
 
             const response = await fetch('/api/bonds/calculate', {
               method: 'POST',
@@ -93,11 +86,6 @@ export function ScenarioAnalysisPanel({
             }
 
             const result = await response.json();
-            console.log(`✅ Result for ${scenario.priceChange}:`, {
-              ytm: result.analytics?.yieldToMaturity,
-              spread: result.analytics?.spread,
-              status: result.status
-            });
             
             return {
               ...scenario,

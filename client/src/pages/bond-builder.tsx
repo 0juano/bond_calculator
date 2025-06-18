@@ -89,15 +89,11 @@ export default function BondBuilder() {
   // Build bond mutation
   const buildMutation = useMutation({
     mutationFn: async (bond: InsertBond) => {
-      console.log('🔨 API request starting...');
       const response = await apiRequest("POST", "/api/bonds/build", bond);
-      console.log('🔨 API response received:', response.status);
       const result = await response.json() as BondResult;
-      console.log('🔨 API result:', result);
       return result;
     },
     onSuccess: (result) => {
-      console.log('🔨 Build SUCCESS:', result);
       setBuildResult(result);
       setValidationErrors({});
       toast({
@@ -106,7 +102,6 @@ export default function BondBuilder() {
       });
     },
     onError: (error: Error) => {
-      console.log('🔨 Build ERROR:', error);
       toast({
         title: "Build Failed",
         description: error.message,
@@ -140,12 +135,7 @@ export default function BondBuilder() {
   }, [bondData]);
 
   const handleBuildBond = () => {
-    console.log('🔨 BUILD_BOND clicked');
-    console.log('🔨 Validation errors:', validationErrors);
-    console.log('🔨 Bond data:', bondData);
-    
     if (Object.keys(validationErrors).length > 0) {
-      console.log('🔨 BUILD blocked due to validation errors');
       toast({
         title: "Validation Errors",
         description: "Please fix validation errors before building",
@@ -162,7 +152,6 @@ export default function BondBuilder() {
       settlementDate: new Date().toISOString().split('T')[0] // Use today as settlement date
     };
     
-    console.log('🔨 Calling buildMutation.mutate with:', bondWithMarketData);
     buildMutation.mutate(bondWithMarketData as InsertBond);
   };
 
@@ -172,23 +161,17 @@ export default function BondBuilder() {
 
   const handleLoadSavedBond = async (bondId: string) => {
     try {
-      console.log('🔍 Loading bond with ID:', bondId);
-      
       // First get the list of saved bonds to find the filename
       const listResponse = await apiRequest("GET", "/api/bonds/saved");
       const savedBondsData = await listResponse.json();
-      console.log('🔍 Available bonds:', savedBondsData.bonds.map((b: any) => ({ id: b.metadata.id, name: b.metadata.name })));
       
       const bond = savedBondsData.bonds.find((b: any) => b.metadata.id === bondId);
-      console.log('🔍 Found bond:', bond ? bond.metadata.name : 'NOT FOUND');
       
       if (!bond) {
         throw new Error("Bond not found");
       }
       
       // Convert bond format to legacy format for the form
-      console.log('🔍 Bond features from JSON:', bond.features);
-      
       const legacyBond = {
         issuer: bond.bondInfo.issuer,
         cusip: bond.bondInfo.cusip || "",
@@ -213,14 +196,6 @@ export default function BondBuilder() {
         predefinedCashFlows: bond.cashFlowSchedule || [],
       };
       
-      console.log('🔍 Legacy bond flags:', {
-        isAmortizing: legacyBond.isAmortizing,
-        isCallable: legacyBond.isCallable,
-        isPuttable: legacyBond.isPuttable,
-        isVariableCoupon: legacyBond.isVariableCoupon
-      });
-      
-      console.log('🔍 Setting bond data:', legacyBond);
       setBondData(legacyBond);
       
       toast({

@@ -122,14 +122,11 @@ export function useCalculatorAPI(bond?: BondDefinition) {
       const supportInfo = await checkLiveSupport(ticker, isin, issuer);
       
       if (!supportInfo.isSupported) {
-        console.log(`📊 Live pricing not supported for ${ticker || 'bond'}, using default`);
         return { price: 100, source: 'default' };
       }
       
       // Fetch live price
       const priceData = await fetchLivePriceData(supportInfo.data912Symbol);
-      
-      console.log(`📊 Fetched ${priceData.priceSource} price for ${supportInfo.data912Symbol}: ${priceData.price}`);
       
       return {
         price: priceData.price,
@@ -178,18 +175,9 @@ export function useCalculatorAPI(bond?: BondDefinition) {
     
     const result = await response.json();
     
-    console.log('🔍 API: Received calculation result:', {
-      status: result.status,
-      ytm: result.analytics?.yieldToMaturity,
-      duration: result.analytics?.duration,
-      cleanPrice: result.analytics?.cleanPrice,
-      spread: result.analytics?.spread,
-      hasAnalytics: !!result.analytics
-    });
-    
     // Validate the result
     if (!result.analytics || typeof result.analytics.cleanPrice !== 'number') {
-      console.error('🔍 API: Invalid result structure:', result);
+      console.error('API: Invalid result structure:', result);
       throw new Error('Invalid calculation result received');
     }
     

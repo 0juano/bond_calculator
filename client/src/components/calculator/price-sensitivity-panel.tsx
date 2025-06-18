@@ -85,11 +85,6 @@ export function PriceSensitivityPanel({
 
             const result = await response.json();
             
-            // Log to debug the response structure
-            if (scenario.priceChange === "current") {
-              console.log('Price Sensitivity API Response:', result);
-              console.log('Analytics spread:', result.analytics?.spread);
-            }
 
             return {
               ...scenario,

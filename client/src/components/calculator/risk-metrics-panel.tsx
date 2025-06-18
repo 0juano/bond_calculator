@@ -15,8 +15,6 @@ interface RiskMetricsPanelProps {
  * Shows duration, convexity, and other risk measures in a clean grid
  */
 export function RiskMetricsPanel({ analytics, isCalculating, className }: RiskMetricsPanelProps) {
-  // Debug: Log analytics to console
-  console.log('🔍 RiskMetricsPanel analytics:', analytics);
   
   // Helper function to safely format values with fallback
   const safeFormat = (value: number | undefined, formatter: (value: number, decimals?: number) => string, decimals?: number) => {
