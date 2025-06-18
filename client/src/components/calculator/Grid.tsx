@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BondDefinition, BondResult } from "@shared/schema";
 import { PricingPanel } from "@/components/calculator/pricing-panel";
@@ -5,6 +6,7 @@ import { RiskMetricsPanel } from "@/components/calculator/risk-metrics-panel";
 import { PriceSensitivityPanel } from "@/components/calculator/price-sensitivity-panel";
 import { CashFlowSchedulePanel } from "@/components/calculator/cash-flow-schedule-panel";
 import { TrendingUp, CalendarDays } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface GridProps {
   show: boolean;
@@ -26,6 +28,17 @@ export function Grid({
   calculatorState, 
   predefinedCashFlows 
 }: GridProps) {
+  const [shouldPulse, setShouldPulse] = useState(false);
+  
+  // Apply pulse animation when calculation completes
+  useEffect(() => {
+    if (calculatorState.analytics && !calculatorState.isCalculating) {
+      setShouldPulse(true);
+      const timer = setTimeout(() => setShouldPulse(false), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [calculatorState.analytics, calculatorState.isCalculating]);
+  
   if (!show || !bond) {
     return null;
   }
@@ -41,14 +54,20 @@ export function Grid({
       <PricingPanel 
         calculatorState={calculatorState} 
         bond={bond} 
-        className="col-span-6 p-5 border border-terminal-line rounded-md"
+        className={cn(
+          "col-span-6 p-5 border border-terminal-line rounded-md",
+          shouldPulse && "animate-pulse"
+        )}
       />
       
       {/* Top Row: Key Metrics */}
       <RiskMetricsPanel 
         analytics={calculatorState.analytics} 
         isCalculating={calculatorState.isCalculating} 
-        className="col-span-6 p-5 border border-terminal-line rounded-md"
+        className={cn(
+          "col-span-6 p-5 border border-terminal-line rounded-md",
+          shouldPulse && "animate-pulse"
+        )}
       />
       
       {/* Bottom Row: Price Sensitivity */}

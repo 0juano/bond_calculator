@@ -1,5 +1,44 @@
 Always keep the @todo.md file in this location in the main folder. When there is a new todo, add it to the top
 
+## 🎨 NEW: UI Harmonization Remaining Items (June 2025)
+
+**✅ COMPLETED:**
+- [x] Design tokens & globals - Unified terminal palette with single green token system  
+- [x] Top navigation - Fixed widths with accent green pill highlighting for active pages
+- [x] Calculator grid alignment - 12-column layout with uniform styling and flipped label/text contrast
+- [x] Accessibility - WCAG compliant focus rings and card hover effects
+
+**🚧 REMAINING:**
+
+[ ] **Landing Page Search Improvements** (Medium Priority)
+    • Increase search bar to `w-[600px] h-14` for better prominence
+    • Apply blinking caret animation using `.caret` class with CSS keyframes
+    • Add two suggested bonds below search bar for quick access
+    • Implement magnifying glass icon on left side of search input
+
+[ ] **Builder Page Harmonization** (Medium Priority)  
+    • Reduce form density by adding `space-y-4` on every `.form-section`
+    • Make left sidebar collapsible with toggle shortcut (⌘+B)
+    • Color-code API latency indicators: gray default, red when >250ms
+    • Add placeholder graphic inside empty analytics box: "⌛ Build the bond to see analytics"
+    • Apply terminal color tokens throughout (bg-terminal-panel, border-terminal-line, etc.)
+
+[ ] **Micro-interactions Polish** (Low Priority)
+    • Apply `animate-pulse` for 400ms on calculator cards after calculation completes
+    • Test card hover glow effect across all panels
+    • Ensure smooth transitions between states
+
+[ ] **Commit Strategy Completion** (Low Priority)
+    • Document conventional commit patterns used in project
+    • Ensure all commits follow feat(ui)/fix(a11y) format consistency
+
+**🎯 Success Criteria:**
+- ✅ Calculator page has cohesive terminal aesthetic with proper grid alignment
+- [ ] Landing page provides clear search-first workflow  
+- [ ] Builder page matches calculator styling and spacing
+- [ ] All micro-interactions feel polished and professional
+- [ ] Consistent commit history with conventional format
+
 ## 🎯 NEW: Hero Search Landing Page (June 2025)
 
 [ ] **Transform Calculator to Google-Style Hero Search → Progressive Grid Reveal**

@@ -210,7 +210,7 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-terminal-txt/60 z-10" />
         <Input
           ref={ref}
           placeholder="Search bonds by ticker, CUSIP, or issuer..."
@@ -218,11 +218,12 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setIsOpen(true)}
           className={cn(
-            "h-14 pl-12 pr-4 rounded-full border-gray-700 bg-gray-900/50 backdrop-blur-sm",
-            "text-green-400 placeholder:text-gray-500 text-lg",
-            "focus:ring-2 focus:ring-green-400/50 focus:border-green-400/50",
+            "h-14 pl-12 pr-4 rounded-full border-terminal-line bg-terminal-panel/50 backdrop-blur-sm",
+            "text-terminal-accent placeholder:text-terminal-txt/50 text-lg",
+            "focus:ring-2 focus:ring-terminal-accent/50 focus:border-terminal-accent/50",
             "transition-all duration-200",
-            "shadow-lg shadow-black/20"
+            "shadow-lg shadow-black/20",
+            !searchQuery && "caret" // Apply caret animation when empty
           )}
           disabled={isLoading}
         />
@@ -230,13 +231,13 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
       
       {/* Dropdown Results */}
       {isOpen && (searchQuery.trim() || isLoading || filteredBonds.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl max-h-[400px] overflow-y-auto z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-terminal-panel/95 backdrop-blur-sm border border-terminal-line rounded-lg shadow-xl max-h-[400px] overflow-y-auto z-50 terminal-scrollbar">
           {isLoading ? (
-            <div className="p-4 text-center text-gray-400">
+            <div className="p-4 text-center text-terminal-txt/60">
               Loading bonds...
             </div>
           ) : filteredBonds.length === 0 ? (
-            <div className="p-4 text-center text-gray-400">
+            <div className="p-4 text-center text-terminal-txt/60">
               {searchQuery ? `No bonds found matching "${searchQuery}"` : "Start typing to search bonds..."}
             </div>
           ) : (
@@ -246,17 +247,17 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
                 onClick={() => handleBondSelect(bond.id)}
                 className={cn(
                   "w-full text-left p-4 hover:bg-gray-700/50 transition-colors",
-                  "border-b border-gray-700/50 last:border-b-0",
+                  "border-b border-terminal-line/50 last:border-b-0",
                   index === highlightedIndex && "bg-gray-700/50",
                   bond.id === selectedBond?.id && "bg-green-900/20 border-green-600"
                 )}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="font-medium text-green-400 text-sm mb-1">
+                    <div className="font-medium text-terminal-accent text-sm mb-1">
                       {formatBondDisplay(bond)}
                     </div>
-                    <div className="text-xs text-gray-400 flex items-center gap-2">
+                    <div className="text-xs text-terminal-txt/60 flex items-center gap-2">
                       {getCategoryIcon(bond.category)}
                       <span>{bond.category === 'user_created' ? 'User Created' : 'Imported'}</span>
                     </div>

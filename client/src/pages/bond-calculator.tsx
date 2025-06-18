@@ -9,6 +9,7 @@ import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { BondSearch } from "@/components/BondSearch";
 import { HeroLayout } from "@/components/calculator/HeroLayout";
 import { Grid } from "@/components/calculator/Grid";
+import { SuggestedBonds } from "@/components/SuggestedBonds";
 import { getDefaultSettlementDate } from "@shared/day-count";
 import { cn } from "@/lib/utils";
 
@@ -290,13 +291,15 @@ export default function BondCalculator() {
     <>
       {/* Hero Layout - Google-style centered search */}
       {showHero && (
-        <HeroLayout>
+        <HeroLayout
+          suggestedBonds={<SuggestedBonds onSelect={handleBondSelect} />}
+        >
           <BondSearch 
             ref={heroSearchRef}
             autoFocus
             onSelect={handleBondSelect}
             onChange={handleSearchChange}
-            className="w-[90%] md:w-1/2"
+            className="w-[90%] md:w-[600px]"
           />
         </HeroLayout>
       )}
