@@ -1,39 +1,47 @@
 # Tests Directory
 
-This directory contains all test files and debugging scripts for the bond calculator.
+This directory contains core test files for the bond calculator, focused on essential validation and functionality testing.
 
 ## Structure
 
 - **`unit/`** - Individual component and function tests
-- **`integration/`** - Full calculator workflow tests  
-- **`debug/`** - Debug scripts and development tools
-- **HTML files** - Browser-based test interfaces
+- **`integration/`** - Full calculator workflow tests and Bloomberg validation
 
 ## Running Tests
 
-Most test files are standalone Node.js scripts that can be run directly:
+All test files are standalone Node.js scripts that can be run directly:
 
 ```bash
-# Run a specific test
-node tests/integration/test-calculator.js
+# Run unit tests
+node tests/unit/test-simple-bond.js
+node tests/unit/test-single-bond.js
 
-# Run debug script
-node tests/debug/debug-amortization.js
+# Run integration tests
+node tests/integration/test-calculator.js
+node tests/integration/test-bloomberg-validation.js
+node tests/integration/test-argentina-2038.js
 ```
 
 ## Test Categories
 
 ### Unit Tests
-- `test-simple-bond.js` - Basic bond calculations
-- `test-single-bond.js` - Individual bond testing
+- **`test-simple-bond.js`** - Basic bond calculations and core functionality
+- **`test-single-bond.js`** - Individual bond testing scenarios
 
 ### Integration Tests  
-- `test-calculator.js` - Full calculator testing
-- `test-argentina-*.js` - Argentina sovereign bond tests
-- `test-bloomberg-validation.js` - Bloomberg reference validation
-- `test-price-fix-validation.js` - Price calculation fixes
+- **`test-calculator.js`** - Full calculator workflow testing
+- **`test-bloomberg-validation.js`** - ⭐ **Critical** - Validates against real Bloomberg terminal data for all Argentina bonds
+- **`test-argentina-2038.js`** - Specific testing for Argentina 2038 bond (GD38)
 
-### Debug Scripts
-- `debug-amortization.js` - Amortization debugging
-- `debug-ytm-comparison.js` - YTM calculation analysis
-- `debug-price-interpretation.js` - Price conversion debugging
+## Bloomberg Validation
+
+The **`test-bloomberg-validation.js`** is the most important test as it validates calculator accuracy against professional Bloomberg terminal data for:
+- Argentina 2029 (GD29), 2030 (GD30), 2035 (GD35), 2038 (GD38), 2041 (GD41), 2046 (GD46)
+- Expected YTM, duration, and spread values
+- Ensures calculator matches professional-grade accuracy
+
+## Notes
+
+- All debug scripts and redundant test files have been cleaned up
+- Tests focus on core functionality and Bloomberg validation
+- XIRR YTM system has eliminated previous calculation instability issues
