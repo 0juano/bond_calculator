@@ -63,10 +63,25 @@ export class TreasuryCache {
   private tempDir: string;
 
   constructor() {
-    const dataDir = path.join(process.cwd(), 'server', 'data');
+    // Handle both development and production environments
+    let dataDir: string;
+    
+    if (process.env.NODE_ENV === 'production') {
+      // In production, create data directory in writable location
+      dataDir = path.join('/tmp', 'treasury-data');
+    } else {
+      // In development, use current working directory
+      dataDir = path.join(process.cwd() || '.', 'server', 'data');
+    }
+    
     this.cachePath = path.join(dataDir, 'treasury-rates.json');
     this.defaultPath = path.join(dataDir, 'default-treasury-rates.json');
     this.tempDir = path.join(dataDir, 'temp');
+    
+    // Ensure data directory exists in production
+    if (process.env.NODE_ENV === 'production') {
+      this.ensureDataDirectoryExists();
+    }
   }
 
   /**
@@ -324,5 +339,35 @@ export class TreasuryCache {
       source: 'HARDCODED_FALLBACK',
       cacheVersion: '1.0'
     };
+  }
+
+  /**
+   * Private: Ensure data directory exists and initialize with default data
+   */
+  private ensureDataDirectoryExists(): void {
+    try {
+      const fs = require('fs');
+      
+      // Create data directory structure
+      const dataDir = path.dirname(this.cachePath);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      
+      // Create temp directory
+      if (!fs.existsSync(this.tempDir)) {
+        fs.mkdirSync(this.tempDir, { recursive: true });
+      }
+      
+      // Initialize with default data if cache doesn't exist
+      if (!fs.existsSync(this.cachePath)) {
+        const defaultData = this.getHardcodedFallback();
+        fs.writeFileSync(this.cachePath, JSON.stringify(defaultData, null, 2));
+        console.log('✓ Initialized Treasury cache with default data');
+      }
+      
+    } catch (error) {
+      console.warn('Warning: Could not initialize data directory:', error);
+    }
   }
 }
