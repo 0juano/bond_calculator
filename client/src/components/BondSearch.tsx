@@ -179,7 +179,6 @@ export function BondSearch({
 
   const handleBondSelect = (bondId: string) => {
     onSelect(bondId);
-    setLocation(`/calculator/${encodeURIComponent(bondId)}`);
     setIsOpen(false);
     setSearchQuery("");
   };

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Building2, Calendar, Percent } from "lucide-react";
 import { BondDefinition, BondResult } from "@shared/schema";
 import { useCalculatorState } from "@/hooks/useCalculatorState";
 import { BondSearch } from "@/components/BondSearch";
@@ -28,7 +28,8 @@ export default function BondCalculator() {
 
   const handleBondSelect = (selectedBondId: string) => {
     hasTyped.current = true;
-    // loadBond logic will be triggered by useEffect when bondId changes
+    // Navigate to the selected bond - this will trigger the useEffect to load the bond
+    setLocation(`/calculator/${encodeURIComponent(selectedBondId)}`);
   };
 
   const handleSearchChange = (query: string) => {
@@ -284,26 +285,73 @@ export default function BondCalculator() {
 
       {/* Main Calculator Interface */}
       <main className={cn(showHero && 'hidden', 'text-green-400 p-6')}>
-        {/* Sticky Search Bar */}
+        {/* Sticky Bond Info + Search Bar */}
         <section className="sticky top-[var(--topbar-h)] z-20 bg-gray-900/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-gray-700/50 -mx-6 mb-6">
-          <div className="max-w-7xl mx-auto">
-            <BondSearch 
-              selectedBond={bond ? {
-                id: bond.id?.toString() || '',
-                category: 'user_created' as const,
-                metadata: {
-                  name: `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`,
-                  issuer: bond.issuer,
-                  couponRate: parseFloat(bond.couponRate),
-                  maturityDate: bond.maturityDate,
-                  created: bond.createdAt?.toString() || '',
-                  source: 'calculator'
-                }
-              } : null}
-              onSelect={handleBondSelect}
-              onChange={handleSearchChange}
-              className="max-w-md"
-            />
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Left: Current Bond Info */}
+            <div className="flex-1">
+              {bond ? (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-green-400 mb-1">
+                      📊 {bond.issuer === 'REPUBLIC OF ARGENTINA' ? 
+                        `ARGENT ${bond.couponRate} ${new Date(bond.maturityDate).getFullYear().toString().slice(-2)}` :
+                        `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`
+                      }
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {bond.issuer}
+                      </span>
+                      {bond.isin && (
+                        <span>ISIN: {bond.isin}</span>
+                      )}
+                      {bond.cusip && (
+                        <span>CUSIP: {bond.cusip}</span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Percent className="h-3 w-3" />
+                        {bond.couponRate}% Coupon
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Matures {new Date(bond.maturityDate).getFullYear()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-xs bg-green-600 text-white px-2 py-1 rounded self-start">
+                    Active
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-400">No Bond Selected</h2>
+                  <p className="text-sm text-gray-500">Choose a bond to begin analysis</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Right: Search Bar */}
+            <div className="md:ml-6">
+              <BondSearch 
+                selectedBond={bond ? {
+                  id: bond.id?.toString() || '',
+                  category: 'user_created' as const,
+                  metadata: {
+                    name: `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`,
+                    issuer: bond.issuer,
+                    couponRate: parseFloat(bond.couponRate),
+                    maturityDate: bond.maturityDate,
+                    created: bond.createdAt?.toString() || '',
+                    source: 'calculator'
+                  }
+                } : null}
+                onSelect={handleBondSelect}
+                onChange={handleSearchChange}
+                className="w-full md:w-80"
+              />
+            </div>
           </div>
         </section>
 
