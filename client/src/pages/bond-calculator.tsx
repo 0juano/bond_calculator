@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle, Building2, Calendar, Percent } from "lucide-react";
@@ -23,8 +24,24 @@ export default function BondCalculator() {
   // Store predefined cash flows for complex bonds
   const [predefinedCashFlows, setPredefinedCashFlows] = useState<any[] | undefined>();
 
+  // Refs for search inputs
+  const heroSearchRef = useRef<HTMLInputElement>(null);
+  const stickySearchRef = useRef<HTMLInputElement>(null);
+
   // Initialize calculator state once bond is loaded
   const calculatorState = useCalculatorState(bond || undefined, bondResult || undefined, predefinedCashFlows);
+
+  // Global hotkey for search focus
+  useHotkeys('/', (e) => {
+    e.preventDefault();
+    // Focus whichever search input is currently visible
+    const showHero = !bond && !hasTyped.current && !bondId;
+    if (showHero && heroSearchRef.current) {
+      heroSearchRef.current.focus();
+    } else if (stickySearchRef.current) {
+      stickySearchRef.current.focus();
+    }
+  }, { enableOnContentEditable: true, enableOnFormTags: true });
 
   const handleBondSelect = (selectedBondId: string) => {
     hasTyped.current = true;
@@ -275,6 +292,7 @@ export default function BondCalculator() {
       {showHero && (
         <HeroLayout>
           <BondSearch 
+            ref={heroSearchRef}
             autoFocus
             onSelect={handleBondSelect}
             onChange={handleSearchChange}
@@ -335,6 +353,7 @@ export default function BondCalculator() {
             {/* Right: Search Bar */}
             <div className="md:ml-6">
               <BondSearch 
+                ref={stickySearchRef}
                 selectedBond={bond ? {
                   id: bond.id?.toString() || '',
                   category: 'user_created' as const,

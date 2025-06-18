@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef } from "react";
 import { useLocation } from "wouter";
-import { useHotkeys } from "react-hotkeys-hook";
 import { Input } from "@/components/ui/input";
 import { Search, User, FileText } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -40,13 +39,13 @@ interface BondSearchProps {
  * Standalone Bond Search Component
  * Clean, reusable search input with dropdown for bond selection
  */
-export function BondSearch({ 
+export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({ 
   selectedBond, 
   onSelect, 
   onChange,
   autoFocus = false,
   className 
-}: BondSearchProps) {
+}, ref) => {
   const [, setLocation] = useLocation();
   const [bonds, setBonds] = useState<BondOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,21 +54,14 @@ export function BondSearch({
   const [filteredBonds, setFilteredBonds] = useState<BondOption[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   
-  const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Hotkey for focus (/)
-  useHotkeys('/', (e) => {
-    e.preventDefault();
-    inputRef.current?.focus();
-  }, { enableOnContentEditable: true, enableOnFormTags: true });
 
   // Auto-focus on mount
   useEffect(() => {
-    if (autoFocus && inputRef.current) {
-      inputRef.current.focus();
+    if (autoFocus && ref && 'current' in ref && ref.current) {
+      ref.current.focus();
     }
-  }, [autoFocus]);
+  }, [autoFocus, ref]);
 
   // Load available bonds
   useEffect(() => {
@@ -124,7 +116,9 @@ export function BondSearch({
           break;
         case 'Escape':
           e.preventDefault();
-          inputRef.current?.focus();
+          if (ref && 'current' in ref && ref.current) {
+            ref.current.focus();
+          }
           setIsOpen(false);
           break;
       }
@@ -218,7 +212,7 @@ export function BondSearch({
       <div className="relative">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
         <Input
-          ref={inputRef}
+          ref={ref}
           placeholder="Search bonds by ticker, CUSIP, or issuer..."
           value={searchQuery}
           onChange={(e) => handleInputChange(e.target.value)}
@@ -280,4 +274,6 @@ export function BondSearch({
       )}
     </div>
   );
-}
+});
+
+BondSearch.displayName = 'BondSearch';
