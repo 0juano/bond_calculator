@@ -7,10 +7,18 @@ export default {
     extend: {
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
+        md: "6px",
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        terminal: {
+          bg: '#0b1520',      // main background
+          panel: '#0f1926',   // card background
+          line: '#1c2938',    // subtle grid/lines
+          txt: '#cdd6e3',     // base text
+          accent: '#00ff6a',  // terminal green
+          warn: '#ff5c5c'     // warning red
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

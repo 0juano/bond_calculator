@@ -51,6 +51,7 @@
   body {
     @apply font-mono antialiased bg-background text-foreground;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 14px;
     overflow: auto;
   }
 
@@ -79,6 +80,17 @@
 
   .terminal-panel {
     @apply bg-card border border-border;
+  }
+
+  /* Card hover glow effect */
+  .card:hover {
+    box-shadow: 0 0 0 1px theme('colors.terminal.accent') inset;
+  }
+
+  /* Accessibility focus ring override */
+  :focus-visible { 
+    outline: 2px dashed #5b8aff; 
+    outline-offset: 2px; 
   }
 
   .terminal-text-green {
@@ -128,6 +140,17 @@
   @keyframes matrix-blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.3; }
+  }
+
+  /* Blinking caret animation */
+  @keyframes caret { 
+    0%, 100% { opacity: 0; } 
+    50% { opacity: 1; } 
+  }
+  
+  .caret::after { 
+    content: '▍'; 
+    animation: caret 1s step-end infinite; 
   }
 
   /* Error state for form inputs */
