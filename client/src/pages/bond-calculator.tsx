@@ -1,16 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator, AlertTriangle, TrendingUp, CalendarDays } from "lucide-react";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { BondDefinition, BondResult } from "@shared/schema";
 import { useCalculatorState } from "@/hooks/useCalculatorState";
-import { PricingPanel } from "@/components/calculator/pricing-panel";
-import { RiskMetricsPanel } from "@/components/calculator/risk-metrics-panel";
-import { BondSearchSelector } from "@/components/calculator/bond-search-selector";
-import { PriceSensitivityPanel } from "@/components/calculator/price-sensitivity-panel";
-import { CashFlowSchedulePanel } from "@/components/calculator/cash-flow-schedule-panel";
+import { BondSearch } from "@/components/BondSearch";
+import { HeroLayout } from "@/components/calculator/HeroLayout";
+import { Grid } from "@/components/calculator/Grid";
 import { getDefaultSettlementDate } from "@shared/day-count";
+import { cn } from "@/lib/utils";
 
 export default function BondCalculator() {
   const { bondId } = useParams<{ bondId?: string }>();
@@ -19,12 +18,24 @@ export default function BondCalculator() {
   const [bondResult, setBondResult] = useState<BondResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasTyped = useRef(false);
 
   // Store predefined cash flows for complex bonds
   const [predefinedCashFlows, setPredefinedCashFlows] = useState<any[] | undefined>();
 
   // Initialize calculator state once bond is loaded
   const calculatorState = useCalculatorState(bond || undefined, bondResult || undefined, predefinedCashFlows);
+
+  const handleBondSelect = (selectedBondId: string) => {
+    hasTyped.current = true;
+    // loadBond logic will be triggered by useEffect when bondId changes
+  };
+
+  const handleSearchChange = (query: string) => {
+    if (query.length > 0) {
+      hasTyped.current = true;
+    }
+  };
 
   // Load bond data on mount
   useEffect(() => {
@@ -220,86 +231,8 @@ export default function BondCalculator() {
     loadBond();
   }, [bondId]);
 
-  if (!bondId) {
-    return (
-      <div className="text-green-400 p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Prominent Bond Selector */}
-          <BondSearchSelector 
-            currentBondId={undefined}
-            currentBondData={undefined}
-          />
-
-          {/* Empty State for Calculator Panels */}
-          <div className="grid gap-4 md:grid-cols-2 md:auto-rows-min">
-            {/* Placeholder for Bond Pricing Calculator */}
-            <Card className="bg-gray-900/50 border-green-900/30 flex flex-col md:h-full">
-              <CardHeader>
-                <CardTitle className="text-green-400 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Bond Pricing Calculator
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="text-4xl mb-2">📊</div>
-                  <p>Select a bond above to begin analysis</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Placeholder for Key Metrics */}
-            <Card className="bg-gray-900/50 border-green-900/30 flex flex-col md:h-full">
-              <CardHeader>
-                <CardTitle className="text-green-400 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Key Metrics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="text-4xl mb-2">📈</div>
-                  <p>Analytics will appear here</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Placeholder for Price Sensitivity */}
-            <Card className="bg-gray-900/50 border-green-900/30">
-              <CardHeader>
-                <CardTitle className="text-green-400 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Price Sensitivity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-center py-8">
-                <div className="text-center text-gray-500">
-                  <div className="text-4xl mb-2">📋</div>
-                  <p>Price scenarios will appear here</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Placeholder for Cash Flow Schedule */}
-            <Card className="bg-gray-900/50 border-green-900/30">
-              <CardHeader>
-                <CardTitle className="text-green-400 flex items-center gap-2">
-                  <CalendarDays className="h-5 w-5" />
-                  Cash Flow Schedule
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-center py-8">
-                <div className="text-center text-gray-500">
-                  <div className="text-4xl mb-2">💰</div>
-                  <p>Payment schedule will appear here</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Progressive disclosure: Show hero search when no bond and haven't typed
+  const showHero = !bond && !hasTyped.current && !bondId;
 
   if (isLoading) {
     return (
@@ -312,7 +245,7 @@ export default function BondCalculator() {
     );
   }
 
-  if (error || !bond) {
+  if (error && bondId) {
     return (
       <div className="text-green-400 p-6 flex items-center justify-center min-h-96">
         <Card className="bg-gray-900 border-red-600 max-w-md">
@@ -336,99 +269,67 @@ export default function BondCalculator() {
   }
 
   return (
-    <div className="text-green-400 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setLocation('/builder')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </div>
-
-        {/* Bond Selector */}
-        <BondSearchSelector 
-          currentBondId={bondId}
-          currentBondData={{
-            issuer: bond.issuer,
-            couponRate: parseFloat(bond.couponRate),
-            maturityDate: bond.maturityDate,
-            isin: bond.isin || undefined
-          }}
-        />
-
-        {/* Calculator Interface - 2x2 Grid */}
-        <div className="grid gap-4 md:grid-cols-2 md:auto-rows-min relative">
-          {/* Row 1: Bond Pricing Calculator */}
-          <PricingPanel 
-            calculatorState={calculatorState} 
-            bond={bond} 
-            className="flex flex-col md:h-full"
+    <>
+      {/* Hero Layout - Google-style centered search */}
+      {showHero && (
+        <HeroLayout>
+          <BondSearch 
+            autoFocus
+            onSelect={handleBondSelect}
+            onChange={handleSearchChange}
+            className="w-[90%] md:w-1/2"
           />
-          
-          {/* Row 1: Key Metrics */}
-          <RiskMetricsPanel 
-            analytics={calculatorState.analytics} 
-            isCalculating={calculatorState.isCalculating} 
-            className="flex flex-col md:h-full"
+        </HeroLayout>
+      )}
+
+      {/* Main Calculator Interface */}
+      <main className={cn(showHero && 'hidden', 'text-green-400 p-6')}>
+        {/* Sticky Search Bar */}
+        <section className="sticky top-[var(--topbar-h)] z-20 bg-gray-900/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-gray-700/50 -mx-6 mb-6">
+          <div className="max-w-7xl mx-auto">
+            <BondSearch 
+              selectedBond={bond ? {
+                id: bond.id?.toString() || '',
+                category: 'user_created' as const,
+                metadata: {
+                  name: `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`,
+                  issuer: bond.issuer,
+                  couponRate: parseFloat(bond.couponRate),
+                  maturityDate: bond.maturityDate,
+                  created: bond.createdAt?.toString() || '',
+                  source: 'calculator'
+                }
+              } : null}
+              onSelect={handleBondSelect}
+              onChange={handleSearchChange}
+              className="max-w-md"
+            />
+          </div>
+        </section>
+
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Analytics Grid with Animation */}
+          <Grid 
+            show={!showHero}
+            bond={bond}
+            bondResult={bondResult}
+            calculatorState={calculatorState}
+            predefinedCashFlows={predefinedCashFlows}
           />
-          
-          {/* Row 2: Price Sensitivity */}
-          {calculatorState.input.price ? (
-            <PriceSensitivityPanel 
-              bond={bond}
-              currentPrice={calculatorState.input.price}
-              settlementDate={calculatorState.input.settlementDate}
-              predefinedCashFlows={predefinedCashFlows}
-            />
-          ) : (
-            <div className="bg-gray-900 border border-green-600 rounded-lg p-6 flex items-center justify-center">
-              <div className="text-center">
-                <TrendingUp className="h-8 w-8 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400">Enter a price to see sensitivity analysis</p>
-              </div>
-            </div>
-          )}
-          
-          {/* Row 2: Cash Flow Schedule */}
-          {bondResult?.cashFlows ? (
-            <CashFlowSchedulePanel 
-              cashFlows={bondResult.cashFlows}
-              isLoading={calculatorState.isCalculating}
-              settlementDate={calculatorState.input.settlementDate}
-              bond={{
-                faceValue: bond.faceValue,
-                paymentFrequency: bond.paymentFrequency,
-                couponRate: bond.couponRate,
-                couponRateChanges: bond.couponRateChanges || []
-              }}
-            />
-          ) : (
-            <div className="bg-gray-900 border border-green-600 rounded-lg p-6 flex items-center justify-center">
-              <div className="text-center">
-                <CalendarDays className="h-8 w-8 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400">Cash flow schedule will appear here</p>
-              </div>
-            </div>
+
+          {/* Error Display */}
+          {calculatorState.error && (
+            <Card className="bg-gray-900 border-red-600">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 p-4 bg-red-900/20 border border-red-600 rounded">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                  <span className="text-red-400">{calculatorState.error}</span>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
-
-        {/* Error Display */}
-        {calculatorState.error && (
-          <Card className="bg-gray-900 border-red-600">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 p-4 bg-red-900/20 border border-red-600 rounded">
-                <AlertTriangle className="h-5 w-5 text-red-400" />
-                <span className="text-red-400">{calculatorState.error}</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+      </main>
+    </>
   );
 } 
