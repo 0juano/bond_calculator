@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { BondDefinition, BondAnalytics, BondResult } from "@shared/schema";
 import { useCalculatorAPI, CalculationRequest } from "./useCalculatorAPI";
 import { useCalculatorValidation } from "./useCalculatorValidation";
+import { getDefaultSettlementDate } from "@shared/day-count";
 
 export interface CalculatorInput {
   price?: number;
@@ -50,7 +51,7 @@ export function useCalculatorState(
     price: initialBondResult?.analytics?.cleanPrice || 100, // Default to par if no initial result
     yieldValue: initialBondResult?.analytics?.yieldToMaturity || undefined,
     spread: initialBondResult?.analytics?.spread || undefined,
-    settlementDate: new Date().toISOString().split('T')[0],
+    settlementDate: getDefaultSettlementDate(),
     priceFormat: 'DECIMAL',
     yieldPrecision: 3,
     lockedField: 'PRICE', // Default to price mode

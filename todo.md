@@ -1,5 +1,89 @@
 Always keep the @todo.md file in this location in the main folder. When there is a new todo, add it to the top
 
+## 🚀 NEW: Calculator as Landing Page & Visual Harmonization (June 2025)
+
+[ ] **Make Calculator the Default Landing Page & Harmonize Visual Style**
+    • **Objective**: Transform the app so Calculator and Bond Builder feel like one cohesive product
+    • **Status**: Planning phase - detailed implementation plan created
+    
+    **Phase 1: Routing Changes**
+    • [ ] Update `client/src/App.tsx` routing:
+      - Change root route "/" → `<BondCalculator />` (was Bond Builder)
+      - Keep "/builder" → `<BondBuilder />` 
+      - Preserve "/calculator/:bondId?" → `<BondCalculator />` with bond ID
+      - Add fallback `<Navigate to="/" />` for unknown paths
+    
+    **Phase 2: Navigation Flow Updates**
+    • [ ] **Bond Calculator Navigation** (`client/src/pages/bond-calculator.tsx`):
+      - Update "← Back" button logic (currently points to `/builder`)
+      - **Option A**: Keep Back → `/builder` (Builder becomes secondary tool)
+      - **Option B**: Conditional Back button (hide when no bondId, show when loaded with specific bond)
+      - **Option C**: Back → bond selection/landing state
+    • [ ] **Bond Builder Navigation** (`client/src/pages/bond-builder.tsx`):
+      - Add "← Back to Calculator" button in header (currently has no back button)
+      - Point back button to "/" (new Calculator landing)
+      - Consider "Build Complete" redirect to `/calculator/:newBondId`
+    
+    **Phase 3: Shared Theme System**
+    • [ ] Create `client/src/theme.ts` with centralized palette:
+      ```ts
+      export const palette = {
+        bg: "#0d1117",
+        panelBg: "#11161f", 
+        panelBorder: "#1f2937",
+        accentGreen: "#00ff90",
+        accentRed: "#ff5555",
+        textPrimary: "#d1d5db",
+        textSecondary: "#6b7280",
+      };
+      ```
+    • [ ] Inject as CSS variables in ThemeProvider or extend Tailwind colors
+    • [ ] Replace hardcoded colors in both Calculator and Builder
+    
+    **Phase 4: Reusable Panel Component**
+    • [ ] Extract Calculator "card" shell into `components/Panel.tsx`:
+      - Standardized title bar, border, inner padding
+      - Props: `title`, `children`, `className`, `headerActions?`
+    • [ ] Replace existing card wrappers in **both** screens:
+      - `<Panel title="Bond Pricing Calculator">...</Panel>`
+      - `<Panel title="Key Metrics">...</Panel>` 
+      - `<Panel title="Build Your Bond">...</Panel>`
+    
+    **Phase 5: Builder Visual Refactor**
+    • [ ] Replace custom red/green backgrounds with `palette.accentRed`/`palette.accentGreen`
+    • [ ] Align typography: use Calculator's `font-mono`, `text-sm` sizing
+    • [ ] Match grid gaps & border-radius to Calculator's spacing
+    • [ ] Apply same dark gradient background to both pages
+    
+    **Phase 6: Testing & Polish**
+    • [ ] Write Cypress test `landing-page.spec.ts`:
+      - Visit "/" → assert Calculator renders
+      - Click "Bond Builder" nav → assert builder loads with shared Panel classes  
+      - Switch back via nav → verify no style flash
+    • [ ] Run `npm run check` and build verification
+    • [ ] User flow testing: ensure navigation feels intuitive
+    
+    **Key Implementation Decisions to Make:**
+    1. **Calculator Empty State**: What should users see when landing on "/" with no bond selected?
+       - Bond search/selector prominently displayed?
+       - Featured bonds carousel?
+       - "Get Started" flow?
+    2. **Builder Redirect Flow**: After building bond, redirect to `/calculator/:newBondId` or stay in builder?
+    3. **Back Button Logic**: Conditional vs fixed navigation patterns
+    4. **Mobile Experience**: How navigation works on smaller screens
+    
+    **Current State:**
+    - "/" → Bond Builder (will change to Calculator)
+    - Calculator "← Back" → `/builder` (will need updating)
+    - Builder has no back button (will add "← Back to Calculator")
+    
+    **Success Criteria:**
+    - ✅ Calculator loads instantly at "/"
+    - ✅ Visual consistency between Calculator & Builder
+    - ✅ Intuitive navigation flow between tools
+    - ✅ No breaking changes to existing deep links
+    - ✅ Bloomberg terminal aesthetic maintained throughout
+
 ## ✅ COMPLETED: Price Sensitivity Panel Bug Fix (June 2025)
 
 [x] **Fix Price Sensitivity Panel Spread Display**

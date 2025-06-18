@@ -51,6 +51,36 @@ export function businessDaysBetween(
 }
 
 /**
+ * Add business days to a date, skipping weekends and holidays
+ */
+export function addBusinessDays(
+  startDate: Date, 
+  businessDays: number, 
+  holidays: Date[] = []
+): Date {
+  const result = new Date(startDate);
+  let addedDays = 0;
+  
+  while (addedDays < businessDays) {
+    result.setDate(result.getDate() + 1);
+    if (isBusinessDay(result, holidays)) {
+      addedDays++;
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Get settlement date as T+1 business days from today
+ */
+export function getDefaultSettlementDate(holidays: Date[] = []): string {
+  const today = new Date();
+  const settlementDate = addBusinessDays(today, 1, holidays);
+  return settlementDate.toISOString().split('T')[0];
+}
+
+/**
  * 30/360 Day Count Convention (Bond Basis)
  * Assumes 30 days per month and 360 days per year
  */

@@ -10,6 +10,7 @@ import { RiskMetricsPanel } from "@/components/calculator/risk-metrics-panel";
 import { BondSearchSelector } from "@/components/calculator/bond-search-selector";
 import { PriceSensitivityPanel } from "@/components/calculator/price-sensitivity-panel";
 import { CashFlowSchedulePanel } from "@/components/calculator/cash-flow-schedule-panel";
+import { getDefaultSettlementDate } from "@shared/day-count";
 
 export default function BondCalculator() {
   const { bondId } = useParams<{ bondId?: string }>();
@@ -162,7 +163,7 @@ export default function BondCalculator() {
           const buildRequest = {
             ...apiBond,
             marketPrice: defaultPrice,
-            settlementDate: new Date().toISOString().split('T')[0]
+            settlementDate: getDefaultSettlementDate()
           };
           
           

@@ -8,6 +8,7 @@ import SavedBonds from "@/components/golden-bonds";
 import { BondResult, InsertBond, ValidationResult } from "@shared/schema";
 import { BondJsonUtils } from "@shared/bond-definition";
 import { useToast } from "@/hooks/use-toast";
+import { getDefaultSettlementDate } from "@shared/day-count";
 
 export default function BondBuilder() {
   const [bondData, setBondData] = useState<Partial<InsertBond>>({
@@ -149,7 +150,7 @@ export default function BondBuilder() {
     const bondWithMarketData = {
       ...bondData,
       marketPrice: 100, // Default to par value for building
-      settlementDate: new Date().toISOString().split('T')[0] // Use today as settlement date
+      settlementDate: getDefaultSettlementDate() // Use T+1 business day as settlement date
     };
     
     buildMutation.mutate(bondWithMarketData as InsertBond);
