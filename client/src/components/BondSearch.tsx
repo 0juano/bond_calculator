@@ -53,8 +53,16 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBonds, setFilteredBonds] = useState<BondOption[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [width, setWidth] = useState(window.innerWidth);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Track window width for responsive placeholder
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Auto-focus on mount
   useEffect(() => {
@@ -207,13 +215,20 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
     }
   };
 
+  const placeholder =
+    width < 400
+      ? "Search bonds…"
+      : width < 640
+      ? "Ticker / CUSIP / Issuer"
+      : "Search bonds by ticker, CUSIP, or issuer name";
+
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
       <div className="relative">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-terminal-txt/60 z-10" />
         <Input
           ref={ref}
-          placeholder="Search bonds by ticker, CUSIP, or issuer..."
+          placeholder={placeholder}
           value={searchQuery}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setIsOpen(true)}
