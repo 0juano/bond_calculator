@@ -1,6 +1,82 @@
 Always keep the @todo.md file in this location in the main folder. When there is a new todo, add it to the top
 
-## 🚀 NEW: Calculator as Landing Page & Visual Harmonization (June 2025)
+## 🎯 NEW: Hero Search Landing Page (June 2025)
+
+[ ] **Transform Calculator to Google-Style Hero Search → Progressive Grid Reveal**
+    • **Objective**: Re-layout Calculator landing page so bond search is the single hero element, centered on first load
+    • **UX Pattern**: Google-style search → progressive disclosure of analytics grid after bond selection
+    • **Status**: Implementation ready - detailed plan created
+    
+    **Phase 1: Extract Search Component** 
+    • [ ] Create standalone `components/BondSearch.tsx`:
+      - Props: `selectedBond?: Bond | null`, `onSelect: (bond: Bond) => void`, `autoFocus?: boolean`, `className?: string`
+      - Extract current search logic from BondSearchSelector
+      - Styles: `h-14 w-[90%] md:w-1/2 rounded-full` with neon-green glow on focus (`ring-2 ring-green-400/50`)
+      - Add magnifying glass icon (lucide-react) inside input on left, remove chevron
+      - Implement `/` hotkey for focus: `useHotkeys('/', () => inputRef.current?.focus(), [inputRef])`
+      - Debounced text input + dropdown list of matches (preserve existing logic)
+    
+    **Phase 2: Hero Layout Wrapper**
+    • [ ] Create `pages/calculator/HeroLayout.tsx`:
+      - Flexbox centering: `min-h-[calc(100vh-48px)] flex flex-col items-center justify-center gap-6`
+      - Children: `<BondSearch autoFocus onSelect={...}/>` + tagline: `"Type ticker, CUSIP, or name to begin"`
+      - Full viewport height minus TopBar
+    
+    **Phase 3: Progressive Disclosure Logic**
+    • [ ] Refactor `pages/bond-calculator.tsx`:
+      ```tsx
+      const [bond, setBond] = useState<Bond|null>(null)
+      const hasTyped = useRef(false)
+
+      return (
+        <>
+          {!bond && !hasTyped.current && (
+            <HeroLayout>
+              <BondSearch autoFocus onSelect={setBond}
+                          onChange={() => (hasTyped.current = true)} />
+            </HeroLayout>
+          )}
+          <main className={clsx(!bond && !hasTyped.current && 'hidden')}>
+            <section className="sticky top-0 z-20 bg-dark px-4 py-3 shadow-lg">
+              <BondSearch selectedBond={bond} onSelect={setBond} />
+            </section>
+            <Grid show={!(!bond && !hasTyped.current)} bond={bond} />
+          </main>
+        </>
+      )
+      ```
+    
+    **Phase 4: Grid Component & Animations**
+    • [ ] Extract analytics grid into `components/calculator/Grid.tsx`:
+      - Wrapper around 4 cards (Bond Pricing Calculator, Key Metrics, Price Sensitivity, Cash Flow Schedule)
+      - Use **Framer Motion** for entrance: `initial={{opacity:0, y:32}}` → `animate={{opacity:1, y:0}}` over `0.4s`
+      - Preserve existing IDs/classes for backward compatibility
+    
+    **Phase 5: Styling Polish**
+    • [ ] Update TopBar height to `h-12` (more discreet)
+    • [ ] Ensure background gradient covers full viewport when hero shown
+    • [ ] Mobile responsive: search bar `w-[90%]`, grid `grid-cols-1 gap-4` on ≤640px
+    • [ ] Remove "will appear here" placeholder text from cards (grid hidden until bond selected)
+    • [ ] Keep internal "no data" placeholders for edge cases
+    
+    **Phase 6: User Experience Enhancements**
+    • [ ] `/` hotkey always focuses visible search input
+    • [ ] Analytics refresh immediately when new bond chosen
+    • [ ] ESC in dropdown returns focus to input without clearing
+    • [ ] Loading indicator if API lookup >300ms
+    • [ ] Lighthouse performance ≥90 on mobile & desktop
+    
+    **🎯 Success Criteria:**
+    - ✅ **Clear user intent**: Google-style hero search makes workflow obvious
+    - ✅ **Progressive disclosure**: Reduces cognitive load, shows complexity when ready
+    - ✅ **Professional UX**: Follows Bloomberg/financial terminal patterns
+    - ✅ **Mobile optimized**: Single focus element works better on small screens
+    - ✅ **Keyboard accessible**: `/` hotkey for power users
+    - ✅ **Smooth transitions**: Framer Motion animations avoid jarring UX
+    
+    **🚀 Implementation Priority:** High - significant UX upgrade transforming from "tool with landing page" to "search-driven application"
+
+## 🚀 Calculator as Landing Page & Visual Harmonization (June 2025)
 
 [ ] **Make Calculator the Default Landing Page & Harmonize Visual Style**
     • **Objective**: Transform the app so Calculator and Bond Builder feel like one cohesive product
