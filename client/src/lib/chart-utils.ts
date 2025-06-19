@@ -80,7 +80,7 @@ export function createChart(canvas: HTMLCanvasElement, data: ChartData): Chart {
           labels: {
             color: '#00FF41',
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 10,
             },
           },
@@ -92,10 +92,10 @@ export function createChart(canvas: HTMLCanvasElement, data: ChartData): Chart {
           borderColor: '#00FF41',
           borderWidth: 1,
           titleFont: {
-            family: 'JetBrains Mono, monospace',
+            family: 'IBM Plex Mono, monospace',
           },
           bodyFont: {
-            family: 'JetBrains Mono, monospace',
+            family: 'IBM Plex Mono, monospace',
           },
           callbacks: {
             label: function(context) {
@@ -109,7 +109,7 @@ export function createChart(canvas: HTMLCanvasElement, data: ChartData): Chart {
           ticks: {
             color: '#808080',
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 10,
             },
           },
@@ -125,7 +125,7 @@ export function createChart(canvas: HTMLCanvasElement, data: ChartData): Chart {
           ticks: {
             color: '#808080',
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 10,
             },
             callback: function(value) {
@@ -223,7 +223,7 @@ export function createBarChart(canvas: HTMLCanvasElement, data: ChartData): Char
           labels: {
             color: CHART_COLORS.primary,
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 10,
             },
           },
@@ -234,7 +234,7 @@ export function createBarChart(canvas: HTMLCanvasElement, data: ChartData): Char
           ticks: {
             color: CHART_COLORS.muted,
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 10,
             },
           },
@@ -246,7 +246,7 @@ export function createBarChart(canvas: HTMLCanvasElement, data: ChartData): Char
           ticks: {
             color: CHART_COLORS.muted,
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 10,
             },
             callback: function(value) {
@@ -376,11 +376,11 @@ export function createStackedChart(canvas: HTMLCanvasElement, data: StackedChart
           borderColor: '#00FF41',
           borderWidth: 1,
           titleFont: {
-            family: 'JetBrains Mono, monospace',
+            family: 'IBM Plex Mono, monospace',
             size: 11,
           },
           bodyFont: {
-            family: 'JetBrains Mono, monospace',
+            family: 'IBM Plex Mono, monospace',
             size: 10,
           },
           callbacks: {
@@ -407,7 +407,7 @@ export function createStackedChart(canvas: HTMLCanvasElement, data: StackedChart
           ticks: {
             color: '#808080',
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 9,
             },
             maxRotation: 45,
@@ -426,7 +426,7 @@ export function createStackedChart(canvas: HTMLCanvasElement, data: StackedChart
           ticks: {
             color: '#808080',
             font: {
-              family: 'JetBrains Mono, monospace',
+              family: 'IBM Plex Mono, monospace',
               size: 9,
             },
             callback: function(value) {
