@@ -23,19 +23,6 @@ Always keep the @todo.md file in this location in the main folder. When there is
   - [ ] Configure admin notification for stale cache >7 days
   - [ ] Add pre-commit hook to warn about stale treasury data
 
-### Hero Search Landing Page 
-**Status**: Design ready, implementation pending
-**Impact**: Major UX improvement - transforms calculator into search-first experience
-
-[ ] **Implementation Tasks**:
-  - [ ] Extract search into standalone `BondSearch.tsx` component
-  - [ ] Create hero layout with centered search bar
-  - [ ] Implement progressive disclosure (search → grid reveal)
-  - [ ] Add `/` hotkey for search focus
-  - [ ] Add Framer Motion animations for smooth transitions
-  - [ ] Optimize for mobile with responsive search sizing
-
-
 
 ## 🎯 MEDIUM PRIORITY - Ready for Development
 
@@ -98,6 +85,7 @@ Always keep the @todo.md file in this location in the main folder. When there is
 ## ✅ COMPLETED ITEMS
 
 ### Recently Completed (June 2025)
+- ✅ Hero Search Landing Page (Search-first experience with progressive disclosure)
 - ✅ Treasury Cache Backend (Phases 1, 2, 5 complete)
 - ✅ Calculator as Default Landing Page 
 - ✅ Universal Top Bar Implementation

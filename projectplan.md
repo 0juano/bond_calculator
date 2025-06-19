@@ -17,12 +17,67 @@ This document serves as a working plan for the bond calculator project - a profe
 | Quality        | Unit-test coverage            | ≥ 95%  |
 | Performance    | P95 page load on 4G           | < 2s   |
 
-## Current Sprint Tasks
-- [ ] Research and analyze current codebase structure
-- [ ] Identify specific areas needing improvement
-- [ ] Implement simplifications and optimizations
-- [ ] Test changes against Bloomberg reference data
-- [ ] Verify calculator accuracy and performance
+## Current Sprint Tasks - Calculator Empty State Enhancement
+
+### Goal: Create an engaging empty state that guides users to select a bond and start analyzing
+
+### Analysis:
+Currently, when no bond is selected, the calculator shows:
+- A minimal "No Bond Selected" message in the sticky header
+- No content in the main area (Grid component returns null)
+- No guidance on how to get started
+
+### Todo List:
+- [ ] Create EmptyStateHero component with visual appeal and clear CTA
+- [ ] Add quick access to popular bonds (Argentina sovereigns)
+- [ ] Add recent bonds section if user has history
+- [ ] Implement smooth transition from empty state to loaded state
+- [ ] Add keyboard shortcut hints (/ for search)
+- [ ] Ensure mobile responsiveness
+- [ ] Test the complete flow from empty → search → bond selection → analytics
+
+### Implementation Details:
+
+1. **EmptyStateHero Component** (`/client/src/components/calculator/empty-state-hero.tsx`):
+   - Large bond icon or illustration
+   - "Start Your Bond Analysis" heading
+   - "Search for a bond to calculate yield, duration, and more" subheading
+   - Prominent search bar (duplicate of sticky search for convenience)
+   - Keyboard shortcut hint
+
+2. **Popular Bonds Section**:
+   - Quick access cards for Argentina sovereigns (GD29, GD30, GD38, etc.)
+   - Show key info: ticker, coupon, maturity
+   - One-click selection
+
+3. **Recent Bonds Section** (if applicable):
+   - Show last 3-5 bonds user analyzed
+   - Based on localStorage or session history
+   - Clear history option
+
+4. **Visual Design**:
+   - Maintain terminal aesthetic
+   - Use subtle animations for engagement
+   - Ensure contrast and readability
+
+5. **Integration**:
+   - Replace null return in Grid component with EmptyStateHero
+   - Smooth transition when bond is selected
+   - Maintain consistency with existing design
+
+## Previous Sprint Tasks - Hero Search Landing Page ✅
+
+### Goal: Transform the bond calculator into a search-first experience with progressive disclosure
+
+### Todo List:
+- [x] Extract search functionality into standalone `BondSearch.tsx` component (already existed)
+- [x] Create hero layout with centered search bar
+- [x] Implement progressive disclosure (search → grid reveal)
+- [x] Add `/` hotkey for search focus (fixed with additional cmd+k/ctrl+k shortcuts)
+- [x] Add Framer Motion animations for smooth transitions
+- [x] Optimize for mobile with responsive search sizing
+- [x] Test the complete implementation flow
+- [x] Update todo.md to mark tasks as complete
 
 ## Sprint Breakdown (Planned)
 
@@ -108,4 +163,42 @@ This document serves as a working plan for the bond calculator project - a profe
 This plan will be updated with specific tasks as we identify areas for improvement. All changes should follow the principle of simplicity - minimal code impact with maximum benefit.
 
 ## Review Section
-*This section will be populated after completing planned tasks*
+
+### Changes Made for Hero Search Landing Page:
+
+1. **Enhanced Bond Calculator Page** - Transformed the calculator into a search-first experience with progressive disclosure:
+   - Added hero view with centered search when no bond is selected
+   - Implemented smooth Framer Motion transitions between hero and calculator views
+   - Used AnimatePresence for seamless view switching
+
+2. **Responsive Search Component** - Optimized BondSearch for all screen sizes:
+   - Dynamic height: 12px (mobile) → 14px (tablet) → 16px (desktop)
+   - Responsive text sizes and icon scaling
+   - Improved placeholder text that adapts to screen width
+
+3. **Progressive Disclosure Flow**:
+   - Landing: Clean hero page with prominent search bar
+   - Selection: Search bar triggers bond selection
+   - Analytics: Grid animates in after bond loads
+   - Sticky header maintains context during analysis
+
+4. **Keyboard Navigation**:
+   - `/` hotkey focuses the appropriate search bar (hero or sticky)
+   - Smart ref handling based on current view state
+
+5. **Animation Details**:
+   - Hero exit: Fade out with slight upward motion
+   - Calculator entry: Fade in with subtle downward motion 
+   - Grid component already had entrance animations
+   - Smooth 300ms transitions throughout
+
+### Impact:
+- Transforms the calculator from a dense analytics page to an inviting search experience
+- Progressive disclosure reduces cognitive load for new users
+- Mobile-optimized search ensures usability on all devices
+- Professional animations enhance perceived quality
+
+### Next Steps:
+- Test the implementation with real bonds
+- Verify mobile responsiveness on actual devices
+- Update todo.md to mark hero search tasks complete

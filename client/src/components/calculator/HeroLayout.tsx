@@ -30,9 +30,9 @@ export function HeroLayout({ children, suggestedBonds }: HeroLayoutProps) {
       </p>
       
       {/* Keyboard hint - hide on mobile */}
-      <div className="text-xs text-terminal-txt/40 text-center hidden sm:block mb-8">
+      <div className="text-xs text-terminal-txt/40 text-center hidden sm:block mb-8 space-y-2">
         <span className="inline-flex items-center gap-1">
-          Press <kbd className="px-2 py-1 bg-terminal-panel border border-terminal-line rounded text-terminal-txt">/</kbd> to focus search
+          Press <kbd className="px-2 py-1 bg-terminal-panel border border-terminal-line rounded text-terminal-txt">/</kbd> or <kbd className="px-2 py-1 bg-terminal-panel border border-terminal-line rounded text-terminal-txt">⌘K</kbd> to focus search
         </span>
       </div>
       
