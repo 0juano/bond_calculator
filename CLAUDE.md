@@ -15,6 +15,16 @@ TypeScript/React bond calculator project with Express backend - A comprehensive 
 - TypeScript strict mode, `decimal.js` for calculations
 - Follow existing patterns, Prettier formatting
 
+# 🔄 STANDARD WORKFLOW (ALWAYS FOLLOW)
+
+1. **First think through the problem**, read the codebase for relevant files, and write a plan to projectplan.md
+2. The plan should have a **list of todo items** that you can check off as you complete them
+3. **Before you begin working**, check in with me and I will verify the plan
+4. Then, begin working on the todo items, **marking them as complete as you go**
+5. Please every step of the way just give me a **high level explanation** of what changes you made
+6. Make every task and code change you do **as simple as possible**. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. **Everything is about simplicity**
+7. Finally, add a **review section** to the projectplan.md file with a summary of the changes you made and any other relevant information
+
 # BOND CALCULATOR AGENT PRINCIPLES
 
 ## 🔍 RESEARCH-FIRST PRINCIPLE 🔍
@@ -148,58 +158,11 @@ The calculator supports **bidirectional calculations** between Price ↔ YTM ↔
 - Continuous recalculation (infinite loop)
 - Spread > 5000bp (unrealistic for investment grade)
 
-## 📋 Bond JSON Specification v1.1
+## 📋 Bond JSON Specification
 
-Follow the comprehensive specification in `docs/bond-json-specification.md`:
-- Supports ALL bond types (sovereign, corporate, municipal)
-- Complete validation rules and field definitions
-- Precision standards (3 decimal places for monetary values)
-- Required vs optional fields clearly defined
+See `docs/bond-json-specification.md` for complete spec. Key principle: JSON contains ONLY bond behavior, NEVER calculated values.
 
-## 🧪 Testing Requirements
+## 🧪 Key Testing Requirement
 
-### Before claiming calculator fixes work:
-1. **Test with MCP Puppeteer** - Use browser automation to verify actual results
-2. **Use https://bonistas.com/** - Cross-reference price/yield/duration calculations
-3. **Compare to Bloomberg data** - Check against reference values in docs
-4. **Test edge cases** - Try different price levels
-5. **Verify no infinite loops** - Ensure calculations complete and stop
+**Never say "fix is working" without MCP verification!** Always test with browser automation and cross-reference with Bloomberg data.
 
-### Never say "fix is working" without MCP verification!
-
-# PROJECT ARCHITECTURE
-
-## Architecture Decisions
-- Calculator state uses custom hook pattern
-- Multiple YTM solvers with automatic fallback
-- Bond storage supports file and database backends
-- Price inputs always as percentage of face value
-
-## Code Organization
-- `/client/src/components/ui/` - shadcn/ui components (audit needed)
-- `/client/src/components/calculator/` - Bond-specific components
-- `/client/src/hooks/` - Custom React hooks
-- `/shared/` - Shared types and calculation logic
-- `/server/` - Express API and storage
-
-## Refactoring Guidelines
-- Prefer composition over complex components
-- Use decimal.js for all financial calculations
-- Validate against Bloomberg reference data
-- Keep bond JSONs free of calculated values
-
-## Priority Refactoring Areas
-1. **High Priority**:
-   - Simplify calculator state management (split 585-line hook)
-   - Remove unused UI components (47+ components, many unused)
-   - Consolidate storage implementations
-
-2. **Medium Priority**:
-   - Split large route files (800+ lines)
-   - Centralize constants and magic numbers
-   - Improve test organization
-
-3. **Low Priority**:
-   - Component optimization with React.memo
-   - Error handling standardization
-   - Address prop drilling with Context
