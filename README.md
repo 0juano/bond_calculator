@@ -104,81 +104,100 @@ bond_calculator/
 ├── client/                    # React frontend
 │   ├── src/
 │   │   ├── components/        # React components
-│   │   │   ├── ui/           # shadcn/ui components
+│   │   │   ├── ui/           # Radix UI + shadcn components
 │   │   │   ├── calculator/   # Bond calculator components
+│   │   │   ├── navigation/   # TopBar and mobile navigation
 │   │   │   ├── bond-form.tsx # Main bond input form
 │   │   │   ├── cash-flow-table.tsx # Payment schedule display
 │   │   │   ├── analytics-panel.tsx # Bond metrics display
-│   │   │   └── golden-bonds.tsx    # Template selector
+│   │   │   └── BondSearch.tsx      # Universal search component
 │   │   ├── pages/            # Application pages
-│   │   │   ├── bond-builder.tsx    # Main application page
+│   │   │   ├── landing.tsx         # Landing page with search
+│   │   │   ├── bond-builder.tsx    # Bond creation interface
 │   │   │   ├── bond-calculator.tsx # Interactive calculator
 │   │   │   └── not-found.tsx       # 404 page
 │   │   ├── hooks/            # Custom React hooks
-│   │   │   └── useCalculatorState.ts # Three-way calculator logic
+│   │   │   ├── useCalculatorState.ts # Three-way calculator logic
+│   │   │   └── useCalculatorAPI.ts   # API integration hook
+│   │   ├── layouts/          # Layout wrappers
 │   │   ├── lib/              # Utility functions
 │   │   └── main.tsx          # Application entry point
 │   └── index.html            # HTML template
 ├── server/                   # Express backend
 │   ├── index.ts             # Server entry point
 │   ├── routes.ts            # API route definitions
-│   ├── storage.ts           # Database operations
-│   ├── storage-temp.ts      # Temporary storage (no DB)
+│   ├── services/            # Business logic services
+│   ├── middleware/          # Logging and monitoring
+│   ├── data/                # Treasury rate cache
 │   └── vite.ts              # Vite development integration
-├── shared/                  # Shared types and schemas
-│   ├── schema.ts            # Zod schemas and TypeScript types
-│   └── bond-calculator-production.ts # Robust calculation engine
-├── tests/                   # Test files and debugging ✨ NEW
-│   ├── unit/                # Unit tests
-│   ├── integration/         # Integration tests
-│   ├── debug/               # Debug scripts and HTML test files
-│   └── README.md            # Test documentation
-├── logs/                    # Server logs ✨ NEW
-│   └── README.md            # Log documentation
-├── docs/                    # Documentation
-│   ├── bond-json-specification.md  # Bond JSON format spec v1.1
-│   ├── bloomberg-reference-data.md # Market validation data
-│   └── todo.md              # Comprehensive development roadmap
+├── shared/                  # Shared TypeScript modules
+│   ├── bond-calculator-core.ts     # Core calculation engine
+│   ├── bond-calculator-production.ts # Production calculator
+│   ├── bond-definition.ts          # Type definitions
+│   ├── ytm-solvers/                # YTM algorithms
+│   │   ├── formula-xirr.ts         # XIRR implementation
+│   │   ├── newton-raphson.ts      # Newton solver
+│   │   └── brent.ts               # Brent's method
+│   ├── utils/                      # Shared utilities
+│   └── schema.ts                   # Zod validation schemas
 ├── saved_bonds/             # JSON bond repository
 │   ├── user_created/        # User-created bonds
-│   └── imported/            # Imported bond files
+│   ├── golden_bonds/        # Reference templates
+│   ├── imported/            # Imported bond files
+│   └── index.ts             # Bond registry
+├── docs/                    # Documentation
+│   ├── ADDING_BONDS.md             # Bond creation guide
+│   ├── bond-json-specification.md  # JSON format spec v1.1
+│   ├── bloomberg-reference-data.md # Market validation data
+│   └── CLAUDE.md                   # AI assistant memory
 ├── scripts/                 # Utility scripts
 │   ├── fetch-prices.ts      # Argentina bond price fetcher
 │   ├── fetch-prices-detailed.ts # Detailed price data
 │   └── curve.sh             # Treasury curve fetcher script
-├── assets/                  # Static assets ✨ NEW
-│   └── generated-icon.png   # Project icon
 ├── package.json             # Dependencies and scripts
 ├── vite.config.ts          # Vite configuration
 ├── tailwind.config.ts      # Tailwind CSS configuration
-├── drizzle.config.ts       # Database ORM configuration
 └── components.json         # shadcn/ui configuration
 ```
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-- **React 18** - Modern UI framework
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and dev server
-- **Tailwind CSS** - Utility-first styling
-- **shadcn/ui** - High-quality component library
-- **TanStack Query** - Server state management
-- **Wouter** - Lightweight routing
-- **Lucide React** - Icon library
+- **React 18** - Modern UI framework with hooks
+- **TypeScript** - Type-safe development (strict mode)
+- **Vite** - Lightning-fast build tool and dev server
+- **Tailwind CSS** - Utility-first styling with custom terminal theme
+- **Radix UI** - Accessible, unstyled component primitives
+- **shadcn/ui** - Beautifully designed components built on Radix UI
+- **TanStack Query** - Powerful server state management
+- **Wouter** - Lightweight routing (3KB)
+- **Framer Motion** - Production-ready animations
+- **React Hook Form** - Performant form library
+- **Chart.js / Recharts** - Data visualization
+- **Lucide React** - Beautiful icon library
+- **react-hotkeys-hook** - Keyboard shortcuts
 
 ### Backend
-- **Express.js** - Web application framework
+- **Express.js** - Fast, minimalist web framework
 - **TypeScript** - Type-safe server development
-- **Zod** - Runtime type validation
-- **Drizzle ORM** - Type-safe database toolkit
-- **PostgreSQL** - Primary database (optional)
+- **Zod** - Runtime type validation and parsing
+- **decimal.js** - Arbitrary-precision decimal arithmetic
+- **date-fns** - Modern date utility library
+- **Sentry** - Error tracking and monitoring
+- **File-based storage** - JSON bond repository (no database)
+
+### Shared Libraries
+- **decimal.js** - High-precision financial calculations
+- **date-fns** - Date manipulation and formatting
+- **clsx** - Conditional class name utility
+- **tailwind-merge** - Merge Tailwind CSS classes intelligently
 
 ### Development Tools
-- **tsx** - TypeScript execution
-- **ESBuild** - Fast bundling
-- **PostCSS** - CSS processing
-- **Drizzle Kit** - Database migrations
+- **tsx** - TypeScript execution for Node.js
+- **ESBuild** - Ultra-fast JavaScript bundler
+- **PostCSS** - CSS processing with Tailwind
+- **Prettier** - Code formatting
+- **TypeScript** - Static type checking
 
 ## 📊 Bond Types Supported
 
@@ -211,28 +230,47 @@ bond_calculator/
 
 ### Bond Operations
 ```http
-POST /api/bonds/build          # Build bond with cash flows
+POST /api/bonds/build          # Build bond with cash flows and analytics
 POST /api/bonds/validate       # Validate bond parameters
-POST /api/bonds                # Save bond to database
-GET  /api/bonds/:id            # Retrieve saved bond
+POST /api/bonds/calculate      # Three-way calculator (Price ↔ YTM ↔ Spread)
+POST /api/bonds/save           # Save bond JSON to repository
+GET  /api/bonds/saved          # List all saved bonds with metadata
+GET  /api/bonds/saved/:filename # Load specific saved bond
+DELETE /api/bonds/saved/:filename # Delete saved bond
 ```
 
 ### Golden Bond Templates
 ```http
-GET  /api/bonds/golden         # List all golden bonds
+GET  /api/bonds/golden         # List all golden bond templates
 GET  /api/bonds/golden/:id     # Get specific golden bond
 ```
 
-### Treasury Data (NEW)
+### Market Data
 ```http
 GET  /api/ust-curve           # Get current US Treasury yield curve
+GET  /api/bonds/live-price/:symbol # Get live bond price from data912.com
+```
+
+### Calculator Endpoints
+```http
+POST /api/bonds/calculate
+  Body: {
+    bond: BondDefinition,
+    input: {
+      price?: number,      # Enter to calculate YTM & Spread
+      yield?: number,      # Enter to calculate Price & Spread
+      spread?: number,     # Enter to calculate Price & YTM
+      settlementDate: string
+    },
+    lockedField: "price" | "yield" | "spread"
+  }
 ```
 
 **Live Treasury Data Features:**
 - Real-time yield curve from Federal Reserve Economic Data (FRED)
 - Complete curve: 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y
 - 30-minute caching for performance
-- Used for spread calculations and benchmarking
+- Linear interpolation for spread calculations
 
 ## 📈 Analytics Calculated
 
@@ -246,17 +284,38 @@ GET  /api/ust-curve           # Get current US Treasury yield curve
 
 ## 🎨 UI Features
 
-### Terminal-Inspired Design
-- Dark theme with green accent colors
-- Monospace typography for data display
-- Bloomberg terminal aesthetic
-- Responsive mobile design
+### Terminal Design System
+
+The application features a sophisticated Bloomberg-inspired terminal aesthetic with a Matrix-like theme:
+
+#### Color Tokens
+```css
+--terminal-bg: #0D0D0D      /* Near black background */
+--terminal-green: #00ffa0   /* Bright matrix green accent */
+--terminal-panel: #1F1F1F   /* Dark panel backgrounds */
+--terminal-border: #333333  /* Subtle borders */
+--terminal-text: #D9D9D9    /* Light gray text */
+--terminal-red: #FF4444     /* Error states */
+--terminal-amber: #FFD700   /* Warning states */
+```
+
+#### Typography
+- **Font Family**: IBM Plex Mono (primary), JetBrains Mono (fallback)
+- **Base Size**: 14px desktop, 16px mobile (prevents iOS zoom)
+- **Monospace**: Consistent character width for financial data
+
+#### Visual Effects
+- **Terminal Glow**: Green shadow effects on focus/hover
+- **Matrix Animations**: Blinking cursors and pulsing indicators
+- **Custom Scrollbars**: Styled to match terminal theme
+- **No-scroll Landing**: Desktop landing page with fixed viewport
 
 ### Interactive Components
-- Real-time form validation
-- Auto-saving drafts
+- Real-time form validation with inline errors
+- Auto-saving drafts to localStorage
 - Expandable sections for complex features
-- Toast notifications for user feedback
+- Toast notifications with terminal styling
+- Keyboard navigation support
 
 ### Data Visualization
 - Sortable cash flow tables with expandable view
@@ -427,6 +486,13 @@ DATABASE_URL=postgresql://...    # Optional database connection
 - **Bloomberg Reference Data**: Real market data for Argentina sovereign bonds (GD29, GD30, GD38, etc.)
 - **Professional Accuracy**: Calculator results match Bloomberg terminal values
 - **Expected Results**: GD38 at 72.25 → YTM 10.88%, spread 660bp, duration 5.01
+
+### Keyboard Shortcuts
+- **`/`** - Focus search input from anywhere in the app
+- **`Cmd+K` / `Ctrl+K`** - Quick search focus (alternate shortcut)
+- **`Escape`** - Close dropdowns and modals
+- **`Tab`** - Navigate through form fields
+- **`Enter`** - Submit forms or select search results
 
 ## 🏗️ Architecture Principles
 
