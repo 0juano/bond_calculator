@@ -63,7 +63,7 @@ export default function Landing() {
   return (
     <main className="fixed inset-0 top-[var(--topbar-h)] flex flex-col items-center justify-center px-4 overflow-hidden bg-gradient-to-br from-[#0a0f1c] via-[#111a2b] to-[#0a0f1c]">
       {/* Hero Section with Better Centering */}
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center mb-8 sm:mb-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -71,7 +71,7 @@ export default function Landing() {
           className="w-full max-w-3xl text-center space-y-10"
         >
           {/* Title Section */}
-          <div className="space-y-4">
+          <div className="space-y-4 pt-8 sm:pt-0">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

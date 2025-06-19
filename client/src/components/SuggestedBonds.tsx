@@ -49,8 +49,7 @@ export function SuggestedBonds({ onSelect, className }: SuggestedBondsProps) {
       
       {/* Vertical stack on mobile, horizontal grid on desktop */}
       <div className={cn(
-        "space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 lg:max-w-2xl lg:mx-auto",
-        "px-4 lg:px-0"
+        "space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 lg:max-w-2xl lg:mx-auto"
       )}>
         {suggestedBonds.map((bond) => (
         <button
