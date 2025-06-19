@@ -343,9 +343,9 @@ export default function BondCalculator() {
   }
 
   return (
-    <main className="text-terminal-accent p-4 sm:p-6">
-        {/* Sticky Bond Info + Search Bar */}
-        <section className="sticky top-[var(--topbar-h)] z-20 bg-terminal-panel/90 backdrop-blur-sm px-4 py-3 shadow-lg border-b border-terminal-line/50 -mx-4 sm:-mx-6 mb-4 sm:mb-6">
+    <main className="text-terminal-accent lg:fixed lg:inset-0 lg:top-[var(--topbar-h)] lg:overflow-hidden lg:flex lg:flex-col bg-[#0a0f1c] px-6">
+        {/* Bond Info + Search Bar - Now flush with nav */}
+        <section className="lg:relative lg:flex-shrink-0 z-20 py-3 border-b border-terminal-accent/30 -mx-6 px-6">
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
             {/* Left: Current Bond Info */}
             <div className="flex-1">
@@ -379,9 +379,6 @@ export default function BondCalculator() {
                       </span>
                     </div>
                   </div>
-                  <div className="text-xs bg-terminal-accent text-terminal-bg px-2 py-1 rounded self-start">
-                    Active
-                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -414,29 +411,31 @@ export default function BondCalculator() {
           </div>
         </section>
 
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          {/* Analytics Grid with Animation */}
-          <Grid 
-            show={true}
-            bond={bond}
-            bondResult={bondResult}
-            calculatorState={calculatorState}
-            predefinedCashFlows={predefinedCashFlows}
-            onBondSelect={handleBondSelect}
-            recentBonds={getRecentBonds()}
-          />
+        <div className="lg:flex-1 lg:overflow-y-auto lg:overflow-x-hidden py-4 sm:py-6">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+            {/* Analytics Grid with Animation */}
+            <Grid 
+              show={true}
+              bond={bond}
+              bondResult={bondResult}
+              calculatorState={calculatorState}
+              predefinedCashFlows={predefinedCashFlows}
+              onBondSelect={handleBondSelect}
+              recentBonds={getRecentBonds()}
+            />
 
-          {/* Error Display */}
-          {calculatorState.error && (
-            <Card className="bg-terminal-panel border-terminal-warn">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 p-4 bg-terminal-warn/20 border border-terminal-warn rounded">
-                  <AlertTriangle className="h-5 w-5 text-terminal-warn" />
-                  <span className="text-terminal-warn">{calculatorState.error}</span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {/* Error Display */}
+            {calculatorState.error && (
+              <Card className="bg-terminal-panel border-terminal-warn">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 p-4 bg-terminal-warn/20 border border-terminal-warn rounded">
+                    <AlertTriangle className="h-5 w-5 text-terminal-warn" />
+                    <span className="text-terminal-warn">{calculatorState.error}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
     </main>
   );

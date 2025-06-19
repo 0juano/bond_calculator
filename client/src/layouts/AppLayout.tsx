@@ -10,15 +10,16 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [location] = useLocation();
   const isLanding = location === "/";
+  const isCalculator = location.startsWith("/calculator");
   
   return (
-    <div className={isLanding ? "no-scroll-desktop" : ""}>
+    <div className={isLanding || isCalculator ? "no-scroll-desktop" : ""}>
       {/* Desktop navigation */}
       <TopBar />
       {/* Mobile navigation */}
       <MobileTopBar />
-      {isLanding ? (
-        // Landing page without wrapper
+      {(isLanding || isCalculator) ? (
+        // Landing and Calculator pages without wrapper
         children
       ) : (
         // Other pages with normal layout

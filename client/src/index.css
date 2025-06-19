@@ -6,9 +6,9 @@
 
 :root {
   /* Layout - Mobile-first navigation heights */
-  --topbar-h: 3rem; /* 48px - keep current for now */
-  --nav-height: 64px;
-  --nav-height-mobile: 56px;
+  --topbar-h: 2.4rem; /* 48px * 0.8 = 38.4px */
+  --nav-height: 51.2px; /* 64px * 0.8 */
+  --nav-height-mobile: 44.8px; /* 56px * 0.8 */
   
   /* Terminal colors */
   --terminal-bg: 0 0% 5%; /* #0D0D0D */
@@ -54,10 +54,11 @@
   }
 
   body {
-    @apply font-mono antialiased bg-background text-foreground;
+    @apply font-mono antialiased text-foreground;
     font-family: 'IBM Plex Mono', Menlo, Consolas, 'Courier New', monospace;
-    font-size: 14px;
+    font-size: 11.2px; /* 14px * 0.8 = 11.2px to match 80% zoom */
     overflow: auto;
+    background-color: #0a0f1c; /* Consistent terminal blue background */
   }
 
   /* Terminal-specific styles */
@@ -274,12 +275,12 @@
 /* Mobile responsive */
 @media (max-width: 640px) {
   :root {
-    --topbar-h: 2.5rem; /* 40px on mobile */
+    --topbar-h: 2rem; /* 40px * 0.8 = 32px on mobile */
     --nav-height: var(--nav-height-mobile);
   }
   
   body {
-    font-size: 16px; /* Prevent iOS zoom on input focus */
+    font-size: 12.8px; /* 16px * 0.8 = 12.8px */
   }
 }
 
