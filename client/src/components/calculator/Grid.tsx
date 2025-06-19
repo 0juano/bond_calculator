@@ -14,6 +14,14 @@ interface GridProps {
   bondResult: BondResult | null;
   calculatorState: any; // Type from useCalculatorState
   predefinedCashFlows?: any[];
+  onBondSelect?: (bondId: string) => void;
+  recentBonds?: Array<{
+    id: string;
+    name: string;
+    coupon: string;
+    maturity: string;
+    lastViewed: Date | string;
+  }>;
 }
 
 /**
@@ -26,7 +34,9 @@ export function Grid({
   bond, 
   bondResult, 
   calculatorState, 
-  predefinedCashFlows 
+  predefinedCashFlows,
+  onBondSelect,
+  recentBonds
 }: GridProps) {
   const [shouldPulse, setShouldPulse] = useState(false);
   
@@ -39,9 +49,11 @@ export function Grid({
     }
   }, [calculatorState.analytics, calculatorState.isCalculating]);
   
-  if (!show || !bond) {
+  if (!show) {
     return null;
   }
+
+  // Always show the grid, even when no bond is selected
 
   return (
     <motion.div
@@ -53,10 +65,11 @@ export function Grid({
       {/* Panel 1: Bond Pricing Calculator */}
       <PricingPanel 
         calculatorState={calculatorState} 
-        bond={bond} 
+        bond={bond || undefined} 
         className={cn(
           "p-4 lg:p-5 border border-terminal-line rounded-md",
-          shouldPulse && "animate-pulse"
+          shouldPulse && "animate-pulse",
+          !bond && "opacity-50"
         )}
       />
       
@@ -66,50 +79,39 @@ export function Grid({
         isCalculating={calculatorState.isCalculating} 
         className={cn(
           "p-4 lg:p-5 border border-terminal-line rounded-md",
-          shouldPulse && "animate-pulse"
+          shouldPulse && "animate-pulse",
+          !bond && "opacity-50"
         )}
       />
       
       {/* Panel 3: Price Sensitivity */}
-      {calculatorState.input.price ? (
-        <PriceSensitivityPanel 
-          bond={bond}
-          currentPrice={calculatorState.input.price}
-          settlementDate={calculatorState.input.settlementDate}
-          predefinedCashFlows={predefinedCashFlows}
-          className="p-4 lg:p-5 border border-terminal-line rounded-md"
-        />
-      ) : (
-        <div className="p-4 lg:p-5 border border-terminal-line rounded-md bg-terminal-panel flex items-center justify-center min-h-[200px]">
-          <div className="text-center">
-            <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 mx-auto text-terminal-txt/40 mb-3 lg:mb-4" />
-            <p className="text-sm lg:text-base text-terminal-txt/60">Enter a price to see sensitivity analysis</p>
-          </div>
-        </div>
-      )}
+      <PriceSensitivityPanel 
+        bond={bond}
+        currentPrice={calculatorState.input.price || 100}
+        settlementDate={calculatorState.input.settlementDate}
+        predefinedCashFlows={predefinedCashFlows}
+        className={cn(
+          "p-4 lg:p-5 border border-terminal-line rounded-md",
+          !bond && "opacity-50"
+        )}
+      />
       
       {/* Panel 4: Cash Flow Schedule */}
-      {bondResult?.cashFlows ? (
-        <CashFlowSchedulePanel 
-          cashFlows={bondResult.cashFlows}
-          isLoading={calculatorState.isCalculating}
-          settlementDate={calculatorState.input.settlementDate}
-          bond={{
-            faceValue: bond.faceValue,
-            paymentFrequency: bond.paymentFrequency,
-            couponRate: bond.couponRate,
-            couponRateChanges: bond.couponRateChanges || []
-          }}
-          className="p-4 lg:p-5 border border-terminal-line rounded-md"
-        />
-      ) : (
-        <div className="p-4 lg:p-5 border border-terminal-line rounded-md bg-terminal-panel flex items-center justify-center min-h-[200px]">
-          <div className="text-center">
-            <CalendarDays className="h-6 w-6 lg:h-8 lg:w-8 mx-auto text-terminal-txt/40 mb-3 lg:mb-4" />
-            <p className="text-sm lg:text-base text-terminal-txt/60">Cash flow schedule will appear here</p>
-          </div>
-        </div>
-      )}
+      <CashFlowSchedulePanel 
+        cashFlows={bondResult?.cashFlows || []}
+        isLoading={calculatorState.isCalculating}
+        settlementDate={calculatorState.input.settlementDate}
+        bond={bond ? {
+          faceValue: bond.faceValue,
+          paymentFrequency: bond.paymentFrequency,
+          couponRate: bond.couponRate,
+          couponRateChanges: bond.couponRateChanges || []
+        } : undefined}
+        className={cn(
+          "p-4 lg:p-5 border border-terminal-line rounded-md",
+          !bond && "opacity-50"
+        )}
+      />
     </motion.div>
   );
 }

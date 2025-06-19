@@ -28,13 +28,40 @@ export default function BondCalculator() {
   // Initialize calculator state once bond is loaded
   const calculatorState = useCalculatorState(bond || undefined, bondResult || undefined, predefinedCashFlows);
 
-  // Global hotkey for search focus
-  useHotkeys('/', (e) => {
-    e.preventDefault();
+  // Keyboard shortcut handler using native event listener (more reliable)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) {
+        e.preventDefault();
+        if (stickySearchRef.current) {
+          stickySearchRef.current.focus();
+          stickySearchRef.current.select();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Alternative hotkey implementation (keeping as backup)
+  useHotkeys(['/', 'cmd+k', 'ctrl+k'], (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     if (stickySearchRef.current) {
       stickySearchRef.current.focus();
+      if (stickySearchRef.current.value) {
+        stickySearchRef.current.select();
+      }
     }
-  }, { enableOnContentEditable: true, enableOnFormTags: true });
+    
+    return false;
+  }, {
+    preventDefault: true,
+    enableOnFormTags: false,
+    enableOnContentEditable: false,
+  });
 
   const handleBondSelect = (selectedBondId: string) => {
     // Navigate to the selected bond - this will trigger the useEffect to load the bond
@@ -43,6 +70,45 @@ export default function BondCalculator() {
 
   const handleSearchChange = (query: string) => {
     // Could add analytics here if needed
+  };
+
+  // Get recent bonds from localStorage
+  const getRecentBonds = () => {
+    try {
+      const stored = localStorage.getItem('recentBonds');
+      if (!stored) return [];
+      
+      const recent = JSON.parse(stored);
+      // Filter out the current bond if it's in the list
+      return recent.filter((b: any) => bond ? b.id !== bondId : true);
+    } catch {
+      return [];
+    }
+  };
+
+  // Save bond to recent history when loaded
+  const saveBondToRecent = (bondData: BondDefinition, bondId: string) => {
+    try {
+      const stored = localStorage.getItem('recentBonds') || '[]';
+      const recent = JSON.parse(stored);
+      
+      // Create new entry
+      const entry = {
+        id: bondId,
+        name: `${bondData.issuer} ${bondData.couponRate}%`,
+        coupon: `${bondData.couponRate}%`,
+        maturity: new Date(bondData.maturityDate).getFullYear().toString(),
+        lastViewed: new Date()
+      };
+      
+      // Remove if already exists and add to front
+      const filtered = recent.filter((b: any) => b.id !== bondId);
+      const updated = [entry, ...filtered].slice(0, 10); // Keep last 10
+      
+      localStorage.setItem('recentBonds', JSON.stringify(updated));
+    } catch (error) {
+      console.error('Failed to save recent bond:', error);
+    }
   };
 
   // Load bond data on mount
@@ -73,6 +139,7 @@ export default function BondCalculator() {
           data = await response.json();
           setBondResult(data);
           setBond(data.bond);
+          saveBondToRecent(data.bond, bondId);
           
         } else if (bondId.startsWith('bond_')) {
           // Saved bonds (user_created, imported, etc.)
@@ -153,6 +220,7 @@ export default function BondCalculator() {
           };
           
           setBond(legacyBond);
+          saveBondToRecent(legacyBond, bondId);
           
           // CRITICAL: Store predefined cash flows for JSON-first architecture
           const hasCashFlows = bondDefinition.cashFlowSchedule && bondDefinition.cashFlowSchedule.length > 0;
@@ -207,6 +275,7 @@ export default function BondCalculator() {
           
           data = await response.json();
           setBond(data);
+          saveBondToRecent(data, bondId);
           
           // Database bonds don't have predefined cash flows
           setPredefinedCashFlows(undefined);
@@ -315,9 +384,8 @@ export default function BondCalculator() {
                   </div>
                 </div>
               ) : (
-                <div>
-                  <h2 className="text-lg font-semibold text-terminal-txt/60">No Bond Selected</h2>
-                  <p className="text-sm text-terminal-txt/40">Choose a bond to begin analysis</p>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-medium text-terminal-txt/50">Bond Calculator</h2>
                 </div>
               )}
             </div>
@@ -354,6 +422,8 @@ export default function BondCalculator() {
             bondResult={bondResult}
             calculatorState={calculatorState}
             predefinedCashFlows={predefinedCashFlows}
+            onBondSelect={handleBondSelect}
+            recentBonds={getRecentBonds()}
           />
 
           {/* Error Display */}

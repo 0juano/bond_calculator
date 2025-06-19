@@ -6,7 +6,7 @@ import { TrendingUp } from "lucide-react";
 import { formatNumber } from "@/lib/bond-utils";
 
 interface PriceSensitivityPanelProps {
-  bond: BondDefinition;
+  bond?: BondDefinition | null;
   currentPrice: number;
   settlementDate: string;
   predefinedCashFlows?: any[];
@@ -110,6 +110,15 @@ export function PriceSensitivityPanel({
     calculateScenarios().catch(console.error);
   }, [bond, currentPrice, settlementDate, predefinedCashFlows]);
 
+  // Show empty state if no bond
+  const emptyScenarios: PriceScenario[] = priceChanges.map((change) => ({
+    priceChange: change,
+    price: 0,
+    isLoading: false,
+    ytm: undefined,
+    spread: undefined,
+  }));
+
   return (
     <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
@@ -130,7 +139,7 @@ export function PriceSensitivityPanel({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {scenarios.map((scenario, index) => (
+              {(bond ? scenarios : emptyScenarios).map((scenario, index) => (
                 <TableRow 
                   key={index} 
                   className={`border-green-800/30 h-7 ${
@@ -151,10 +160,12 @@ export function PriceSensitivityPanel({
                       ? "text-green-300 font-medium" 
                       : "text-green-400"
                   }`}>
-                    {formatNumber(scenario.price, 2)}
+                    {bond ? formatNumber(scenario.price, 2) : '–'}
                   </TableCell>
                   <TableCell className="text-center align-middle font-mono text-xs px-2 py-1">
-                    {scenario.isLoading ? (
+                    {!bond ? (
+                      <span className="text-green-400">–</span>
+                    ) : scenario.isLoading ? (
                       <span className="text-gray-500">...</span>
                     ) : scenario.error ? (
                       <span className="text-red-400">-</span>
@@ -169,7 +180,9 @@ export function PriceSensitivityPanel({
                     )}
                   </TableCell>
                   <TableCell className="text-center align-middle font-mono text-xs px-2 py-1">
-                    {scenario.isLoading ? (
+                    {!bond ? (
+                      <span className="text-green-400">–</span>
+                    ) : scenario.isLoading ? (
                       <span className="text-gray-500">...</span>
                     ) : scenario.error || scenario.spread === undefined ? (
                       <span className="text-red-400">-</span>
