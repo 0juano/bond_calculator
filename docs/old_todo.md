@@ -1,7 +1,7 @@
-# 📋 **Bond Calculator - Exhaustive Implementation TODO**
+# 📋 **BondTerminal - Exhaustive Implementation TODO**
 
 ## **🎯 Project Overview**
-Building a Bloomberg YAS-style interactive bond calculator that allows real-time price ↔ yield calculations, scenario analysis, and risk metrics visualization. The calculator will integrate with the existing bond builder system and provide a professional trading workstation experience.
+Building a Bloomberg YAS-style interactive BondTerminal that allows real-time price ↔ yield calculations, scenario analysis, and risk metrics visualization. The BondTerminal will integrate with the existing bond builder system and provide a professional trading workstation experience.
 
 **Key Features**:
 - Interactive price/yield/spread calculations
@@ -18,7 +18,7 @@ Building a Bloomberg YAS-style interactive bond calculator that allows real-time
 ### **TODO #0.5: Observability & Monitoring Infrastructure** 
 *Priority: CRITICAL | Time: 2 hours | Dependencies: None*
 
-**Objective**: Set up logging, error tracking, and performance monitoring before building calculator features
+**Objective**: Set up logging, error tracking, and performance monitoring before building BondTerminal features
 
 **Current State**: 
 - No centralized error tracking
@@ -66,7 +66,7 @@ function calculateYTM(bond: Bond): number {
 **Alert Thresholds**:
 - YTM calculation > 200ms
 - Frontend error rate > 1%
-- Calculator page load > 2s
+- BondTerminal page load > 2s
 - Memory usage > 80%
 
 **File Changes Required**:
@@ -87,25 +87,25 @@ function calculateYTM(bond: Bond): number {
 ### **TODO #1: Fix Routing and Page Structure** 
 *Priority: CRITICAL | Time: 45 minutes | Dependencies: None*
 
-**Objective**: Establish proper routing infrastructure for the calculator
+**Objective**: Establish proper routing infrastructure for the BondTerminal
 
 **Current State**: 
-- Basic routing exists but calculator route missing
-- App.tsx needs update to include calculator route
+- Basic routing exists but BondTerminal route missing
+- App.tsx needs update to include BondTerminal route
 - Error in import for non-existent bond-calculator page
 
 **Technical Details**:
-- Update `client/src/App.tsx` to include calculator route `/calculator/:bondId?`
+- Update `client/src/App.tsx` to include BondTerminal route `/calculator/:bondId?`
 - Handle optional bondId parameter (for direct deep linking to specific bonds)
 - Implement route guards to prevent access without bond data
-- Add breadcrumb navigation between builder and calculator
+- Add breadcrumb navigation between builder and BondTerminal
 
 **Implementation Notes**:
 ```typescript
 // Route structure needed:
 // /calculator              -> Bond selector screen
-// /calculator/123          -> Calculator for bond ID 123  
-// /calculator/golden:al30d -> Calculator for golden bond AL30D
+// /calculator/123          -> BondTerminal for bond ID 123  
+// /calculator/golden:al30d -> BondTerminal for golden bond AL30D
 
 // App.tsx changes needed:
 function Router() {
@@ -121,12 +121,12 @@ function Router() {
 ```
 
 **File Changes Required**:
-- `client/src/App.tsx` - Add calculator route
+- `client/src/App.tsx` - Add BondTerminal route
 - Create `client/src/pages/bond-calculator.tsx` 
 
 **Challenges**:
 - Need to handle both saved bonds (numeric IDs) and golden bonds (string IDs)
-- URL state management for bookmarking calculator configurations
+- URL state management for bookmarking BondTerminal configurations
 - Proper error handling for invalid bond IDs
 - TypeScript import resolution
 
@@ -140,22 +140,22 @@ function Router() {
 
 ---
 
-### **TODO #2: Create Calculator Page Shell** 
+### **TODO #2: Create BondTerminal Page Shell** 
 *Priority: HIGH | Time: 2 hours | Dependencies: TODO #1*
 
-**Objective**: Build the main calculator page with loading states, error handling, and basic layout structure
+**Objective**: Build the main BondTerminal page with loading states, error handling, and basic layout structure
 
 **Current State**: 
-- Page has been created but needs integration with calculator state
+- Page has been created but needs integration with BondTerminal state
 - Basic bond loading logic exists but needs error handling
-- UI layout is placeholder, needs proper calculator interface
+- UI layout is placeholder, needs proper BondTerminal interface
 
 **Technical Details**:
 - Create comprehensive `client/src/pages/bond-calculator.tsx`
 - Implement three distinct UI states:
   1. **Bond Selector Mode**: When no bondId provided - shows selection interface
   2. **Loading Mode**: While fetching bond data and building analytics  
-  3. **Calculator Mode**: Interactive calculator interface when bond is loaded
+  3. **BondTerminal Mode**: Interactive BondTerminal interface when bond is loaded
 - Add proper TypeScript interfaces for all component props
 - Implement error boundaries for graceful error handling
 
@@ -166,7 +166,7 @@ function Router() {
 2. If golden -> fetch from /api/bonds/golden/:id/build  
 3. If regular -> fetch from /api/bonds/:id then build
 4. Handle loading states and errors appropriately
-5. Pass bond data to calculator components
+5. Pass bond data to BondTerminal components
 
 // State management needed:
 interface CalculatorPageState {
@@ -180,7 +180,7 @@ interface CalculatorPageState {
 
 **Layout Structure**:
 ```
-┌─────────── Calculator Header ───────────┐
+┌─────────── BondTerminal Header ───────────┐
 │ Bond Info | Navigation | Quick Actions  │
 ├────────────────────────────────────────┤
 │ ┌─── Pricing Panel ────┐ ┌─ Risk ────┐ │
@@ -207,7 +207,7 @@ interface CalculatorPageState {
 - Malformed API responses
 
 **File Changes Required**:
-- `client/src/pages/bond-calculator.tsx` - Main calculator page
+- `client/src/pages/bond-calculator.tsx` - Main BondTerminal page
 - Update imports in `client/src/App.tsx`
 
 **Acceptance Criteria**:
@@ -349,7 +349,7 @@ interface BondSelectorProps {
 - [ ] Search functionality works across all bond fields
 - [ ] Golden bonds display with special styling (gold border/accent)
 - [ ] Bond cards show essential information clearly
-- [ ] Click handling navigates to calculator with correct bond ID
+- [ ] Click handling navigates to BondTerminal with correct bond ID
 - [ ] Performance optimized for 100+ bonds
 - [ ] Mobile-responsive grid layout
 - [ ] Keyboard accessibility
@@ -359,10 +359,10 @@ interface BondSelectorProps {
 ## **🔧 Phase 2: State Management & Business Logic** 
 *Total Estimated Time: 3-4 days*
 
-### **TODO #4: Calculator State Hook** 
+### **TODO #4: BondTerminal State Hook** 
 *Priority: CRITICAL | Time: 4 hours | Dependencies: TODO #2, TODO #3.5*
 
-**Objective**: Create comprehensive state management for calculator inputs, outputs, and UI interactions with precision-safe calculations
+**Objective**: Create comprehensive state management for BondTerminal inputs, outputs, and UI interactions with precision-safe calculations
 
 **Current State**: 
 - Hook partially created but has TypeScript errors with 'yield' keyword
@@ -438,7 +438,7 @@ interface CalculatorState {
 **File Changes Required**:
 - `client/src/hooks/useCalculatorState.ts` - Fix TypeScript errors
 - `server/routes.ts` - Add new calculate endpoint
-- Update bond calculator page to use the hook
+- Update BondTerminal page to use the hook
 
 **Acceptance Criteria**:
 - [ ] TypeScript compilation passes without errors
@@ -518,7 +518,7 @@ interface CalculateResponse {
 
 ---
 
-### **TODO #6: Calculator Utility Functions** 
+### **TODO #6: BondTerminal Utility Functions** 
 *Priority: MEDIUM | Time: 1 hour | Dependencies: TODO #4*
 
 **Objective**: Create helper functions for formatting, validation, and calculations
@@ -641,7 +641,7 @@ interface LocalInputs {
 
 **File Changes Required**:
 - `client/src/components/calculator/pricing-panel.tsx` - New component
-- Update calculator page to include pricing panel
+- Update BondTerminal page to include pricing panel
 
 **Acceptance Criteria**:
 - [ ] Three-way price/yield/spread relationship works correctly
@@ -825,13 +825,13 @@ interface AccruedInfo {
 ```
 
 **Component Orchestration**:
-- Pass calculator state to all child components
+- Pass BondTerminal state to all child components
 - Handle loading states across all panels
 - Manage error boundaries for individual components
 
 **File Changes Required**:
 - `client/src/components/calculator/calculator-layout.tsx` - New component
-- Update calculator page to use layout component
+- Update BondTerminal page to use layout component
 
 **Acceptance Criteria**:
 - [ ] Responsive grid layout works on all screen sizes
@@ -844,7 +844,7 @@ interface AccruedInfo {
 ## **🔧 Phase 4: Enhanced Features** 
 *Total Estimated Time: 2-3 days*
 
-### **TODO #12: Calculator Header Component** 
+### **TODO #12: BondTerminal Header Component** 
 *Priority: MEDIUM | Time: 1 hour | Dependencies: TODO #11*
 
 **Objective**: Create header with bond information and quick actions
@@ -858,13 +858,13 @@ interface AccruedInfo {
 ### **TODO #13: Export & Share Functionality** 
 *Priority: LOW | Time: 2 hours | Dependencies: TODO #12*
 
-**Objective**: Allow users to export calculator results and share configurations
+**Objective**: Allow users to export BondTerminal results and share configurations
 
 **Features**:
 - PDF report generation
 - CSV export of cash flows and analytics
-- URL sharing with calculator state
-- Save calculator configurations
+- URL sharing with BondTerminal state
+- Save BondTerminal configurations
 
 ### **TODO #14: Keyboard Shortcuts** 
 *Priority: LOW | Time: 1 hour | Dependencies: TODO #11*
@@ -882,7 +882,7 @@ interface AccruedInfo {
 ### **TODO #15: Mobile Optimization** 
 *Priority: MEDIUM | Time: 2 hours | Dependencies: TODO #11*
 
-**Objective**: Ensure calculator works well on mobile devices
+**Objective**: Ensure BondTerminal works well on mobile devices
 
 **Features**:
 - Collapsible panels for small screens
@@ -899,7 +899,7 @@ interface AccruedInfo {
 *Priority: HIGH | Time: 6 hours | Dependencies: All TODOs*
 
 **Test Coverage**:
-- Calculator state hook tests
+- BondTerminal state hook tests
 - Utility function tests  
 - Component rendering tests
 - API endpoint tests
@@ -907,7 +907,7 @@ interface AccruedInfo {
 
 **Golden Test Cases** (Must Pass):
 ```typescript
-// Edge case bonds that commonly break calculators
+// Edge case bonds that commonly break bond analytics systems
 const edgeCaseBonds = [
   {
     name: "Stub Period Floater",
@@ -957,7 +957,7 @@ const edgeCaseBonds = [
 *Priority: MEDIUM | Time: 3 hours | Dependencies: TODO #16*
 
 **Test Scenarios**:
-- End-to-end calculator workflows
+- End-to-end BondTerminal workflows
 - Price/yield solving accuracy
 - Error handling scenarios
 - Mobile responsiveness
@@ -968,7 +968,7 @@ const edgeCaseBonds = [
 **Optimizations**:
 - Memoization of expensive calculations
 - Debouncing of API calls
-- Code splitting for calculator components
+- Code splitting for BondTerminal components
 - Bundle size optimization
 
 ---
@@ -976,12 +976,12 @@ const edgeCaseBonds = [
 ### **TODO #18.5: Cross-Browser CI Matrix** 
 *Priority: MEDIUM | Time: 1 hour | Dependencies: TODO #17*
 
-**Objective**: Ensure calculator works across all browser engines, especially mobile
+**Objective**: Ensure BondTerminal works across all browser engines, especially mobile
 
 **Current State**: 
 - Only testing in Chrome during development
 - Number formatting and keyboard shortcuts may break in other browsers
-- Mobile calculator performance unknown
+- Mobile BondTerminal performance unknown
 
 **CI Matrix Requirements**:
 ```yaml
@@ -1005,7 +1005,7 @@ matrix:
 - **Keyboard Shortcuts**: P/Y/S keys, ESC unlock
 - **Touch Interactions**: Mobile input handling
 - **Decimal Precision**: Financial calculations accuracy
-- **Performance**: Calculator load time < 2s on mobile
+- **Performance**: BondTerminal load time < 2s on mobile
 
 **Browser-Specific Concerns**:
 - **Firefox**: Strict security mode may block some features
@@ -1019,7 +1019,7 @@ matrix:
 - Mobile-specific test scenarios
 
 **Acceptance Criteria**:
-- [ ] All browsers pass calculator functionality tests
+- [ ] All browsers pass BondTerminal functionality tests
 - [ ] Mobile performance meets 2s load time target
 - [ ] Number formatting works across all engines
 - [ ] Keyboard shortcuts work in all desktop browsers
@@ -1208,4 +1208,4 @@ npm test
 - `feature/calculator-ui` - UI components
 - `feature/calculator-polish` - Final polish
 
-This comprehensive TODO provides a roadmap for building a professional-grade bond calculator that integrates seamlessly with the existing bond builder system while providing advanced financial analysis capabilities.
+This comprehensive TODO provides a roadmap for building a professional-grade BondTerminal that integrates seamlessly with the existing bond builder system while providing advanced financial analysis capabilities.

@@ -1,6 +1,6 @@
-# YAS Bond Builder & Cash Flow Calculator
+# BondTerminal
 
-> **A professional-grade bond analysis tool with retro Bloomberg-inspired interface**
+> **A place for your bond calcs.**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
@@ -10,7 +10,7 @@
 
 ## 🎯 Overview
 
-YAS Bond Builder is a comprehensive fixed-income analysis platform that transforms how professionals work with bond data. Built with a retro Bloomberg terminal aesthetic, it provides three integrated components for complete bond analysis workflows.
+BondTerminal is a comprehensive fixed-income analysis platform that transforms how professionals work with bond data. Built with a retro Bloomberg terminal aesthetic, it provides three integrated components for complete bond analysis workflows.
 
 ### 🚀 Project Vision
 
@@ -24,7 +24,7 @@ Transform from a single-bond analysis tool into a **comprehensive bond analysis 
   - Paste text descriptions
   - AI extracts and structures bond parameters automatically
 
-#### **Component 2: Universal Bond Calculator**
+#### **Component 2: Universal BondTerminal Calculator**
 - **Current**: Working calculator with three-way interactive calculations (Price ↔ YTM ↔ Spread)
 - **Future**: Expand capabilities while maintaining Bloomberg-validated accuracy
   - Continue focus on hard currency bonds
@@ -461,7 +461,7 @@ DATABASE_URL=postgresql://...    # Optional database connection
 - Options impact analysis
 - Yield curve studies
 
-## 🎮 Interactive Bond Calculator
+## 🎮 Interactive BondTerminal
 
 ### Three-Way Calculator ✨ **NEW**
 - **Bidirectional Calculations**: Price ↔ YTM ↔ Spread all work as both inputs and outputs
@@ -568,7 +568,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📝 Changelog
 
 ### [Latest] - June 2025 ✨
-- **MAJOR: Three-Way Bond Calculator**
+- **MAJOR: Three-Way BondTerminal Calculator**
   - Price ↔ YTM ↔ Spread bidirectional calculations
   - Intelligent field locking prevents infinite recalculation loops
   - Bloomberg-validated accuracy with professional terminal results
@@ -615,7 +615,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🧠 Technical Learnings & Architecture
 
-### Bond Calculator Architecture Cleanup
+### BondTerminal Architecture Cleanup
 - **Simplified Calculator Stack**: Removed redundant calculator implementations, keeping only:
   - Bond Builder (frontend + API)
   - Production Calculator (`BondCalculatorPro` - robust YTM solver)

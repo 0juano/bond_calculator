@@ -15,7 +15,7 @@ export function TopBar() {
               <div className="w-8 h-8 bg-terminal-accent/10 rounded-md flex items-center justify-center">
                 <Calculator className="w-5 h-5 text-terminal-accent" />
               </div>
-              <span className="text-base font-semibold text-terminal-txt">Bond Calculator</span>
+              <span className="text-base font-semibold text-terminal-txt">BondTerminal</span>
             </a>
           </Link>
         </div>

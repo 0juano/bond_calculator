@@ -1,5 +1,5 @@
 /**
- * Bond Calculator Core - A robust, generalized bond analytics engine
+ * BondTerminal Core - A robust, generalized bond analytics engine
  * 
  * Design Principles:
  * 1. JSON-first: Accepts bonds with predefined cash flows
@@ -99,7 +99,7 @@ export interface BondAnalytics {
 }
 
 /**
- * Core Bond Calculator Class
+ * Core BondTerminal Class
  */
 export class BondCalculator {
   private readonly MAX_ITERATIONS = 100;

@@ -1,4 +1,4 @@
-# Bond Calculator Todo List
+# BondTerminal Todo List
 
 Always keep the @todo.md file in this location in the main folder. When there is a new todo, add it to the top.
 

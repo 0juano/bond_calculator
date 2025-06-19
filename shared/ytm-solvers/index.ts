@@ -1,5 +1,5 @@
 /**
- * YTM Solvers Export - Clean API for bond calculator integration
+ * YTM Solvers Export - Clean API for BondTerminal integration
  */
 
 export { YTMSolver, CashFlowData, YTMResult } from './ytm-interface';

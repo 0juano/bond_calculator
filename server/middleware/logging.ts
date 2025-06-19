@@ -7,7 +7,7 @@ export interface LogContext {
 }
 
 /**
- * Structured logger for bond calculator
+ * Structured logger for BondTerminal
  */
 export class CalculatorLogger {
   private static instance: CalculatorLogger;

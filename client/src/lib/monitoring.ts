@@ -15,7 +15,7 @@ export function initMonitoring() {
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
     
-    // Bond calculator specific configuration
+    // BondTerminal specific configuration
     beforeSend(event) {
       // Filter out non-critical errors in development
       if (import.meta.env.MODE === 'development') {

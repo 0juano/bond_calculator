@@ -1,6 +1,6 @@
 # Tests Directory
 
-This directory contains core test files for the bond calculator, focused on essential validation and functionality testing.
+This directory contains core test files for the BondTerminal, focused on essential validation and functionality testing.
 
 ## Structure
 
@@ -29,16 +29,16 @@ node tests/integration/test-argentina-2038.js
 - **`test-single-bond.js`** - Individual bond testing scenarios
 
 ### Integration Tests  
-- **`test-calculator.js`** - Full calculator workflow testing
+- **`test-calculator.js`** - Full BondTerminal workflow testing
 - **`test-bloomberg-validation.js`** - ⭐ **Critical** - Validates against real Bloomberg terminal data for all Argentina bonds
 - **`test-argentina-2038.js`** - Specific testing for Argentina 2038 bond (GD38)
 
 ## Bloomberg Validation
 
-The **`test-bloomberg-validation.js`** is the most important test as it validates calculator accuracy against professional Bloomberg terminal data for:
+The **`test-bloomberg-validation.js`** is the most important test as it validates BondTerminal accuracy against professional Bloomberg terminal data for:
 - Argentina 2029 (GD29), 2030 (GD30), 2035 (GD35), 2038 (GD38), 2041 (GD41), 2046 (GD46)
 - Expected YTM, duration, and spread values
-- Ensures calculator matches professional-grade accuracy
+- Ensures BondTerminal matches professional-grade accuracy
 
 ## Notes
 

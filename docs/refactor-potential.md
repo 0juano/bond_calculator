@@ -1,4 +1,4 @@
-# Refactoring Potential - Bond Calculator
+# Refactoring Potential - BondTerminal
 
 This document outlines major refactoring opportunities identified through comprehensive codebase analysis. These improvements would enhance maintainability, reduce complexity, and improve performance while maintaining all current functionality.
 

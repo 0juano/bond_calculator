@@ -1,5 +1,5 @@
 /**
- * Production Bond Calculator
+ * Production BondTerminal
  * 
  * A robust, generalized bond analytics engine designed for real-world use.
  * Handles any bond type through JSON-defined cash flows.
@@ -139,7 +139,7 @@ export interface BondAnalyticsResult {
 }
 
 /**
- * Production Bond Calculator
+ * Production BondTerminal
  */
 export class BondCalculatorPro {
   private readonly PRECISION = 1e-10;

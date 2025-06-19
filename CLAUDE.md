@@ -1,6 +1,6 @@
 # Claude Code Project Memory
 
-TypeScript/React bond calculator project with Express backend - A comprehensive fixed-income analysis platform with three components: Bond Builder, Universal Calculator, and Comparables Builder (planned).
+TypeScript/React BondTerminal project with Express backend - A comprehensive fixed-income analysis platform with three components: Bond Builder, Universal Calculator, and Comparables Builder (planned).
 
 @docs/ADDING_BONDS.md
 @docs/bond-json-specification.md
@@ -25,7 +25,7 @@ TypeScript/React bond calculator project with Express backend - A comprehensive 
 6. Make every task and code change you do **as simple as possible**. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. **Everything is about simplicity**
 7. Finally, add a **review section** to the projectplan.md file with a summary of the changes you made and any other relevant information
 
-# BOND CALCULATOR AGENT PRINCIPLES
+# BONDTERMINAL AGENT PRINCIPLES
 
 ## 🔍 RESEARCH-FIRST PRINCIPLE 🔍
 
@@ -116,7 +116,7 @@ TypeScript/React bond calculator project with Express backend - A comprehensive 
 
 This principle must NEVER be violated. Bond JSONs describe behavior, not results. 
 
-# BOND CALCULATOR FUNCTIONALITY
+# BONDTERMINAL FUNCTIONALITY
 
 ## 🎯 Three-Way Calculator (Critical Feature)
 

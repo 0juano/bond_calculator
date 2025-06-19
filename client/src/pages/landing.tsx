@@ -78,7 +78,7 @@ export default function Landing() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-terminal-accent leading-tight"
             >
-              Bond Calculator
+              BondTerminal
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0 }}
@@ -86,7 +86,7 @@ export default function Landing() {
               transition={{ delay: 0.3, duration: 0.5 }}
               className="text-lg sm:text-xl md:text-2xl text-terminal-txt/60"
             >
-              Professional fixed-income analysis
+              A place for your bond calcs.
             </motion.p>
           </div>
 

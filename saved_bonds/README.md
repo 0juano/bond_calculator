@@ -1,6 +1,6 @@
 # Saved Bonds
 
-This directory contains bond JSON files saved from the Bond Builder for later use in the Bond Calculator.
+This directory contains bond JSON files saved from the Bond Builder for later use in the BondTerminal.
 
 ## Structure
 
@@ -53,11 +53,11 @@ All saved bonds follow the `CleanBondDefinition` schema with **exogenous variabl
 - Bonds are saved with descriptive filenames: `{issuer}_{coupon}pct_{maturity}_{timestamp}.json`
 
 ### Loading Bonds
-- Saved bonds can be loaded into the Bond Calculator
+- Saved bonds can be loaded into the BondTerminal
 - Use the bond registry (`index.ts`) to manage available bonds
 
 ### Exporting vs. Saving
-- **SAVE**: Stores in repository for later calculator use
+- **SAVE**: Stores in repository for later BondTerminal use
 - **EXPORT**: Downloads files for user's local machine
 
 ## File Naming Convention

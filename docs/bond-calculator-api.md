@@ -1,8 +1,8 @@
-# Bond Calculator API Documentation
+# BondTerminal API Documentation
 
 ## Overview
 
-The Bond Calculator is a robust, generalized analytics engine designed to handle any type of bond through JSON-defined cash flows. It provides comprehensive bond analytics including pricing, yields, risk metrics, and spread calculations.
+The BondTerminal is a robust, generalized analytics engine designed to handle any type of bond through JSON-defined cash flows. It provides comprehensive bond analytics including pricing, yields, risk metrics, and spread calculations.
 
 ## Key Features
 
@@ -35,7 +35,7 @@ console.log(`Spread: ${analytics.spreads?.treasury} bps`);
 
 ## Bond Definition Format
 
-The calculator accepts bonds in the following JSON format:
+The BondTerminal accepts bonds in the following JSON format:
 
 ```typescript
 interface Bond {
@@ -292,7 +292,7 @@ for (const yield of yields) {
 
 ## Error Handling
 
-The calculator includes comprehensive error handling:
+The BondTerminal includes comprehensive error handling:
 
 ```typescript
 try {
@@ -309,14 +309,14 @@ try {
 
 ## Integration with Bond Builder
 
-The calculator is designed to work seamlessly with bonds created by the Bond Builder:
+The BondTerminal is designed to work seamlessly with bonds created by the Bond Builder:
 
 ```typescript
 // Load bond from Bond Builder
 const bondJson = await fetch('/api/bonds/golden/ae38d-argentina');
 const bondData = await bondJson.json();
 
-// Convert to calculator format
+// Convert to BondTerminal format
 const bond: Bond = {
   faceValue: bondData.bondInfo.faceValue,
   currency: bondData.bondInfo.currency,
@@ -349,7 +349,7 @@ const analytics = calculator.analyze({
 - **Caching**: Consider caching calculation results for frequently accessed bonds
 - **Precision**: Uses Decimal.js for high-precision calculations
 - **Convergence**: YTM solver typically converges in 5-15 iterations
-- **Batch Processing**: For multiple bonds, reuse the calculator instance
+- **Batch Processing**: For multiple bonds, reuse the BondTerminal instance
 
 ## Limitations
 

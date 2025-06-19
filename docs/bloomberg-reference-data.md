@@ -1,6 +1,6 @@
 # Bloomberg Reference Data - Argentina Sovereign Bonds
 
-This file contains real market data from Bloomberg terminal to validate our bond calculator accuracy.
+This file contains real market data from Bloomberg terminal to validate our BondTerminal accuracy.
 
 ## Current Market Data (June 2025)
 
@@ -20,7 +20,7 @@ This file contains real market data from Bloomberg terminal to validate our bond
 3. **Spread Levels**: OAS ranges from ~600-660 bps across the curve
 4. **Yield Curve**: Slight inversion with longer bonds showing similar yields to shorter ones
 
-## Calculator Validation Targets
+## BondTerminal Validation Targets
 
 ### Argentina 2038 (GD38) - Primary Test Bond
 - **At Price 72.25**: Yield 10.88%, OAS 660bp, Duration 5.01
@@ -31,10 +31,10 @@ This file contains real market data from Bloomberg terminal to validate our bond
 
 ## Testing Protocol
 
-1. Load Argentina 2038 bond in calculator
+1. Load Argentina 2038 bond in BondTerminal
 2. Enter price 72.25 → Should show YTM ~10.88%, spread ~660bp, duration ~5.01
 3. Enter price 80.00 → Should show YTM ~10.4%, spread ~620bp
-4. Verify calculator matches Bloomberg professional terminal results
+4. Verify BondTerminal matches Bloomberg professional terminal results
 
 ## Notes
 

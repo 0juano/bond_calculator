@@ -15,8 +15,8 @@ export function HeroLayout({ children, suggestedBonds }: HeroLayoutProps) {
     <div className="hero min-h-[40vh] bg-gradient-to-br from-[#0a0f1c] to-[#111a2b] flex flex-col justify-start pt-[calc(var(--topbar-h)+2rem)]">
       {/* Logo/Brand Area */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-terminal-accent mb-2">Bond Calculator</h1>
-        <p className="text-sm text-terminal-txt/60">Professional fixed-income analysis</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-terminal-accent mb-2">BondTerminal</h1>
+        <p className="text-sm text-terminal-txt/60">A place for your bond calcs.</p>
       </div>
       
       {/* Search container with mobile-first responsive width */}

@@ -465,9 +465,9 @@ export class MemStorage implements IStorage {
     return this.calculateWithProductionEngine(bond, cashFlows);
   }
 
-  // Method using the robust production bond calculator
+  // Method using the robust production BondTerminal
   private async calculateWithProductionEngine(bond: InsertBond, cashFlows: CashFlowResult[]): Promise<BondAnalytics> {
-    console.log('🚀 Using production bond calculator engine');
+    console.log('🚀 Using production BondTerminal engine');
     
     const calculator = new BondCalculatorPro();
     const settlementDate = new Date((bond as any).settlementDate || new Date());

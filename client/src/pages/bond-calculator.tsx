@@ -382,7 +382,7 @@ export default function BondCalculator() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base font-medium text-terminal-txt/50">Bond Calculator</h2>
+                  <h2 className="text-base font-medium text-terminal-txt/50">BondTerminal</h2>
                 </div>
               )}
             </div>
