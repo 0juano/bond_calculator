@@ -203,7 +203,10 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
     );
   }
 
-  if (!futureFlows.length) {
+  // Show empty table structure when no bond is selected
+  if (!bond || !futureFlows.length) {
+    const emptyRows = Array(9).fill(null);
+    
     return (
       <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
@@ -213,11 +216,26 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <CalendarDays className="h-8 w-8 mx-auto text-terminal-txt/40 mb-4" />
-            <p className="text-terminal-txt/60">No future payments</p>
-            <p className="text-sm text-terminal-txt/40">All payments are in the past</p>
-          </div>
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow className="border-green-800/30 hover:bg-transparent">
+                <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Date</TableHead>
+                <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Coupon</TableHead>
+                <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Principal</TableHead>
+                <TableHead className="text-terminal-accent font-mono text-xs h-8 px-2 text-center">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {emptyRows.map((_, index) => (
+                <TableRow key={index} className="border-green-800/30 hover:bg-gray-800/30">
+                  <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">–</TableCell>
+                  <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">–</TableCell>
+                  <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">–</TableCell>
+                  <TableCell className="font-mono text-xs text-terminal-accent px-2 py-1 text-center align-middle">–</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     );

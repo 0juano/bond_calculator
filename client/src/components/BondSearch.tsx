@@ -190,6 +190,17 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
     onChange?.(value);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      // Clear search and close dropdown
+      setSearchQuery("");
+      setIsOpen(false);
+      // Blur the input to remove focus
+      e.currentTarget.blur();
+    }
+  };
+
   const formatBondDisplay = (bond: BondOption): string => {
     const issuer = bond.metadata?.issuer || bond.bondInfo?.issuer || bond.name || 'Unknown';
     const coupon = bond.metadata?.couponRate || bond.bondInfo?.couponRate || 0;
@@ -225,7 +236,7 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
       <div className="relative">
-        <Search className="absolute left-3 sm:left-4 md:left-5 top-1/2 transform -translate-y-1/2 h-4 sm:h-5 md:h-6 w-4 sm:w-5 md:w-6 text-terminal-txt/60 z-10" />
+        <Search className="absolute left-3 sm:left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 h-4 sm:h-4 md:h-5 w-4 sm:w-4 md:w-5 text-terminal-txt/60 z-10" />
         <Input
           ref={ref}
           type="text"
@@ -233,11 +244,12 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
           value={searchQuery}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setIsOpen(true)}
+          onKeyDown={handleKeyDown}
           tabIndex={0}
           className={cn(
-            "h-12 sm:h-14 md:h-16 pl-10 sm:pl-12 md:pl-14 pr-4 rounded-full",
+            "h-10 sm:h-11 md:h-12 pl-9 sm:pl-10 md:pl-11 pr-4 rounded-full",
             "border-terminal-line bg-terminal-panel/50 backdrop-blur-sm",
-            "text-terminal-accent placeholder:text-terminal-txt/50 text-base sm:text-lg md:text-xl",
+            "text-terminal-accent placeholder:text-terminal-txt/50 text-sm sm:text-sm md:text-base",
             "focus:ring-2 focus:ring-terminal-accent/50 focus:border-terminal-accent/50",
             "transition-all duration-200",
             "shadow-lg shadow-black/20",
