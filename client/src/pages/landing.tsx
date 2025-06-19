@@ -116,8 +116,10 @@ export default function Landing() {
             <p className="text-base text-terminal-txt/40">
               Type ticker, CUSIP, or issuer name to begin bond analysis
             </p>
-            <p className="text-sm text-terminal-txt/30">
-              Press <kbd className="px-2 py-1 bg-terminal-panel/50 border border-terminal-line/50 rounded text-xs">⁄</kbd> or <kbd className="px-2 py-1 bg-terminal-panel/50 border border-terminal-line/50 rounded text-xs">⌘K</kbd> to focus search
+            <p className="text-sm text-terminal-txt/30 hidden md:block">
+              <span className="search-hint">
+                Press <kbd className="px-2 py-1 bg-terminal-panel/50 border border-terminal-line/50 rounded text-xs">⁄</kbd> or <kbd className="px-2 py-1 bg-terminal-panel/50 border border-terminal-line/50 rounded text-xs">⌘K</kbd> to focus search
+              </span>
             </p>
           </motion.div>
         </motion.div>
