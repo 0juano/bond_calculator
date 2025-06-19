@@ -282,3 +282,13 @@
     font-size: 16px; /* Prevent iOS zoom on input focus */
   }
 }
+
+/* Desktop no-scroll for landing page */
+@media (min-width: 1024px) {
+  /* Prevent body from scrolling while on the landing route only.
+     Use a route-scoped class so other pages keep normal scrolling. */
+  .no-scroll-desktop {
+    overflow: hidden;
+    height: 100vh;
+  }
+}

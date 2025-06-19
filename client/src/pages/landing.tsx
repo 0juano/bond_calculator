@@ -61,9 +61,9 @@ export default function Landing() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#111a2b] to-[#0a0f1c]">
+    <main className="fixed inset-0 top-[var(--topbar-h)] flex flex-col items-center justify-center px-4 overflow-hidden bg-gradient-to-br from-[#0a0f1c] via-[#111a2b] to-[#0a0f1c]">
       {/* Hero Section with Better Centering */}
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-var(--topbar-h))] px-4">
+      <div className="flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -131,9 +131,9 @@ export default function Landing() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ delay: 0.6, duration: 0.4 }}
-            className="absolute bottom-0 left-0 right-0 pb-16 px-4"
+            className="mt-12 lg:absolute lg:bottom-8 px-4 w-full"
           >
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto">
               <SuggestedBonds onSelect={handleBondSelect} />
             </div>
           </motion.section>
