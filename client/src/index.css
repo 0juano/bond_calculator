@@ -270,6 +270,11 @@
   .menu-trigger {
     @apply min-w-[44px] min-h-[44px] touch-manipulation;
   }
+
+  /* Safe area utility for iOS notch */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Mobile responsive */

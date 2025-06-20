@@ -343,40 +343,31 @@ export default function BondCalculator() {
   }
 
   return (
-    <main className="text-terminal-accent lg:fixed lg:inset-0 lg:top-[var(--topbar-h)] lg:overflow-hidden lg:flex lg:flex-col bg-[#0a0f1c] px-6">
+    <main className="text-terminal-accent pt-[var(--nav-height-mobile)] sm:pt-[var(--topbar-h)] lg:fixed lg:inset-0 lg:top-[var(--topbar-h)] lg:pt-0 lg:overflow-hidden lg:flex lg:flex-col bg-[#0a0f1c] px-6">
         {/* Bond Info + Search Bar - Now flush with nav */}
-        <section className="lg:relative lg:flex-shrink-0 z-20 pt-6 pb-3 lg:py-3 border-b border-terminal-accent/30 -mx-6 px-6">
+        <section className="lg:relative lg:flex-shrink-0 z-20 safe-top pt-4 pb-3 lg:pt-5 lg:pb-4 border-b border-terminal-accent/30 -mx-6 px-6">
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
             {/* Left: Current Bond Info */}
             <div className="flex-1">
               {bond ? (
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div className="flex-1">
-                    <h2 className="text-base sm:text-lg font-semibold text-terminal-accent mb-1">
+                    <h2 className="whitespace-nowrap font-bold text-lg sm:text-xl text-terminal-accent mb-1">
                       📊 {bond.issuer === 'REPUBLIC OF ARGENTINA' ? 
                         `ARGENT ${bond.couponRate} ${new Date(bond.maturityDate).getFullYear().toString().slice(-2)}` :
                         `${bond.issuer} ${bond.couponRate}% ${new Date(bond.maturityDate).getFullYear()}`
                       }
                     </h2>
                     <div className="w-full flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-x-2 gap-y-0.5 text-xs sm:text-xs text-terminal-txt/60 whitespace-normal break-words overflow-hidden">
-                      <span className="flex items-center gap-1 truncate sm:whitespace-nowrap">
-                        <Building2 className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{bond.issuer}</span>
-                      </span>
+                      <p className="text-xs opacity-80">
+                        {bond.issuer} | {bond.couponRate}% | Matures&nbsp;{new Date(bond.maturityDate).getFullYear()}
+                      </p>
                       {bond.isin && (
                         <span className="truncate sm:whitespace-nowrap">ISIN: {bond.isin}</span>
                       )}
                       {bond.cusip && (
                         <span className="hidden sm:inline truncate">CUSIP: {bond.cusip}</span>
                       )}
-                      <span className="flex items-center gap-1 truncate sm:whitespace-nowrap">
-                        <Percent className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{bond.couponRate}% Coupon</span>
-                      </span>
-                      <span className="flex items-center gap-1 truncate sm:whitespace-nowrap">
-                        <Calendar className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">Matures {new Date(bond.maturityDate).getFullYear()}</span>
-                      </span>
                     </div>
                   </div>
                 </div>
