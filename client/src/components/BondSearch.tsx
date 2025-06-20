@@ -236,7 +236,7 @@ export const BondSearch = forwardRef<HTMLInputElement, BondSearchProps>(({
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
       <div className="relative">
-        <Search className="absolute left-3 sm:left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 h-4 sm:h-4 md:h-5 w-4 sm:w-4 md:w-5 text-terminal-txt/60 z-10" />
+        <Search className="absolute left-3 sm:left-3.5 md:left-4 top-1/2 transform -translate-y-1/2 h-4 sm:h-4 md:h-5 w-4 sm:w-4 md:w-5 text-terminal-orange z-10" />
         <Input
           ref={ref}
           type="text"

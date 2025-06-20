@@ -17,7 +17,8 @@ export default {
   				line: '#1c2938',
   				txt: '#cdd6e3',
   				accent: '#00ff6a',
-  				warn: '#ff5c5c'
+  				warn: '#ff5c5c',
+  				orange: '#ff9900'
   			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

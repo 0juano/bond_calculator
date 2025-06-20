@@ -137,10 +137,12 @@ export function PricingPanel({ calculatorState, bond, className }: PricingPanelP
   return (
     <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
-        <CardTitle className="text-lg font-bold header-muted flex items-center gap-2">
-          <Calculator className="h-5 w-5" />
-          Bond Pricing Calculator
-        </CardTitle>
+        <div className="border-l-2 border-terminal-orange pl-3">
+          <CardTitle className="text-lg font-bold header-muted flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Bond Pricing Calculator
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6 flex-1">
         {/* Price Input Field */}

@@ -40,7 +40,7 @@ export const MobileTopBar = () => {
                 <a className={cn(
                   "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
                   location.startsWith("/calculator")
-                    ? "bg-terminal-accent/20 text-terminal-accent"
+                    ? "bg-terminal-orange/20 text-terminal-orange"
                     : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
                 )}>
                   <Calculator className="w-5 h-5" />
@@ -52,7 +52,7 @@ export const MobileTopBar = () => {
                 <a className={cn(
                   "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
                   location === "/builder"
-                    ? "bg-terminal-accent/20 text-terminal-accent"
+                    ? "bg-terminal-orange/20 text-terminal-orange"
                     : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
                 )}>
                   <Hammer className="w-5 h-5" />
@@ -64,7 +64,7 @@ export const MobileTopBar = () => {
                 <a className={cn(
                   "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
                   location === "/"
-                    ? "bg-terminal-accent/20 text-terminal-accent"
+                    ? "bg-terminal-orange/20 text-terminal-orange"
                     : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
                 )}>
                   <span>Home</span>

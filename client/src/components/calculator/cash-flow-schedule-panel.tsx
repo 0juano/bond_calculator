@@ -168,10 +168,12 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
     return (
       <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
-          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Cash-Flow Schedule
-          </CardTitle>
+          <div className="border-l-2 border-terminal-orange pl-3">
+            <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Cash-Flow Schedule
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -187,10 +189,12 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
     return (
       <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
-          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Cash-Flow Schedule
-          </CardTitle>
+          <div className="border-l-2 border-terminal-orange pl-3">
+            <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Cash-Flow Schedule
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -210,10 +214,12 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
     return (
       <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
         <CardHeader>
-          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Cash-Flow Schedule
-          </CardTitle>
+          <div className="border-l-2 border-terminal-orange pl-3">
+            <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Cash-Flow Schedule
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <Table className="w-full">
@@ -245,10 +251,12 @@ export function CashFlowSchedulePanel({ cashFlows, isLoading, settlementDate, bo
     <Card className={`bg-terminal-panel border-terminal-line flex flex-col ${className}`}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Cash-Flow Schedule
-          </CardTitle>
+          <div className="border-l-2 border-terminal-orange pl-3">
+            <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Cash-Flow Schedule
+            </CardTitle>
+          </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="text-xs">

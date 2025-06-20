@@ -122,10 +122,12 @@ export function PriceSensitivityPanel({
   return (
     <Card className={`bg-terminal-panel border-terminal-line ${className}`}>
       <CardHeader>
-        <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Price Sensitivity
-        </CardTitle>
+        <div className="border-l-2 border-terminal-orange pl-3">
+          <CardTitle className="text-base font-bold text-terminal-accent flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Price Sensitivity
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-hidden">
