@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Calculator, Hammer } from "lucide-react";
+import { Calculator, Hammer, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function TopBar() {
@@ -21,7 +21,7 @@ export function TopBar() {
         </div>
         
         {/* Navigation - Fixed width container */}
-        <nav className="flex items-center gap-4 min-w-[240px] justify-end">
+        <nav className="flex items-center gap-4 min-w-[360px] justify-end">
           <Link href="/calculator">
             <a className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-md transition-colors text-sm font-medium min-w-[100px] justify-center",
@@ -43,6 +43,18 @@ export function TopBar() {
             )}>
               <Hammer className="w-4 h-4" />
               <span>Builder</span>
+            </a>
+          </Link>
+          
+          <Link href="/comparables">
+            <a className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-md transition-colors text-sm font-medium min-w-[110px] justify-center",
+              location === "/comparables"
+                ? "bg-terminal-orange/20 text-terminal-orange"
+                : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
+            )}>
+              <BarChart3 className="w-4 h-4" />
+              <span>Comparables</span>
             </a>
           </Link>
         </nav>

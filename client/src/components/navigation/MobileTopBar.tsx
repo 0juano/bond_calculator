@@ -1,6 +1,6 @@
 import { Menu } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import { Calculator, Hammer } from 'lucide-react';
+import { Calculator, Hammer, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -57,6 +57,18 @@ export const MobileTopBar = () => {
                 )}>
                   <Hammer className="w-5 h-5" />
                   <span>Builder</span>
+                </a>
+              </Link>
+              
+              <Link href="/comparables">
+                <a className={cn(
+                  "flex items-center gap-3 px-4 py-4 rounded-md transition-colors text-base font-medium touch-target",
+                  location === "/comparables"
+                    ? "bg-terminal-orange/20 text-terminal-orange"
+                    : "text-terminal-txt/70 hover:text-terminal-accent hover:bg-terminal-accent/10"
+                )}>
+                  <BarChart2 className="w-5 h-5" />
+                  <span>Comparables</span>
                 </a>
               </Link>
               
